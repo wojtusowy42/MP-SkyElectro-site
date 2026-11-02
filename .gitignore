@@ -25,3 +25,6 @@ desktop.ini
 *.f3d
 *.f3z
 *.exr
+
+# Skille do pracy z AI (cudze pliki, nie są częścią strony)
+skills/
