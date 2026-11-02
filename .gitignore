@@ -1,9 +1,27 @@
+# Zależności i wyniki buildu (odtwarzane przez npm install / npm run build)
 node_modules/
 dist/
-.DS_Store
-Thumbs.db
+.astro/
+
+# Sekrety i lokalne ustawienia
 .env
 .env.*
+
+# Logi
 *.log
+npm-debug.log*
+
+# Śmieci systemów i edytorów
+.DS_Store
+Thumbs.db
+desktop.ini
 .vscode/
 .idea/
+
+# Pliki źródłowe 3D i surowe rendery NIE idą do gita (za duże).
+# Do repo trafiają tylko eksporty pod web (src/assets/).
+*.blend
+*.blend1
+*.f3d
+*.f3z
+*.exr

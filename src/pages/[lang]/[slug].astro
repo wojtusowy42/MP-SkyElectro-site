@@ -1,0 +1,136 @@
+---
+/**
+ * Wszystkie podstrony w danym języku: /pl/<slug>/
+ * (produkty, akcesoria, usługi, kontakt). Adresy biorą się ze słownika języka.
+ *
+ * TYMCZASOWO: surowy podgląd danych (kroki konfiguratora, ceny, MOQ), bez wyglądu.
+ * Docelowo każdy rodzaj strony dostanie własny komponent.
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LOCALES } from '../../i18n/locales.ts';
+import { format, getDictionary, productTexts, serviceName } from '../../i18n/index.ts';
+import { alternatesFor, homePath, slugFor } from '../../i18n/routes.ts';
+import { CATALOG } from '../../data/catalog.ts';
+import { getProduct } from '../../data/products/index.ts';
+import { SERVICES } from '../../data/services.ts';
+import { ACCESSORIES } from '../../data/accessories.ts';
+import { SITE } from '../../config/site.ts';
+import { currentPrice, formatPrice, activePromo } from '../../lib/price.ts';
+import type { Price } from '../../data/types.ts';
+
+export const getStaticPaths = (() =>
+  LOCALES.flatMap((lang) =>
+    CATALOG.map((entry) => ({
+      params: { lang, slug: slugFor(lang, entry) },
+      props: { locale: lang, entry },
+    })),
+  )) satisfies GetStaticPaths;
+
+const { locale, entry } = Astro.props;
+const dict = getDictionary(locale);
+const today = new Date(); // dzień buildu
+
+const product = entry.kind === 'product' ? getProduct(entry.id) : undefined;
+const texts = entry.kind === 'product' ? productTexts(dict, entry.id) : undefined;
+const title = texts ? texts.name : entry.kind === 'page' ? dict.pages[entry.id].name : '';
+
+/** Cena jako tekst: '300,00 zł (Cena regularna 350,00 zł; Najniższa cena z 30 dni ...)' */
+function priceText(price: Price): string {
+  const now = currentPrice(price, today);
+  if (now === null) return dict.common.priceOnRequest;
+  const promo = activePromo(price, today);
+  if (!promo || price.regular === null) return formatPrice(now, locale);
+  const extra = [`${dict.common.regularPrice} ${formatPrice(price.regular, locale)}`];
+  if (promo.lowestPrice30Days !== null) {
+    extra.push(
+      format(dict.common.lowestPrice30Days, {
+        price: formatPrice(promo.lowestPrice30Days, locale),
+      }),
+    );
+  }
+  return `${formatPrice(now, locale)} (${extra.join('; ')})`;
+}
+---
+
+<BaseLayout
+  locale={locale}
+  title={title}
+  description={dict.site.description}
+  alternates={alternatesFor(entry)}
+>
+  <p>
+    <a href={homePath(locale)}>{dict.pages.home.title}</a>
+  </p>
+  <h1>{title}</h1>
+
+  {/* ---------- Produkt ---------- */}
+  {product?.status === 'coming-soon' && <p>{dict.common.comingSoon}</p>}
+
+  {product?.configurator && texts && (
+    <>
+      {product.configurator.basePrice && (
+        <p>
+          {priceText(product.configurator.basePrice)} {dict.common.perPiece}
+        </p>
+      )}
+      <ol>
+        {product.configurator.steps.map((step) => (
+          <li>
+            {texts.steps?.[step.id]?.label}
+            <ul>
+              {step.options.map((option) => (
+                <li>
+                  {texts.steps?.[step.id]?.options[option.id]}
+                  {option.price && `: ${priceText(option.price)}`}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+      {product.configurator.quantity.min > 1 && (
+        <p>{format(dict.common.minOrder, { n: product.configurator.quantity.min })}</p>
+      )}
+      {texts.mountingNote && <p>{texts.mountingNote}</p>}
+    </>
+  )}
+
+  {/* ---------- Akcesoria ---------- */}
+  {entry.kind === 'page' &&
+    entry.id === 'accessories' &&
+    (ACCESSORIES.length === 0 ? (
+      <p>{dict.pages.accessories.empty}</p>
+    ) : (
+      <ul>
+        {ACCESSORIES.map((a) => (
+          <li>
+            {dict.accessories.items[a.id]}: {priceText(a.price)}
+          </li>
+        ))}
+      </ul>
+    ))}
+
+  {/* ---------- Usługi ---------- */}
+  {entry.kind === 'page' && entry.id === 'services' && (
+    <ul>
+      {SERVICES.map((s) => (
+        <li>
+          {serviceName(dict, s.id)}
+          {s.status === 'coming-soon' && <> ({dict.common.comingSoon})</>}
+        </li>
+      ))}
+    </ul>
+  )}
+
+  {/* ---------- Kontakt ---------- */}
+  {entry.kind === 'page' &&
+    entry.id === 'contact' &&
+    (SITE.orderEmail ? (
+      <p>
+        <a href={`mailto:${SITE.orderEmail}`}>{SITE.orderEmail}</a>
+      </p>
+    ) : (
+      <p>{dict.pages.contact.noEmail}</p>
+    ))}
+</BaseLayout>

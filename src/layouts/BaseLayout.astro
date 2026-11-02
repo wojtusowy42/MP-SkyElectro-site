@@ -1,0 +1,55 @@
+---
+/**
+ * Szkielet każdej strony: <html>, <head> z SEO, <body>.
+ * Bez żadnych stylów. Wygląd dojdzie później.
+ *
+ * Co trafia do <head>:
+ *  - title, description          → wynik w Google
+ *  - canonical                   → "to jest główny adres tej strony"
+ *  - hreflang (+ x-default)      → "ta sama strona w innych językach jest tu i tu"
+ *  - Open Graph                  → podgląd przy udostępnianiu (Messenger, FB, WhatsApp)
+ */
+import { SITE } from '../config/site.ts';
+import { DEFAULT_LOCALE, HTML_LANG, type Locale } from '../i18n/locales.ts';
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  /** Adres tej strony w każdym języku (z alternatesFor()). */
+  alternates: Record<Locale, string>;
+}
+
+const { locale, title, description, alternates } = Astro.props;
+const absolute = (path: string) => new URL(path, SITE.url).href;
+const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
+---
+
+<!doctype html>
+<html lang={HTML_LANG[locale]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={absolute(alternates[locale])} />
+
+    {Object.entries(alternates).map(([l, path]) => (
+      <link rel="alternate" hreflang={HTML_LANG[l as Locale]} href={absolute(path)} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={absolute(alternates[DEFAULT_LOCALE])} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={absolute(alternates[locale])} />
+    <meta property="og:locale" content={HTML_LANG[locale].replace('-', '_')} />
+    <!-- TODO: og:image (render produktu), gdy będą rendery -->
+
+    {!SITE.indexable && <meta name="robots" content="noindex, nofollow" />}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
