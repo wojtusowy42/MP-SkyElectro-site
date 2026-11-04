@@ -30,20 +30,13 @@ export interface ProductTexts {
   mountingNote?: string;
   /** Opisy (alt) zdjęć produktu, klucz = nazwa pliku renderu bez rozszerzenia. */
   images?: Record<string, string>;
-  /** Teksty strony "Dowiedz się więcej". */
+  /**
+   * Teksty strony "Dowiedz się więcej". Sekcje właściwe jednemu produktowi (np. siatka
+   * wyróżników SkyTimera) komponent czyta wprost ze słownika, z pełnym typem.
+   */
   story?: {
     tagline?: string;
     introDescription?: string;
-    highlights?: {
-      heading: string;
-      dip: { title: string; text: string };
-      size: { title: string; text: string };
-      brain: { title: string; text: string };
-      connector: { title: string; text: string; alt: string };
-      led: { title: string; text: string };
-      tower: { title: string; text: string };
-      bar: { title: string; text: string };
-    };
   };
 }
 

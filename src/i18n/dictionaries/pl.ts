@@ -85,33 +85,46 @@ export const pl = {
         tagline: 'Każda sekunda lotu pod kontrolą.', // roboczy
         introDescription:
           'Animacja: elementy płytki SkyTimer 1 zjeżdżają się w powietrzu i składają w gotową płytkę.',
-        // Siatka "Co wyróżnia". Zdania oznaczone "roboczy" czekają na podręcznik użytkownika.
+        // Siatka "Poznaj SkyTimer 1" (układ jak "Poznaj MacBooka Pro" na apple.com).
+        // Fakty z podręcznika użytkownika V3, chyba że oznaczone "roboczy".
+        // \u00a0 = twarda spacja, \u2011 = twardy łącznik: te miejsca nie łamią się na dwie linie.
         highlights: {
-          heading: 'Co wyróżnia SkyTimer 1.',
+          heading: 'Poznaj SkyTimer 1.',
           dip: {
             title: 'Dziesięć przełączników. Wszystko pod palcem.',
-            text: 'Rząd 10 przełączników DIP prosto na płytce.', // roboczy: co ustawiają (podręcznik)
+            text: 'Czas flop, czas dether i ustawienia timera.',
+            alt: 'Zbliżenie na rząd dziesięciu przełączników DIP z napisem ON',
+            // Liczby pod zdjęciem: przełączniki 1-4 = flop (0,2 / 0,4 / 0,8 / 1,6 s),
+            // 5-10 = dether (15 s ... 8 min, razem 15 min 45 s).
+            stats: [
+              { value: '0,2\u00a0s', label: 'Krok czasu flop.' },
+              { value: '15\u00a0s', label: 'Krok czasu dether.' },
+              { value: '15\u00a0min 45\u00a0s', label: 'Najdłuższy czas dether.' },
+            ],
+          },
+          connector: {
+            title: 'Jedno złącze. Wszystko w\u00a0jednym miejscu.',
+            text: 'Zasilanie, serwo, RDT, przycisk startu, buzzer i LED na jednym złączu 2\u00a0×\u00a07.',
+            alt: 'Płytka SkyTimer 1 z kątowym złączem 2 × 7 i złoconymi pinami',
+          },
+          power: {
+            value: '250\u00a0mAh',
+            title: 'Bardzo niskie zużycie energii.',
+            text: 'Akumulator Li\u2011Pol w zestawie. Ładowanie przez USB\u2011C.',
+          },
+          brain: {
+            title: 'Sprawdzony mózg.',
+            text: 'Mikrokontroler ATmega328P, rezonator 4\u00a0MHz.',
+          },
+          safety: {
+            title: 'Wbudowane zabezpieczenia.',
+            text: 'RDT, Anti Fly Away i ostrzeżenia przy starcie. Zgodny z Aeris RDT i MiniNeurone.',
+            alt: 'Płytka SkyTimer 1 z góry: mikrokontroler, złącze i zworki JP1, JP2',
           },
           size: {
             title: 'Mały. Naprawdę mały.',
             text: 'Zaprojektowany do ciasnej wieży modelu F1E.', // roboczy: wymiary
-          },
-          brain: {
-            title: 'Sprawdzony mózg.',
-            text: 'Mikrokontroler ATmega328P, rezonator 4 MHz.',
-          },
-          connector: {
-            title: 'Jedno złącze.',
-            text: 'Kątowe złącze 2 × 7 wychodzi z boku, więc płytka leży płasko w wieży.',
-            alt: 'Płytka SkyTimer 1 z boku, z kątowym złączem',
-          },
-          led: {
-            title: 'Status na pierwszy rzut oka.',
-            text: 'Dioda LED na płytce pokazuje stan timera.', // roboczy: co sygnalizuje (podręcznik)
-          },
-          tower: {
-            title: 'Pasuje do reszty.',
-            text: 'SkyTimer 1 wchodzi do drukowanej wieży MP SkyElectro i współpracuje z przyciskiem pojemnościowym.',
+            alt: 'Płytka SkyTimer 1 pod kątem, ze złączem i elektroniką',
           },
           bar: {
             title: 'Zestaw albo sama płytka.',

@@ -31,3 +31,7 @@ zrodla/
 
 # Skille do pracy z AI (cudze pliki, nie są częścią strony)
 skills/
+
+# Surowe materiały: pliki .blend, CAD, FBX, rendery w pełnej rozdzielczości, logo, instrukcje.
+# Strona używa tylko eksportów pod web z src/assets/ i public/.
+Raw Assets/

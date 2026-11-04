@@ -1,28 +1,45 @@
 ---
 /**
- * Jeden kafelek w siatce wyróżników (wzór: "Highlights" na stronach produktów Apple).
- * Na górze nagłówek + jedno zdanie, pod spodem obraz/animacja (slot), który wypełnia resztę.
+ * Jeden kafelek w siatce wyróżników (wzór: "Poznaj MacBooka Pro" na apple.com).
+ * Czarna karta na ciemnoszarym tle sekcji, wyśrodkowany nagłówek u góry,
+ * pod nim (opcjonalnie) jedno zdanie, a niżej obraz/grafika ze slotu, która wypełnia resztę.
  *
- * size: rozmiar w siatce 4-kolumnowej (desktop):
- *   large = 2 × 2, wide = 2 × 1, wide3 = 3 × 1, small = 1 × 1.
+ * span: szerokość w siatce 6-kolumnowej (desktop):
+ *   full = cały wiersz, two-thirds = 4/6, half = 3/6, third = 2/6.
+ * Na telefonie każdy kafelek ma pełną szerokość.
+ *
+ * Slot domyślny (obraz) sięga do lewej, prawej i dolnej krawędzi karty, jak zdjęcia u Apple.
+ * Rendery mają czarne tło (#000) jak karta, więc krawędzi obrazu nie widać.
+ * Slot "before": element NAD nagłówkiem (np. duża liczba). Kafelek bez obrazu
+ * (pusty slot domyślny) ma treść wyśrodkowaną w pionie.
  */
 interface Props {
-  size: 'large' | 'wide' | 'wide3' | 'small';
+  span: 'full' | 'two-thirds' | 'half' | 'third';
   title: string;
-  text: string;
-  /** Kolejność w siatce: opóźnia wejście kafelka (80 ms na pozycję). */
+  text?: string | undefined;
+  /** Kolejność w siatce: opóźnia wejście kafelka (90 ms na pozycję). */
   index?: number;
 }
 
-const { size, title, text, index = 0 } = Astro.props;
+const { span, title, text, index = 0 } = Astro.props;
+const hasVisual = Astro.slots.has('default');
 ---
 
-<article class:list={['tile', `tile--${size}`]} style={`--i: ${index}`} data-reveal>
+<article
+  class:list={['tile', `tile--${span}`, { 'tile--text': !hasVisual }]}
+  style={`--i: ${index}`}
+  data-reveal
+>
+  {Astro.slots.has('before') && (
+    <div class="tile__before">
+      <slot name="before" />
+    </div>
+  )}
   <div class="tile__copy">
     <h3 class="tile__title">{title}</h3>
-    <p class="tile__text">{text}</p>
+    {text && <p class="tile__text">{text}</p>}
   </div>
-  {Astro.slots.has('default') && (
+  {hasVisual && (
     <div class="tile__visual">
       <slot />
     </div>
@@ -36,58 +53,65 @@ const { size, title, text, index = 0 } = Astro.props;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    padding: 2.5rem 2.5rem 0;
     border-radius: 1.75rem;
-    background: var(--color-surface-dark);
+    background: var(--color-bg-dark);
     color: var(--color-text-on-dark);
+    text-align: center;
     isolation: isolate;
   }
 
-  /* Cienka jasna krawędź: na czarnym tle kafelek ma ostry, "szklany" brzeg jak u Apple. */
-  .tile::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    border-radius: inherit;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
-    pointer-events: none;
+  .tile--full {
+    grid-column: span 6;
   }
 
-  .tile--large {
-    grid-column: span 2;
-    grid-row: span 2;
+  .tile--two-thirds {
+    grid-column: span 4;
   }
 
-  .tile--wide {
-    grid-column: span 2;
-  }
-
-  .tile--wide3 {
+  .tile--half {
     grid-column: span 3;
+  }
+
+  .tile--third {
+    grid-column: span 2;
+  }
+
+  /* Kafelek bez obrazu: ikona + tekst wyśrodkowane w pionie (jak "24 godziny na baterii"). */
+  .tile--text {
+    justify-content: center;
+    padding-bottom: 2.5rem;
+  }
+
+  .tile__before {
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.25rem;
   }
 
   .tile__copy {
     position: relative;
     z-index: 1;
-    padding: 2.25rem 2.25rem 0;
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  .tile--full .tile__copy {
+    max-width: 42rem;
   }
 
   .tile__title {
-    font-size: 1.75rem;
+    font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem);
     font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.025em;
+    line-height: 1.12;
+    letter-spacing: -0.022em;
     text-wrap: balance;
   }
 
-  .tile--small .tile__title {
-    font-size: 1.375rem;
-  }
-
-  .tile--large .tile__title {
-    font-size: clamp(2rem, 1.5rem + 1vw, 2.5rem);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
+  .tile--text .tile__title {
+    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.028em;
   }
 
   .tile__text {
@@ -99,86 +123,36 @@ const { size, title, text, index = 0 } = Astro.props;
     text-wrap: pretty;
   }
 
-  .tile--small .tile__text {
-    font-size: 0.9375rem;
-  }
-
-  .tile--large .tile__text,
-  .tile--wide .tile__text,
-  .tile--wide3 .tile__text {
-    max-width: 28rem;
-  }
-
-  /* Kafelek bez obrazu: duży nagłówek w kolorach produktu, wyśrodkowany w pionie. */
-  .tile:not(:has(.tile__visual)) {
-    justify-content: center;
-  }
-
-  .tile:not(:has(.tile__visual)) .tile__copy {
-    padding-bottom: 2.25rem;
-  }
-
-  .tile:not(:has(.tile__visual)) .tile__title {
-    width: fit-content;
-    font-size: clamp(2.25rem, 1.4rem + 2.4vw, 3.5rem);
-    line-height: 1.05;
-    letter-spacing: -0.035em;
-    background: linear-gradient(
-      90deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  /* Obraz: miękkie światło za produktem, żeby nie był płaską naklejką na szarym. */
+  /* Obraz od krawędzi do krawędzi: ujemny margines znosi boczny padding karty. */
   .tile__visual {
     position: relative;
     display: grid;
     flex: 1;
     min-height: 0;
+    margin-inline: -2.5rem;
     place-items: center;
   }
 
-  .tile__visual::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: radial-gradient(60% 55% at 50% 60%, rgb(255 255 255 / 0.07), transparent 70%);
-    pointer-events: none;
-  }
-
-  /* Tablet: 2 kolumny. Kafelek 3 × 1 nie ma gdzie się zmieścić, więc robi się mały. */
-  @media (max-width: 1068px) {
-    .tile--wide3 {
-      grid-column: span 1;
-    }
-  }
-
-  /* Telefon: jedna kolumna, kafelki jeden pod drugim. */
   @media (max-width: 734px) {
     .tile,
-    .tile--large,
-    .tile--wide,
-    .tile--wide3 {
+    .tile--full,
+    .tile--two-thirds,
+    .tile--half,
+    .tile--third {
       grid-column: auto;
-      grid-row: auto;
-      min-height: 24rem;
     }
 
-    .tile--large {
-      min-height: 32rem;
+    .tile {
+      padding: 2rem 1.5rem 0;
+      border-radius: 1.5rem;
     }
 
-    .tile:not(:has(.tile__visual)) {
-      min-height: 16rem;
+    .tile--text {
+      padding-bottom: 2rem;
     }
 
-    .tile__copy {
-      padding: 1.75rem 1.75rem 0;
+    .tile__visual {
+      margin-inline: -1.5rem;
     }
   }
 
