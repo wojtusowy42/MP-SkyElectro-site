@@ -19,7 +19,7 @@ export const skytimer1: Product = {
                 price: 30000, // przecena świąteczna
                 from: null,
                 to: null,
-                lowestPrice30Days: null,
+                lowestPrice30Days: 35000, // Omnibus: najniższa cena z 30 dni przed obniżką (potwierdzone przez właściciela 2026-11-04)
               },
             },
           },

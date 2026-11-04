@@ -94,9 +94,17 @@
   function optionPrice(price: Price | undefined) {
     if (!price) return null;
     const now = currentPrice(price, date);
-    if (now === null) return { now: labels.priceOnRequest, old: null };
+    if (now === null) return { now: labels.priceOnRequest, old: null, lowest: null };
     const promo = activePromo(price, date);
-    return { now: fmt(now), old: promo && price.regular !== null ? fmt(price.regular) : null };
+    return {
+      now: fmt(now),
+      old: promo && price.regular !== null ? fmt(price.regular) : null,
+      // Omnibus: przy obniżce zawsze obok najniższa cena z 30 dni przed nią.
+      lowest:
+        promo?.lowestPrice30Days != null
+          ? fill(labels.lowestPrice30Days, { price: fmt(promo.lowestPrice30Days) })
+          : null,
+    };
   }
 
   /** Najniższa cena z 30 dni (Omnibus) dla wybranych opcji w promocji. */
@@ -168,6 +176,7 @@
                 <span class="option__price">
                   {#if price.old}<s>{price.old}</s>{/if}
                   {price.now}
+                  {#if price.lowest}<small class="option__lowest">{price.lowest}</small>{/if}
                 </span>
               {/if}
             </label>
@@ -330,6 +339,16 @@
     font-size: 1rem;
     text-align: right;
     font-variant-numeric: tabular-nums;
+  }
+
+  .option__lowest {
+    display: block;
+    max-width: 11rem;
+    margin-top: 0.25rem;
+    margin-left: auto;
+    color: var(--color-text-2);
+    font-size: 0.75rem;
+    line-height: 1.3;
   }
 
   .option__price s,
