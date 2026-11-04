@@ -1,0 +1,289 @@
+---
+/**
+ * "Co wyróżnia SkyTimer 1": siatka 6 kafelków + pasek z ceną (plan: doc "Sekcja wyróżników").
+ *
+ * Desktop: 4 kolumny, bez pustych pól. Tablet: 2 kolumny. Telefon: 1 kolumna.
+ * Teksty: słownik (products.skytimer-1.story.highlights). Fakty z modelu płytki
+ * i z konfiguratora; to, czego jeszcze nie wiemy, czeka na podręcznik (oznaczone "roboczy").
+ */
+import { Picture } from 'astro:assets';
+import HighlightTile from '../HighlightTile.astro';
+import ChipReveal from '../ChipReveal.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { format, getDictionary, productTexts } from '../../../i18n/index.ts';
+import { configuratorPath } from '../../../i18n/routes.ts';
+import { getProduct } from '../../../data/products/index.ts';
+import { currentPrice, formatPrice } from '../../../lib/price.ts';
+import dipImage from '../../../assets/renders/skytimer-1/konfigurator/pcb-detail-dip.png';
+import topImage from '../../../assets/renders/skytimer-1/story/pcb-top-kadr.png';
+import profileImage from '../../../assets/renders/skytimer-1/story/pcb-profil-kadr.png';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const id = 'skytimer-1';
+const dict = getDictionary(locale);
+const texts = productTexts(dict, id);
+const h = texts.story?.highlights;
+const product = getProduct(id);
+if (!h || !product) throw new Error('Brak tekstów wyróżników SkyTimer 1 w słowniku');
+
+// Cena w pasku: sama płytka (bez przeceny, więc bez wymogu Omnibusa).
+const pcbOption = product.configurator?.steps
+  .find((s) => s.id === 'type')
+  ?.options.find((o) => o.id === 'pcb');
+const pcbPrice = pcbOption?.price ? currentPrice(pcbOption.price, new Date()) : null;
+const [c1, c2] = product.colors ?? [undefined, undefined];
+---
+
+<section
+  class="highlights"
+  aria-labelledby="highlights-title"
+  style={c1 && c2 ? `--accent-from: ${c1}; --accent-to: ${c2}` : undefined}
+>
+  <h2 class="highlights__title" id="highlights-title" data-reveal>
+    {h.heading}
+  </h2>
+
+  <div class="highlights__grid">
+    <HighlightTile size="large" title={h.dip.title} text={h.dip.text} index={0}>
+      <Picture
+        class="highlights__img highlights__img--cover"
+        src={dipImage}
+        alt={texts.images?.['pcb-detail-dip'] ?? ''}
+        formats={['avif', 'webp']}
+        widths={[600, 900, 1200]}
+        sizes="(max-width: 734px) 100vw, 490px"
+        loading="lazy"
+      />
+    </HighlightTile>
+
+    <HighlightTile size="wide" title={h.connector.title} text={h.connector.text} index={1}>
+      <Picture
+        class="highlights__img highlights__img--contain"
+        src={profileImage}
+        alt={h.connector.alt}
+        formats={['avif', 'webp']}
+        widths={[600, 1000]}
+        sizes="(max-width: 734px) 100vw, 490px"
+        loading="lazy"
+      />
+    </HighlightTile>
+
+    <HighlightTile size="small" title={h.brain.title} text={h.brain.text} index={2}>
+      <div class="highlights__chip">
+        <ChipReveal name="ATmega" model="328P" c1={c1} c2={c2} />
+      </div>
+    </HighlightTile>
+
+    <HighlightTile size="small" title={h.size.title} text={h.size.text} index={3}>
+      <Picture
+        class="highlights__img highlights__img--contain"
+        src={topImage}
+        alt={texts.images?.['pcb-top'] ?? ''}
+        formats={['avif', 'webp']}
+        widths={[400, 700]}
+        sizes="(max-width: 734px) 100vw, 240px"
+        loading="lazy"
+      />
+    </HighlightTile>
+
+    <HighlightTile size="small" title={h.led.title} text={h.led.text} index={4}>
+      <span class="highlights__led" aria-hidden="true"></span>
+    </HighlightTile>
+
+    <HighlightTile size="wide3" title={h.tower.title} text={h.tower.text} index={5} />
+  </div>
+
+  <div class="highlights__bar" data-reveal>
+    <div>
+      <p class="highlights__bar-title">{h.bar.title}</p>
+      {pcbPrice !== null && (
+        <p class="highlights__bar-text">
+          {format(h.bar.text, { price: formatPrice(pcbPrice, locale) })}
+        </p>
+      )}
+    </div>
+    <a class="highlights__cta" href={configuratorPath(locale, id)}>
+      {dict.common.order}
+    </a>
+  </div>
+</section>
+
+<script>
+  // Wejście kafelków: raz, gdy wjeżdżają na ekran. Bez JS / z ograniczeniem ruchu: od razu widoczne.
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    document.documentElement.classList.add('reveal-js');
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in');
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.2 },
+    );
+    document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  }
+</script>
+
+<style>
+  .highlights {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(5rem, 12vw, 10rem) var(--gutter) clamp(5rem, 10vw, 8rem);
+    color: var(--color-text-on-dark);
+  }
+
+  .highlights__title {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    font-size: clamp(2.5rem, 1.6rem + 3.2vw, 4.5rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+  }
+
+  .highlights__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: 21rem;
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 1068px) {
+    .highlights__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 734px) {
+    .highlights__grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-rows: auto;
+      gap: 0.75rem;
+    }
+  }
+
+  /* ---------- Obrazy w kafelkach ---------- */
+  .highlights__grid :global(picture) {
+    position: absolute;
+    inset: 0;
+  }
+
+  .highlights__grid :global(.highlights__img) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .highlights__grid :global(.highlights__img--cover) {
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+
+  .highlights__grid :global(.highlights__img--contain) {
+    padding: 0.5rem 1.5rem 1.5rem;
+    object-fit: contain;
+  }
+
+  /* Chip: kwadrat wyśrodkowany w wolnym miejscu pod tekstem, nigdy wyższy niż to miejsce. */
+  .highlights__chip {
+    position: absolute;
+    inset: 1rem 1.75rem 1.75rem;
+    display: grid;
+    place-items: center;
+  }
+
+  .highlights__chip > :global(*) {
+    width: auto;
+    height: min(100%, 10rem);
+    max-width: 100%;
+  }
+
+  /* Dioda: świecący punkt z poświatą (do czasu renderu zbliżenia na LED). */
+  .highlights__led {
+    position: relative;
+    width: 1rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff 0%, #ffd2c8 25%, #ff4a52 55%, #c8102e 100%);
+    box-shadow:
+      0 0 0.75rem 0.25rem rgb(255 90 90 / 0.8),
+      0 0 3rem 1rem rgb(240 20 47 / 0.45),
+      0 0 7rem 3rem rgb(240 20 47 / 0.18);
+  }
+
+  /* ---------- Pasek z ceną ---------- */
+  .highlights__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    margin-top: 1.25rem;
+    padding: 2.25rem;
+    border-radius: 1.75rem;
+    background: var(--color-surface-dark);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+
+  .highlights__bar-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .highlights__bar-text {
+    margin-top: 0.25rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+  }
+
+  .highlights__cta {
+    display: inline-flex;
+    align-items: center;
+    height: 2.75rem;
+    padding-inline: 1.375rem;
+    border-radius: 1.375rem;
+    background: var(--color-text-on-dark);
+    color: var(--color-bg-dark);
+    font-size: var(--text-body);
+    text-decoration: none;
+    text-box: trim-both cap alphabetic;
+  }
+
+  @media (hover: hover) {
+    .highlights__cta:hover {
+      background: color-mix(in srgb, var(--color-text-on-dark) 82%, var(--color-bg-dark));
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .highlights__cta {
+      transition:
+        background-color 240ms var(--ease-out),
+        transform var(--duration-press) var(--ease-out);
+    }
+
+    .highlights__cta:active {
+      transform: scale(0.97);
+    }
+
+    :global(.reveal-js) .highlights__title:not(.is-in),
+    :global(.reveal-js) .highlights__bar:not(.is-in) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .highlights__title,
+    .highlights__bar {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+  }
+</style>

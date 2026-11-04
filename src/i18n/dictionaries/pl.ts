@@ -20,20 +20,47 @@ export const pl = {
     minOrder: 'Minimalne zamówienie: {n} szt.',
     regularPrice: 'Cena regularna',
     lowestPrice30Days: 'Najniższa cena z 30 dni przed obniżką: {price}',
+    availableNow: 'Dostępny teraz.', // roboczy
+    learnMore: 'Dowiedz się więcej',
+    order: 'Zamów',
   },
 
   pages: {
     home: {
       title: 'MP SkyElectro',
+      hero: {
+        tagline: 'Każda sekunda lotu pod kontrolą.', // roboczy
+        imageAlt: 'Czerwona płytka SkyTimer 1 z rzędem przełączników DIP',
+      },
+    },
+    configurator: {
+      // /pl/<produkt>/konfigurator/
+      slug: 'konfigurator',
+      title: 'Konfigurator {product}',
+      heading: 'Zamów {product}',
+      priceFrom: 'Od {price}',
+      summary: 'Podsumowanie.',
+      summaryHint: 'Twój wybór.',
+      quantity: 'Ilość',
+      decrease: 'Mniej',
+      increase: 'Więcej',
+      total: 'Razem',
+      chooseFirst: 'Najpierw wybierz poprzednie opcje.',
+      selectedOption: '{step}: {option}',
+      galleryPrev: 'Poprzednie zdjęcie',
+      galleryNext: 'Następne zdjęcie',
+      galleryDot: 'Zdjęcie {n} z {total}',
     },
     accessories: {
       slug: 'akcesoria',
       name: 'Akcesoria / części zamienne', // nazwa do ustalenia
+      navName: 'Akcesoria', // krótka nazwa w menu
       empty: 'Brak pozycji.', // roboczy
     },
     services: {
       slug: 'uslugi',
       name: 'Dodatkowe usługi',
+      navName: 'Usługi',
     },
     contact: {
       slug: 'kontakt',
@@ -46,14 +73,67 @@ export const pl = {
     'skytimer-1': {
       slug: 'skytimer-1',
       name: 'SkyTimer 1',
+      // Opisy zdjęć w konfiguratorze (dla czytników ekranu i Google). Klucz = nazwa pliku.
+      images: {
+        pcb: 'Płytka SkyTimer 1 z przodu, z rzędem dziesięciu przełączników DIP',
+        'pcb-top': 'Płytka SkyTimer 1 widziana z góry',
+        'pcb-back': 'Tył płytki SkyTimer 1 ze złączem i elektroniką',
+        'pcb-detail-dip': 'Zbliżenie na przełączniki DIP od 1 do 10',
+      },
+      // Strona "Dowiedz się więcej"
+      story: {
+        tagline: 'Każda sekunda lotu pod kontrolą.', // roboczy
+        introDescription:
+          'Animacja: elementy płytki SkyTimer 1 zjeżdżają się w powietrzu i składają w gotową płytkę.',
+        // Siatka "Co wyróżnia". Zdania oznaczone "roboczy" czekają na podręcznik użytkownika.
+        highlights: {
+          heading: 'Co wyróżnia SkyTimer 1.',
+          dip: {
+            title: 'Dziesięć przełączników. Wszystko pod palcem.',
+            text: 'Rząd 10 przełączników DIP prosto na płytce.', // roboczy: co ustawiają (podręcznik)
+          },
+          size: {
+            title: 'Mały. Naprawdę mały.',
+            text: 'Zaprojektowany do ciasnej wieży modelu F1E.', // roboczy: wymiary
+          },
+          brain: {
+            title: 'Sprawdzony mózg.',
+            text: 'Mikrokontroler ATmega328P, rezonator 4 MHz.',
+          },
+          connector: {
+            title: 'Jedno złącze.',
+            text: 'Kątowe złącze 2 × 7 wychodzi z boku, więc płytka leży płasko w wieży.',
+            alt: 'Płytka SkyTimer 1 z boku, z kątowym złączem',
+          },
+          led: {
+            title: 'Status na pierwszy rzut oka.',
+            text: 'Dioda LED na płytce pokazuje stan timera.', // roboczy: co sygnalizuje (podręcznik)
+          },
+          tower: {
+            title: 'Pasuje do reszty.',
+            text: 'SkyTimer 1 wchodzi do drukowanej wieży MP SkyElectro i współpracuje z przyciskiem pojemnościowym.',
+          },
+          bar: {
+            title: 'Zestaw albo sama płytka.',
+            text: 'Sama płytka od {price}.',
+          },
+        },
+      },
       steps: {
         type: {
-          label: 'Zestaw czy sama płytka',
+          heading: 'Wersja.',
+          label: 'Zestaw czy sama płytka.',
           options: { kit: 'Zestaw pełny', pcb: 'Sama płytka (PCB only)' },
         },
         variant: {
-          label: 'Wariant płytki',
+          heading: 'Wariant.',
+          label: 'Wybierz wariant płytki.',
           options: { v1: 'Wariant 1', v2: 'Wariant 2', v3: 'Wariant 3' },
+        },
+        color: {
+          heading: 'Kolor.',
+          label: 'Wybierz kolor.',
+          options: { red: 'Czerwony' },
         },
       },
     },

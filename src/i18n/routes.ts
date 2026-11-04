@@ -27,3 +27,17 @@ export function alternatesFor(entry: CatalogEntry | 'home'): Record<Locale, stri
     LOCALES.map((l) => [l, entry === 'home' ? homePath(l) : pathFor(l, entry)]),
   ) as Record<Locale, string>;
 }
+
+/** Konfigurator produktu: /pl/skytimer-1/konfigurator/ */
+export function configuratorPath(locale: Locale, productId: string): string {
+  const dict = getDictionary(locale);
+  return `${pathFor(locale, { kind: 'product', id: productId })}${dict.pages.configurator.slug}/`;
+}
+
+/** Konfigurator produktu we wszystkich językach (do hreflang). */
+export function configuratorAlternates(productId: string): Record<Locale, string> {
+  return Object.fromEntries(LOCALES.map((l) => [l, configuratorPath(l, productId)])) as Record<
+    Locale,
+    string
+  >;
+}

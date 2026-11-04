@@ -84,6 +84,9 @@ export function validateCatalog(): ValidationResult {
       }
       for (const option of step.options) {
         if (option.price) checkPrice(`${product.id}.${step.id}.${option.id}`, option.price);
+        if (option.swatch !== undefined && !/^#[0-9a-f]{6}$/i.test(option.swatch)) {
+          errors.push(`${product.id}.${step.id}.${option.id}: swatch musi być kolorem #rrggbb`);
+        }
       }
     }
   }

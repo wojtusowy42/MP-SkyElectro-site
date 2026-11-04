@@ -1,6 +1,7 @@
 // Główna konfiguracja Astro. Dokumentacja: https://docs.astro.build/en/reference/configuration-reference/
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import svelte from '@astrojs/svelte';
 import { SITE } from './src/config/site.ts';
 import { LOCALES, DEFAULT_LOCALE, HTML_LANG } from './src/i18n/locales.ts';
 
@@ -18,6 +19,9 @@ export default defineConfig({
   },
 
   integrations: [
+    // Interaktywne "wyspy" (konfiguratory). Reszta strony to czysty HTML bez JS.
+    svelte(),
+
     // Generuje sitemap-index.xml z wersjami językowymi każdej strony (hreflang).
     sitemap({
       i18n: {

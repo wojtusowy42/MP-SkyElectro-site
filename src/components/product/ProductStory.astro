@@ -1,0 +1,35 @@
+---
+/**
+ * Strona produktu "Dowiedz się więcej" (wzór: strony produktów na apple.com).
+ * Ciemna: czarne tło całej strony, ciemny pasek menu.
+ *
+ * Na górze animacja otwierająca (IntroVideo), jeśli produkt ją ma.
+ * Niżej sekcje produktu, podawane jako dzieci (slot), np. siatka wyróżników.
+ */
+import type { ComponentProps } from 'astro/types';
+import IntroVideo from './IntroVideo.astro';
+
+interface Props {
+  title: string;
+  intro?: Omit<ComponentProps<typeof IntroVideo>, 'title'> | undefined;
+}
+
+const { title, intro } = Astro.props;
+---
+
+<article class="story">
+  {intro ? <IntroVideo title={title} {...intro} /> : <h1 class="visually-hidden">{title}</h1>}
+  <slot />
+</article>
+
+<style>
+  /* Cała strona ciemna, także pod paskiem przy przewinięciu "z gumką" na Macu/iPhonie. */
+  :global(body) {
+    background: var(--color-bg-dark);
+    color: var(--color-text-on-dark);
+  }
+
+  .story {
+    min-height: calc(100dvh - var(--nav-height));
+  }
+</style>

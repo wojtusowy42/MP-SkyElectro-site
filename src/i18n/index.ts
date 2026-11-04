@@ -22,8 +22,29 @@ export function format(template: string, vars: Record<string, string | number>):
 export interface ProductTexts {
   slug: string;
   name: string;
-  steps?: Record<string, { label: string; options: Record<string, string> }>;
+  /**
+   * Kroki konfiguratora. heading = krótki pogrubiony nagłówek ("Wariant."),
+   * label = pytanie po nim, szarym ("Wybierz wersję płytki.").
+   */
+  steps?: Record<string, { heading?: string; label: string; options: Record<string, string> }>;
   mountingNote?: string;
+  /** Opisy (alt) zdjęć produktu, klucz = nazwa pliku renderu bez rozszerzenia. */
+  images?: Record<string, string>;
+  /** Teksty strony "Dowiedz się więcej". */
+  story?: {
+    tagline?: string;
+    introDescription?: string;
+    highlights?: {
+      heading: string;
+      dip: { title: string; text: string };
+      size: { title: string; text: string };
+      brain: { title: string; text: string };
+      connector: { title: string; text: string; alt: string };
+      led: { title: string; text: string };
+      tower: { title: string; text: string };
+      bar: { title: string; text: string };
+    };
+  };
 }
 
 /** Teksty produktu po jego id. Rzuca błąd, jeśli w słowniku ich brakuje (build się zatrzyma). */

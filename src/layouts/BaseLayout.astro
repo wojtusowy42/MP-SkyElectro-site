@@ -1,7 +1,7 @@
 ---
 /**
- * Szkielet każdej strony: <html>, <head> z SEO, <body>.
- * Bez żadnych stylów. Wygląd dojdzie później.
+ * Szkielet każdej strony: <html>, <head> z SEO, <body> + style globalne.
+ * Strony nie używają go bezpośrednio, tylko przez PageLayout.astro (menu, <main>).
  *
  * Co trafia do <head>:
  *  - title, description          → wynik w Google
@@ -9,6 +9,7 @@
  *  - hreflang (+ x-default)      → "ta sama strona w innych językach jest tu i tu"
  *  - Open Graph                  → podgląd przy udostępnianiu (Messenger, FB, WhatsApp)
  */
+import '../styles/global.css';
 import { SITE } from '../config/site.ts';
 import { DEFAULT_LOCALE, HTML_LANG, type Locale } from '../i18n/locales.ts';
 
@@ -30,6 +31,21 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Font od razu, żeby tekst nie przeskakiwał z systemowego na Inter -->
+    <link
+      rel="preload"
+      href="/fonts/inter/inter-latin-opsz-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/inter/inter-latin-ext-opsz-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={absolute(alternates[locale])} />

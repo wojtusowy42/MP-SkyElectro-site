@@ -1,0 +1,199 @@
+---
+/**
+ * Jeden kafelek w siatce wyróżników (wzór: "Highlights" na stronach produktów Apple).
+ * Na górze nagłówek + jedno zdanie, pod spodem obraz/animacja (slot), który wypełnia resztę.
+ *
+ * size: rozmiar w siatce 4-kolumnowej (desktop):
+ *   large = 2 × 2, wide = 2 × 1, wide3 = 3 × 1, small = 1 × 1.
+ */
+interface Props {
+  size: 'large' | 'wide' | 'wide3' | 'small';
+  title: string;
+  text: string;
+  /** Kolejność w siatce: opóźnia wejście kafelka (80 ms na pozycję). */
+  index?: number;
+}
+
+const { size, title, text, index = 0 } = Astro.props;
+---
+
+<article class:list={['tile', `tile--${size}`]} style={`--i: ${index}`} data-reveal>
+  <div class="tile__copy">
+    <h3 class="tile__title">{title}</h3>
+    <p class="tile__text">{text}</p>
+  </div>
+  {Astro.slots.has('default') && (
+    <div class="tile__visual">
+      <slot />
+    </div>
+  )}
+</article>
+
+<style>
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    border-radius: 1.75rem;
+    background: var(--color-surface-dark);
+    color: var(--color-text-on-dark);
+    isolation: isolate;
+  }
+
+  /* Cienka jasna krawędź: na czarnym tle kafelek ma ostry, "szklany" brzeg jak u Apple. */
+  .tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    pointer-events: none;
+  }
+
+  .tile--large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .tile--wide {
+    grid-column: span 2;
+  }
+
+  .tile--wide3 {
+    grid-column: span 3;
+  }
+
+  .tile__copy {
+    position: relative;
+    z-index: 1;
+    padding: 2.25rem 2.25rem 0;
+  }
+
+  .tile__title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  .tile--small .tile__title {
+    font-size: 1.375rem;
+  }
+
+  .tile--large .tile__title {
+    font-size: clamp(2rem, 1.5rem + 1vw, 2.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .tile__text {
+    margin-top: 0.75rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    line-height: 1.42;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .tile--small .tile__text {
+    font-size: 0.9375rem;
+  }
+
+  .tile--large .tile__text,
+  .tile--wide .tile__text,
+  .tile--wide3 .tile__text {
+    max-width: 28rem;
+  }
+
+  /* Kafelek bez obrazu: duży nagłówek w kolorach produktu, wyśrodkowany w pionie. */
+  .tile:not(:has(.tile__visual)) {
+    justify-content: center;
+  }
+
+  .tile:not(:has(.tile__visual)) .tile__copy {
+    padding-bottom: 2.25rem;
+  }
+
+  .tile:not(:has(.tile__visual)) .tile__title {
+    width: fit-content;
+    font-size: clamp(2.25rem, 1.4rem + 2.4vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    background: linear-gradient(
+      90deg,
+      var(--accent-from, var(--color-text-on-dark)),
+      var(--accent-to, var(--color-text-on-dark))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Obraz: miękkie światło za produktem, żeby nie był płaską naklejką na szarym. */
+  .tile__visual {
+    position: relative;
+    display: grid;
+    flex: 1;
+    min-height: 0;
+    place-items: center;
+  }
+
+  .tile__visual::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(60% 55% at 50% 60%, rgb(255 255 255 / 0.07), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Tablet: 2 kolumny. Kafelek 3 × 1 nie ma gdzie się zmieścić, więc robi się mały. */
+  @media (max-width: 1068px) {
+    .tile--wide3 {
+      grid-column: span 1;
+    }
+  }
+
+  /* Telefon: jedna kolumna, kafelki jeden pod drugim. */
+  @media (max-width: 734px) {
+    .tile,
+    .tile--large,
+    .tile--wide,
+    .tile--wide3 {
+      grid-column: auto;
+      grid-row: auto;
+      min-height: 24rem;
+    }
+
+    .tile--large {
+      min-height: 32rem;
+    }
+
+    .tile:not(:has(.tile__visual)) {
+      min-height: 16rem;
+    }
+
+    .tile__copy {
+      padding: 1.75rem 1.75rem 0;
+    }
+  }
+
+  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w siatce dodaje .is-in). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .tile:not(.is-in) {
+      opacity: 0;
+      transform: translateY(2rem) scale(0.98);
+    }
+
+    .tile {
+      transition:
+        opacity 900ms var(--ease-out),
+        transform 900ms var(--ease-out);
+      transition-delay: calc(var(--i) * 90ms);
+    }
+  }
+</style>

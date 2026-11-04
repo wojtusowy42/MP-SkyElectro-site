@@ -1,0 +1,322 @@
+---
+/**
+ * ChipReveal: chip (np. ATmega328P) na czarnym tle, wjazd + błysk (wzór: chipy M5 na apple.com).
+ * Projekt animacji: właściciel. Tu przerobiony na element, który wypełnia swojego rodzica
+ * (kafelek w siatce wyróżników), zamiast osobnej sekcji na cały ekran.
+ * Wygląd: ciemny kwadrat, kolor wpływa gładko z dolnego lewego rogu, cienka świecąca ramka,
+ * duży jasny napis. Bez animacji w pętli: po wejściu chip stoi.
+ *
+ * Startuje, gdy chip wejdzie w kadr. Szanuje prefers-reduced-motion. Bez JS pokazuje stan końcowy.
+ * Kolory domyślnie z gradientu SkyTimera 1 (#FFB08A → #F0142F), patrz decyzje sekcja 13.
+ */
+interface Props {
+  name?: string;
+  model?: string;
+  c1?: string | undefined;
+  c2?: string | undefined;
+}
+const { name = 'ATmega', model = '328P', c1 = '#FFB08A', c2 = '#F0142F' } = Astro.props;
+---
+
+<div
+  class="chip-wrap"
+  style={`--c1:${c1};--c2:${c2}`}
+  data-chip
+  role="img"
+  aria-label={`${name}${model}`}
+>
+  <div class="chip">
+    <div class="chip__glow"></div>
+    <div class="chip__label" aria-hidden="true">
+      <span class="chip__name">{name}</span>
+      <span class="chip__model">{model}</span>
+    </div>
+    <div class="chip__shine"></div>
+    <div class="chip__border"></div>
+  </div>
+</div>
+
+<script>
+  document.documentElement.classList.add('chip-js');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLElement>('[data-chip]').forEach((el) => {
+    if (reduce || !('IntersectionObserver' in window)) {
+      el.classList.add('is-in');
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            el.classList.add('is-in');
+            io.disconnect();
+          }
+        }
+      },
+      { threshold: 0.45 },
+    );
+    io.observe(el);
+  });
+</script>
+
+<!-- @property musi być globalne. -->
+<style is:global>
+  @property --reveal {
+    syntax: '<percentage>';
+    inherits: true;
+    initial-value: 130%;
+  }
+</style>
+
+<style>
+  .chip-wrap {
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    /* Kontener dla jednostek cqi chipa: liczą się od szerokości chipa, a nie okna. */
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  /* Delikatna poświata wokół chipa, najmocniejsza przy dolnym lewym rogu (stamtąd "świeci"). */
+  .chip-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -12%;
+    background: radial-gradient(
+      55% 55% at 20% 80%,
+      color-mix(in oklab, var(--c2) 60%, transparent),
+      transparent 70%
+    );
+    filter: blur(32px);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* Chip: prawie czarny kwadrat z ostrymi rogami (jak M5 na apple.com). */
+  .chip {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    overflow: hidden;
+    background: #0a0607;
+  }
+
+  /*
+   * Kolor wpływa z dolnego lewego rogu: przy samym rogu jasny, dalej nasycony,
+   * a w stronę prawego górnego rogu gaśnie do czerni. Jedno gładkie przejście, bez plam.
+   */
+  .chip__glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        circle at 0% 100%,
+        color-mix(in oklab, var(--c1) 55%, #fff) 0%,
+        var(--c1) 7%,
+        var(--c2) 24%,
+        color-mix(in oklab, var(--c2) 40%, #0a0607) 46%,
+        transparent 78%
+      ),
+      linear-gradient(45deg, color-mix(in oklab, var(--c2) 25%, transparent) 0%, transparent 55%);
+    transform-origin: 0% 100%;
+  }
+
+  /* Napis: duży, jasny, lekko podbarwiony kolorem produktu. */
+  .chip__label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3cqi;
+    font-optical-sizing: auto;
+    -webkit-mask-image: linear-gradient(
+      115deg,
+      #000 calc(var(--reveal) - 18%),
+      transparent var(--reveal)
+    );
+    mask-image: linear-gradient(115deg, #000 calc(var(--reveal) - 18%), transparent var(--reveal));
+  }
+
+  .chip__name,
+  .chip__model {
+    background: linear-gradient(180deg, #ffffff 0%, color-mix(in oklab, var(--c1) 25%, #fff) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+  }
+
+  .chip__name {
+    font-size: 21cqi;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    padding-bottom: 0.06em;
+  }
+
+  .chip__model {
+    font-size: 12cqi;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  /* przelatujący błysk */
+  .chip__shine {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: plus-lighter;
+  }
+
+  .chip__shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 0;
+    width: 55%;
+    height: 200%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.05) 30%,
+      rgb(255 255 255 / 0.85) 50%,
+      rgb(255 255 255 / 0.05) 70%,
+      transparent 100%
+    );
+    transform: translateX(-160%) rotate(22deg);
+    filter: blur(4px);
+  }
+
+  /* Cienka ramka: jasna przy oświetlonym rogu, przygasa w stronę prawego górnego. */
+  .chip__border {
+    position: absolute;
+    inset: 0;
+    padding: max(1.5px, 0.8cqi);
+    background: linear-gradient(
+      45deg,
+      #fff 0%,
+      color-mix(in oklab, var(--c1) 70%, #fff) 18%,
+      var(--c2) 50%,
+      color-mix(in oklab, var(--c2) 45%, transparent) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+
+  /* ---------- stan startowy (tylko z JS i bez reduced-motion) ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.chip-js) .chip-wrap:not(.is-in) .chip {
+      opacity: 0;
+      transform: translateY(28px) scale(0.94);
+    }
+
+    :global(.chip-js) .chip-wrap:not(.is-in)::before,
+    :global(.chip-js) .chip-wrap:not(.is-in) .chip__glow,
+    :global(.chip-js) .chip-wrap:not(.is-in) .chip__border {
+      opacity: 0;
+    }
+
+    :global(.chip-js) .chip-wrap:not(.is-in) .chip__label {
+      --reveal: 0%;
+    }
+
+    /* ---------- sekwencja ---------- */
+    .chip-wrap.is-in .chip {
+      animation: chip-in 1.1s var(--ease) both;
+    }
+
+    .chip-wrap.is-in::before {
+      animation: halo-in 2.2s 0.5s var(--ease) both;
+    }
+
+    .chip-wrap.is-in .chip__glow {
+      animation: glow-in 1.8s 0.55s var(--ease) both;
+    }
+
+    .chip-wrap.is-in .chip__border {
+      animation: border-in 1.6s 0.35s var(--ease) both;
+    }
+
+    .chip-wrap.is-in .chip__shine::after {
+      animation: sweep 1.25s 0.5s cubic-bezier(0.45, 0, 0.2, 1) both;
+    }
+
+    .chip-wrap.is-in .chip__label {
+      animation: reveal 1.25s 0.6s cubic-bezier(0.45, 0, 0.2, 1) both;
+    }
+  }
+
+  @keyframes chip-in {
+    from {
+      opacity: 0;
+      transform: translateY(28px) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes halo-in {
+    from {
+      opacity: 0;
+    }
+    40% {
+      opacity: 0.95;
+    }
+    to {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes glow-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes border-in {
+    0% {
+      opacity: 0;
+      filter: brightness(1);
+    }
+    35% {
+      opacity: 1;
+      filter: brightness(2.6);
+    }
+    100% {
+      opacity: 1;
+      filter: brightness(1.15);
+    }
+  }
+
+  @keyframes sweep {
+    from {
+      transform: translateX(-160%) rotate(22deg);
+    }
+    to {
+      transform: translateX(330%) rotate(22deg);
+    }
+  }
+
+  @keyframes reveal {
+    from {
+      --reveal: 0%;
+    }
+    to {
+      --reveal: 130%;
+    }
+  }
+</style>

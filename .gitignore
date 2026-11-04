@@ -26,5 +26,8 @@ desktop.ini
 *.f3z
 *.exr
 
+# Oryginały grafik (logo w wysokiej rozdzielczości, surowe rendery). Strona używa wersji z src/assets/.
+zrodla/
+
 # Skille do pracy z AI (cudze pliki, nie są częścią strony)
 skills/

@@ -1,15 +1,16 @@
 ---
 /**
  * Strona główna w danym języku: /pl/
- * TYMCZASOWO: surowa lista pozycji katalogu, żeby było widać, że dane i adresy działają.
+ * Na razie tylko góra: pasek menu + hero SkyTimer 1 (wzór: apple.com).
  */
 import type { GetStaticPaths } from 'astro';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageLayout from '../../layouts/PageLayout.astro';
+import ProductHero from '../../components/ProductHero.astro';
 import { LOCALES, type Locale } from '../../i18n/locales.ts';
 import { getDictionary, productTexts } from '../../i18n/index.ts';
-import { alternatesFor, pathFor } from '../../i18n/routes.ts';
-import { CATALOG } from '../../data/catalog.ts';
+import { alternatesFor, configuratorPath, pathFor } from '../../i18n/routes.ts';
 import { getProduct } from '../../data/products/index.ts';
+import skytimerHero from '../../assets/renders/skytimer-1/hero.png';
 
 export const getStaticPaths = (() =>
   LOCALES.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
@@ -17,26 +18,31 @@ export const getStaticPaths = (() =>
 const locale = Astro.params.lang as Locale;
 const dict = getDictionary(locale);
 
-const items = CATALOG.map((entry) => ({
-  href: pathFor(locale, entry),
-  name: entry.kind === 'product' ? productTexts(dict, entry.id).name : dict.pages[entry.id].name,
-  comingSoon: entry.kind === 'product' && getProduct(entry.id)?.status === 'coming-soon',
-}));
+const heroId = 'skytimer-1';
+const heroProduct = getProduct(heroId);
+const heroAvailable = heroProduct?.status === 'available';
 ---
 
-<BaseLayout
+<PageLayout
   locale={locale}
   title={dict.pages.home.title}
   description={dict.site.description}
   alternates={alternatesFor('home')}
 >
-  <h1>{dict.pages.home.title}</h1>
-  <ul>
-    {items.map((item) => (
-      <li>
-        <a href={item.href}>{item.name}</a>
-        {item.comingSoon && <> ({dict.common.comingSoon})</>}
-      </li>
-    ))}
-  </ul>
-</BaseLayout>
+  <h1 class="visually-hidden">{dict.pages.home.title}</h1>
+
+  <ProductHero
+    headingLevel="h2"
+    title={productTexts(dict, heroId).name}
+    tagline={dict.pages.home.hero.tagline}
+    availability={heroAvailable ? dict.common.availableNow : dict.common.comingSoon}
+    primaryLabel={dict.common.learnMore}
+    primaryHref={pathFor(locale, { kind: 'product', id: heroId })}
+    secondaryLabel={dict.common.order}
+    secondaryHref={configuratorPath(locale, heroId)}
+    image={skytimerHero}
+    imageAlt={dict.pages.home.hero.imageAlt}
+    subjectTop={0.461}
+    colors={heroProduct?.colors}
+  />
+</PageLayout>

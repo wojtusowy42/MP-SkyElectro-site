@@ -1,0 +1,56 @@
+/*
+ * Tokeny designu: JEDYNE miejsce z kolorami, fontem, rozmiarami i czasami animacji.
+ * Komponenty używają tylko tych zmiennych. Zmiana tutaj = zmiana na całej stronie.
+ *
+ * Paleta: dokument "decyzje techniczne", sekcja 13 (monochrom, bez akcentu marki).
+ */
+:root {
+  /* ---------- Kolory: jasne sekcje ---------- */
+  --color-bg: #f6f5f8; /* główne tło strony */
+  --color-surface: #ffffff; /* karty, kafelki, sekcje wyróżnione */
+  --color-line: #d2d2d7; /* linie, ramki niewybranych opcji */
+  --color-text: #1d1d1f; /* tekst, czarne przyciski, wybrana opcja */
+  --color-text-2: #6e6e73; /* podpisy, stara cena. Nie na tła ciemniejsze niż --color-bg */
+
+  /* ---------- Kolory: ciemne sekcje (hero, rendery) ---------- */
+  --color-bg-dark: #000000;
+  --color-surface-dark: #1c1c1e;
+  --color-text-on-dark: #f6f5f8;
+  --color-text-2-on-dark: #a1a1a6;
+
+  /* ---------- Kolory informacyjne (jasne / ciemne tło) ---------- */
+  --color-available: #1a7f37;
+  --color-available-on-dark: #30d158;
+  --color-soon: #a85a00;
+  --color-soon-on-dark: #ffb340;
+  --color-alert: #c8102e; /* promocja, błąd */
+  --color-alert-on-dark: #ff6961;
+
+  /* ---------- Font ----------
+   * Inter (src/styles/fonts.css). Systemowe fonty tylko jako zapas, zanim Inter się wczyta.
+   */
+  --font-sans:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+
+  /* ---------- Skala typografii (płynna między telefonem a desktopem) ---------- */
+  --text-hero: clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem); /* 40 → 56 px */
+  --text-hero-sub: clamp(1.3125rem, 1.07rem + 1vw, 1.75rem); /* 21 → 28 px */
+  --text-lead: clamp(1.0625rem, 0.95rem + 0.45vw, 1.3125rem); /* 17 → 21 px */
+  --text-body: 1.0625rem; /* 17 px */
+  --text-nav: 0.75rem; /* 12 px */
+
+  /* ---------- Układ ---------- */
+  --nav-height: 2.75rem; /* 44 px */
+  --content-max: 61.25rem; /* 980 px */
+  --content-wide: 75rem; /* 1200 px: konfigurator i szerokie układy */
+  --gutter: clamp(1rem, 4vw, 1.375rem);
+  --radius-pill: 980px;
+
+  /* ---------- Ruch ---------- */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* wejścia, reakcja na kliknięcie */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1); /* ruch po ekranie */
+  --duration-press: 160ms;
+  --duration-ui: 240ms;
+  --duration-reveal: 900ms; /* wejście hero, raz na wizytę */
+}
