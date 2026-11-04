@@ -1,0 +1,49 @@
+---
+/**
+ * "Przyjrzyj się bliżej" dla SkyTimer 1: ustawienia sekwencji obrotu + teksty ze słownika.
+ *
+ * Klatki: render z Blendera (scena SkyTimer_Anim_Zlozenie, kamera Kadr_Obrot, skrypt kadr_obrot.py),
+ * 120 klatek co 3°, oryginały w Raw Assets/Blender Renders/SkyTimer obrót 360/.
+ * Na stronie: public/sequence/skytimer-1/obrot/<szerokość>/<numer>.webp (przycięte, WebP).
+ * Klatka 0 = elektronika (z góry), 30 = bok ze złączem, 60 = przełączniki DIP, 90 = drugi bok.
+ */
+import CloserLookBase from '../CloserLook.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { getDictionary } from '../../../i18n/index.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.closer;
+
+// aspect = proporcje przyciętej klatki (1130 × 908); widths = dostępne zestawy klatek.
+const FRAMES = {
+  path: '/sequence/skytimer-1/obrot',
+  count: 120,
+  widths: [720, 1130],
+  aspect: 1130 / 908,
+};
+const VIEW_FRAMES = { electronics: 0, connector: 30, switches: 60, profile: 90 } as const;
+
+const views = (Object.keys(VIEW_FRAMES) as (keyof typeof VIEW_FRAMES)[]).map((id) => ({
+  id,
+  label: t.views[id].label,
+  caption: t.views[id].caption,
+  frame: VIEW_FRAMES[id],
+}));
+---
+
+<CloserLookBase
+  heading={t.heading}
+  hint={t.hint}
+  stageLabel={t.stageLabel}
+  valueText={t.valueText}
+  viewsLabel={t.viewsLabel}
+  views={views}
+  frames={FRAMES.path}
+  count={FRAMES.count}
+  widths={FRAMES.widths}
+  aspect={FRAMES.aspect}
+/>

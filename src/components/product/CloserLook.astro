@@ -1,0 +1,579 @@
+---
+/**
+ * "Przyjrzyj się bliżej" (wzór: "Take a closer look" na apple.com).
+ * Produkt obracany o 360°: sekwencja klatek z Blendera rysowana na canvasie.
+ *
+ * Dlaczego klatki, a nie 3D w przeglądarce: jakość renderu z Cycles, zero bibliotek,
+ * a koszt to tylko waga klatek, które ładują się dopiero, gdy sekcja się zbliża.
+ *
+ * Obsługa:
+ *  - przeciąganie myszą / palcem (z bezwładnością); w pionie strona przewija się normalnie,
+ *  - przyciski widoków: produkt obraca się do ujęcia najkrótszą drogą (ease-out),
+ *  - klawiatura: scena to suwak (strzałki obracają, Home = pierwszy widok),
+ *  - raz, przy pierwszym pokazaniu, krótki obrót do pierwszego widoku (podpowiedź, że to się kręci),
+ *  - prefers-reduced-motion: bez animacji (przyciski przeskakują, bez bezwładności, bez podpowiedzi),
+ *  - bez JS: zwykły obrazek pierwszej klatki.
+ *
+ * Klatki: public/<frames>/<szerokość>/<numer>.webp, numery od 000. Dwie szerokości (desktop / telefon).
+ * Ładowanie stopniowe: najpierw co 8. klatka, potem co 4., co 2. i reszta; do tego czasu
+ * rysowana jest najbliższa wczytana, więc obrót działa od razu.
+ */
+export interface CloserLookView {
+  id: string;
+  label: string;
+  caption: string;
+  /** Numer klatki z tym ujęciem. */
+  frame: number;
+}
+
+interface Props {
+  heading: string;
+  hint: string;
+  /** Opis sceny dla czytników ekranu. */
+  stageLabel: string;
+  /** Tekst wartości suwaka: {deg}, {view}. */
+  valueText: string;
+  viewsLabel: string;
+  views: CloserLookView[];
+  /** Ścieżka w public/ bez końcowego ukośnika, np. '/sequence/skytimer-1/obrot'. */
+  frames: string;
+  count: number;
+  /** Szerokości dostępnych zestawów klatek (rosnąco), np. [800, 1440]. */
+  widths: number[];
+  /** Proporcje klatki (szerokość / wysokość). */
+  aspect: number;
+}
+
+const { heading, hint, stageLabel, valueText, viewsLabel, views, frames, count, widths, aspect } =
+  Astro.props;
+const first = views[0]?.frame ?? 0;
+const pad = (n: number) => String(n).padStart(3, '0');
+const posterSrc = (w: number) => `${frames}/${w}/${pad(first)}.webp`;
+const config = {
+  frames,
+  count,
+  widths,
+  valueText,
+  views: views.map(({ id, label, frame }) => ({ id, label, frame })),
+};
+---
+
+<section
+  class="closer"
+  aria-labelledby="closer-title"
+  data-closer
+  data-config={JSON.stringify(config)}
+>
+  <div class="closer__inner">
+    <h2 class="closer__title" id="closer-title">
+      {heading}
+    </h2>
+
+    <div
+      class="closer__stage"
+      style={`--aspect: ${aspect}`}
+      role="slider"
+      tabindex="0"
+      aria-label={stageLabel}
+      aria-valuemin="0"
+      aria-valuemax="359"
+      aria-valuenow="0"
+      data-stage
+    >
+      <img
+        class="closer__poster"
+        src={posterSrc(widths.at(-1) ?? 1440)}
+        srcset={widths.map((w) => `${posterSrc(w)} ${w}w`).join(', ')}
+        sizes="(max-width: 734px) 100vw, 1130px"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+      />
+      <canvas class="closer__canvas" aria-hidden="true" data-canvas></canvas>
+    </div>
+
+    <p class="closer__hint" data-hint>
+      <svg viewBox="0 0 24 12" aria-hidden="true" width="24" height="12">
+        <path
+          d="M5 1 1 6l4 5M19 1l4 5-4 5M1 6h22"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+      {hint}
+    </p>
+
+    <div class="closer__controls">
+      <div class="closer__views" role="group" aria-label={viewsLabel}>
+        {views.map((v, i) => (
+          <button
+            type="button"
+            class="closer__view"
+            aria-pressed={i === 0 ? 'true' : 'false'}
+            data-view={v.id}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      <div class="closer__captions" aria-live="polite">
+        {views.map((v, i) => (
+          <p class="closer__caption" data-caption={v.id} hidden={i !== 0}>
+            {v.caption}
+          </p>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  interface View {
+    id: string;
+    label: string;
+    frame: number;
+  }
+  interface Config {
+    frames: string;
+    count: number;
+    widths: number[];
+    valueText: string;
+    views: View[];
+  }
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pad = (n: number) => String(n).padStart(3, '0');
+  const mod = (n: number, m: number) => ((n % m) + m) % m;
+  const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-closer]')) {
+    const cfg = JSON.parse(root.dataset.config ?? '{}') as Config;
+    const stage = root.querySelector<HTMLElement>('[data-stage]')!;
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
+    const ctx = canvas.getContext('2d')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-view]')];
+    const captions = [...root.querySelectorAll<HTMLElement>('[data-caption]')];
+    const N = cfg.count;
+
+    // ---------- Stan ----------
+    let pos = cfg.views[0]?.frame ?? 0; // pozycja w klatkach (ułamkowa)
+    let drawn = -1;
+    let anim: number | null = null; // id requestAnimationFrame animacji / bezwładności
+    const images: (HTMLImageElement | null)[] = new Array(N).fill(null);
+    let started = false;
+
+    // ---------- Ładowanie klatek ----------
+    // Najmniejszy zestaw, który pokryje scenę; do 15% powiększenia jest niewidoczne
+    // (np. iPhone: scena 393 px × 2 = 786 px, wystarcza zestaw 720 px).
+    function pickWidth(): number {
+      const need = stage.clientWidth * Math.min(devicePixelRatio || 1, 2);
+      return cfg.widths.find((w) => w * 1.15 >= need) ?? cfg.widths[cfg.widths.length - 1]!;
+    }
+
+    function load() {
+      if (started) return;
+      started = true;
+      const w = pickWidth();
+      // Kolejność: co 8., co 4., co 2., reszta. Obrót działa od razu na rzadszych klatkach.
+      const order: number[] = [];
+      for (const step of [8, 4, 2, 1]) {
+        for (let i = 0; i < N; i += step) if (!order.includes(i)) order.push(i);
+      }
+      let next = 0;
+      const worker = async () => {
+        while (next < order.length) {
+          const i = order[next++]!;
+          const img = new Image();
+          img.src = `${cfg.frames}/${w}/${pad(i)}.webp`;
+          try {
+            await img.decode();
+            images[i] = img;
+            if (drawn < 0 || nearestLoaded(Math.round(pos)) === i) render(true);
+          } catch {
+            /* brak klatki: zostaje najbliższa wczytana */
+          }
+        }
+      };
+      for (let k = 0; k < 4; k++) void worker(); // 4 równoległe pobrania
+    }
+
+    function nearestLoaded(i: number): number {
+      for (let d = 0; d <= N / 2; d++) {
+        if (images[mod(i + d, N)]) return mod(i + d, N);
+        if (images[mod(i - d, N)]) return mod(i - d, N);
+      }
+      return -1;
+    }
+
+    // ---------- Rysowanie ----------
+    function sizeCanvas() {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const w = Math.round(stage.clientWidth * dpr);
+      const h = Math.round(stage.clientHeight * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        drawn = -1;
+      }
+    }
+
+    function render(force = false) {
+      const frame = nearestLoaded(mod(Math.round(pos), N));
+      if (frame < 0) return;
+      if (frame !== drawn || force) {
+        sizeCanvas();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(images[frame]!, 0, 0, canvas.width, canvas.height);
+        if (drawn < 0) root.classList.add('is-ready');
+        drawn = frame;
+      }
+      updateUi();
+    }
+
+    let activeView = '';
+    function updateUi() {
+      const f = mod(Math.round(pos), N);
+      const deg = Math.round((f / N) * 360) % 360;
+      // Najbliższy widok (do opisu dla czytnika) i widok dokładnie trafiony (do przycisku).
+      let near = cfg.views[0]!;
+      let best = Infinity;
+      for (const v of cfg.views) {
+        const d = Math.min(mod(f - v.frame, N), mod(v.frame - f, N));
+        if (d < best) [best, near] = [d, v];
+      }
+      const exact = best <= 1 ? near.id : '';
+      stage.setAttribute('aria-valuenow', String(deg));
+      stage.setAttribute(
+        'aria-valuetext',
+        cfg.valueText.replace('{deg}', String(deg)).replace('{view}', near.label),
+      );
+      if (exact === activeView) return;
+      activeView = exact;
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.view === exact));
+      for (const c of captions) c.hidden = c.dataset.caption !== (exact || near.id);
+    }
+
+    function stop() {
+      if (anim !== null) cancelAnimationFrame(anim);
+      anim = null;
+    }
+
+    // Obrót do klatki najkrótszą drogą, ease-out. Czas rośnie z odległością (max ~1 s).
+    function rotateTo(target: number, minMs = 0) {
+      stop();
+      let delta = mod(target - pos, N);
+      if (delta > N / 2) delta -= N;
+      if (reduce || Math.abs(delta) < 0.5) {
+        pos = target;
+        render();
+        return;
+      }
+      const from = pos;
+      const ms = Math.max(minMs, 380 + (Math.abs(delta) / (N / 2)) * 620);
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - t0) / ms);
+        pos = from + delta * easeOut(t);
+        render();
+        anim = t < 1 ? requestAnimationFrame(tick) : null;
+      };
+      anim = requestAnimationFrame(tick);
+    }
+
+    // ---------- Przeciąganie z bezwładnością ----------
+    let dragging = false;
+    let lastX = 0;
+    let lastT = 0;
+    let velocity = 0; // klatki / ms
+    const framesPerPx = () => N / Math.max(stage.clientWidth * 1.1, 1); // ~szerokość sceny = pełny obrót
+
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      stop();
+      dragging = true;
+      lastX = e.clientX;
+      lastT = e.timeStamp;
+      velocity = 0;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('is-dragging');
+      hideHint();
+    });
+
+    stage.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      const dt = Math.max(e.timeStamp - lastT, 1);
+      // Przeciągnięcie w prawo obraca produkt w prawo (klatki maleją).
+      const df = -dx * framesPerPx();
+      pos += df;
+      velocity = 0.8 * (df / dt) + 0.2 * velocity;
+      lastX = e.clientX;
+      lastT = e.timeStamp;
+      render();
+    });
+
+    const endDrag = (e: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      stage.classList.remove('is-dragging');
+      if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+      // Puszczenie po chwili bez ruchu = bez bezwładności.
+      if (reduce || e.timeStamp - lastT > 80 || Math.abs(velocity) < 0.002) return;
+      let v = velocity;
+      let prev = performance.now();
+      const tick = (now: number) => {
+        const dt = now - prev;
+        prev = now;
+        pos += v * dt;
+        v *= Math.pow(0.994, dt); // tarcie
+        render();
+        anim = Math.abs(v) > 0.0008 ? requestAnimationFrame(tick) : null;
+      };
+      anim = requestAnimationFrame(tick);
+    };
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+
+    // ---------- Klawiatura (suwak) ----------
+    stage.addEventListener('keydown', (e) => {
+      const step = N / 30; // 12°
+      const keys: Record<string, () => void> = {
+        ArrowLeft: () => rotateTo(Math.round(pos + step)),
+        ArrowDown: () => rotateTo(Math.round(pos + step)),
+        ArrowRight: () => rotateTo(Math.round(pos - step)),
+        ArrowUp: () => rotateTo(Math.round(pos - step)),
+        Home: () => rotateTo(cfg.views[0]?.frame ?? 0),
+        End: () => rotateTo(cfg.views[cfg.views.length - 1]?.frame ?? 0),
+      };
+      const fn = keys[e.key];
+      if (!fn) return;
+      e.preventDefault();
+      hideHint();
+      fn();
+    });
+
+    // ---------- Przyciski widoków ----------
+    for (const b of buttons) {
+      b.addEventListener('click', () => {
+        const v = cfg.views.find((x) => x.id === b.dataset.view);
+        if (!v) return;
+        hideHint();
+        rotateTo(v.frame);
+      });
+    }
+
+    function hideHint() {
+      hint.classList.add('is-hidden');
+    }
+
+    // ---------- Start: ładowanie, gdy sekcja się zbliża; podpowiedź przy pierwszym pokazaniu ----------
+    let hinted = false;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          load();
+          if (e.intersectionRatio >= 0.5 && !hinted) {
+            hinted = true;
+            if (!reduce) {
+              const home = cfg.views[0]?.frame ?? 0;
+              pos = home + N / 8; // start 45° obok, obrót do pierwszego widoku
+              render();
+              setTimeout(() => rotateTo(home, 1400), 150);
+            }
+          }
+        }
+      },
+      { rootMargin: '600px 0px', threshold: [0, 0.5] },
+    );
+    io.observe(stage);
+
+    new ResizeObserver(() => render(true)).observe(stage);
+  }
+</script>
+
+<style>
+  /* Trzecia scena: czarne tło na całą szerokość (klatki mają tło #000, więc scena nie ma krawędzi). */
+  .closer {
+    background: var(--color-bg-dark);
+    color: var(--color-text-on-dark);
+  }
+
+  .closer__inner {
+    max-width: calc(var(--content-wide) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(5rem, 11vw, 9rem) var(--gutter) clamp(4rem, 8vw, 6rem);
+  }
+
+  .closer__title {
+    max-width: calc(var(--content-max));
+    margin: 0 auto clamp(1.5rem, 3vw, 2.5rem);
+    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+  }
+
+  /* ---------- Scena ---------- */
+  .closer__stage {
+    position: relative;
+    /* Szerokość ograniczona też wysokością okna: cała płytka zawsze mieści się na ekranie. */
+    width: min(100%, 70.625rem, calc(72svh * var(--aspect)));
+    margin-inline: auto;
+    aspect-ratio: var(--aspect);
+    cursor: grab;
+    touch-action: pan-y; /* pion = przewijanie strony, poziom = obrót */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .closer__stage.is-dragging {
+    cursor: grabbing;
+  }
+
+  .closer__stage:focus-visible {
+    outline: 2px solid var(--color-text-on-dark);
+    outline-offset: 6px;
+    border-radius: 1rem;
+  }
+
+  .closer__poster,
+  .closer__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .closer__poster {
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  /* Canvas pojawia się dopiero, gdy narysuje pierwszą klatkę (do tego czasu widać obrazek). */
+  .closer__canvas {
+    opacity: 0;
+  }
+
+  .closer:global(.is-ready) .closer__canvas {
+    opacity: 1;
+  }
+
+  .closer:global(.is-ready) .closer__poster {
+    visibility: hidden;
+  }
+
+  /* ---------- Podpowiedź ---------- */
+  .closer__hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 0.875rem;
+  }
+
+  .closer__hint.is-hidden {
+    opacity: 0;
+  }
+
+  /* ---------- Przyciski widoków (jak przełącznik segmentowy u Apple) ---------- */
+  .closer__controls {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .closer__views {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-dark);
+  }
+
+  .closer__view {
+    min-height: 2.5rem;
+    padding: 0 1.125rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-text-on-dark);
+    font-size: 0.9375rem;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+  }
+
+  .closer__view[aria-pressed='true'] {
+    background: var(--color-text-on-dark);
+    color: var(--color-bg-dark);
+  }
+
+  @media (hover: hover) {
+    .closer__view[aria-pressed='false']:hover {
+      background: rgb(255 255 255 / 0.08);
+    }
+  }
+
+  .closer__view:focus-visible {
+    outline: 2px solid var(--color-text-on-dark);
+    outline-offset: 2px;
+  }
+
+  .closer__captions {
+    display: grid;
+    min-height: 1.5em;
+    max-width: 36rem;
+    text-align: center;
+  }
+
+  .closer__caption {
+    grid-area: 1 / 1;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    line-height: 1.42;
+    text-wrap: balance;
+  }
+
+  @media (max-width: 734px) {
+    .closer__view {
+      min-height: 2.25rem;
+      padding: 0 0.875rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .closer__canvas,
+    .closer__hint {
+      transition: opacity 400ms var(--ease-out);
+    }
+
+    .closer__view {
+      transition:
+        background-color 240ms var(--ease-out),
+        color 240ms var(--ease-out);
+    }
+
+    .closer__caption:not([hidden]) {
+      animation: caption-in 400ms var(--ease-out);
+    }
+  }
+
+  @keyframes caption-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.25rem);
+    }
+  }
+</style>

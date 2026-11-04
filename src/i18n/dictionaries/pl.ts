@@ -131,6 +131,33 @@ export const pl = {
             text: 'Sama płytka od {price}.',
           },
         },
+        // "Przyjrzyj się bliżej": płytka obracana o 360° (przeciąganie, przyciski widoków).
+        closer: {
+          heading: 'Przyjrzyj się bliżej.',
+          hint: 'Przeciągnij, aby obrócić.',
+          stageLabel: 'Płytka SkyTimer 1 w obrocie',
+          // Czytnik ekranu: suwak obrotu. {deg} = kąt, {view} = nazwa najbliższego widoku.
+          valueText: 'Obrót {deg}°, widok: {view}',
+          viewsLabel: 'Widoki płytki',
+          views: {
+            electronics: {
+              label: 'Elektronika',
+              caption: 'Mikrokontroler ATmega328P i zworki JP1, JP2 do funkcji DTA.',
+            },
+            connector: {
+              label: 'Złącze',
+              caption: 'Kątowe złącze 2\u00a0×\u00a07: wszystkie podłączenia w jednym miejscu.',
+            },
+            switches: {
+              label: 'Przełączniki',
+              caption: 'Dziesięć przełączników DIP: czasy flop, dether i ustawienia.',
+            },
+            profile: {
+              label: 'Profil',
+              caption: 'Do komory w wieżyczce wystarczy 16\u00a0mm głębokości.',
+            },
+          },
+        },
       },
       steps: {
         type: {
