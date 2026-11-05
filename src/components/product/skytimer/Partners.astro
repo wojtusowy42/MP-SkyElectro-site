@@ -1,0 +1,142 @@
+---
+/**
+ * "Współpracuje z": z czym SkyTimer 1 działa. Karty typograficzne (bez renderów: CAD wież później).
+ *  - Wieża drukowana MP SkyElectro: potwierdzone w danych (opcja "Z timerem SkyTimer 1"), link do strony.
+ *  - Moduły RDT: zgodność z podręcznika (Aeris RDT, MiniNeurone), bez linku (to nie nasze produkty).
+ * Przycisk pojemnościowy: dopiero gdy właściciel potwierdzi, że współpracuje ze SkyTimerem.
+ * Scena ciemnoszara, kafelki czarne.
+ */
+import type { Locale } from '../../../i18n/locales.ts';
+import { getDictionary } from '../../../i18n/index.ts';
+import { pathFor } from '../../../i18n/routes.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const dict = getDictionary(locale);
+const t = dict.products['skytimer-1'].story.partners;
+const cards = [
+  { ...t.tower, href: pathFor(locale, { kind: 'product', id: 'wieze' }) },
+  { ...t.rdt, href: null },
+];
+---
+
+<section class="partners" aria-labelledby="partners-title">
+  <div class="partners__inner">
+    <h2 class="partners__title" id="partners-title">
+      {t.heading}
+    </h2>
+    <div class="partners__grid">
+      {cards.map((c, i) => (
+        <article class="partners__card" style={`--i: ${i}`} data-reveal>
+          <h3 class="partners__card-title">{c.title}</h3>
+          <p class="partners__card-text">{c.text}</p>
+          {c.href && (
+            <a class="partners__link" href={c.href}>
+              {dict.common.learnMore}
+              <span class="visually-hidden">: {c.title}</span>
+              <span aria-hidden="true"> ›</span>
+            </a>
+          )}
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .partners {
+    background: var(--color-surface-dark);
+    color: var(--color-text-on-dark);
+  }
+
+  .partners__inner {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(5rem, 10vw, 8rem) var(--gutter);
+  }
+
+  .partners__title {
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+  }
+
+  .partners__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .partners__card {
+    display: flex;
+    flex-direction: column;
+    min-height: 16rem;
+    padding: 2.5rem;
+    border-radius: 1.75rem;
+    background: var(--color-bg-dark);
+  }
+
+  .partners__card-title {
+    font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  .partners__card-text {
+    margin-top: 0.75rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    line-height: 1.47;
+    text-wrap: pretty;
+  }
+
+  /* Link tekstowy: kolor tekstu + "›", podkreślenie na hover (decyzje, sekcja 13). */
+  .partners__link {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    color: var(--color-text-on-dark);
+    font-size: 1.0625rem;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .partners__link:hover {
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+  }
+
+  @media (max-width: 734px) {
+    .partners__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    .partners__card {
+      min-height: 0;
+      padding: 2rem 1.75rem;
+      border-radius: 1.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .partners__card:not(.is-in) {
+      opacity: 0;
+      transform: translateY(2rem);
+    }
+
+    .partners__card {
+      transition:
+        opacity 900ms var(--ease-out),
+        transform 900ms var(--ease-out);
+      transition-delay: calc(var(--i) * 90ms);
+    }
+  }
+</style>

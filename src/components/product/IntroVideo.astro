@@ -89,14 +89,27 @@ const posterImage = await getImage({ src: poster, format: 'webp', width: 1920, q
    * Nowa animacja z innym kadrem = zmiana tylko tych dwóch liczb.
    */
   .intro {
-    --section-h: max(32rem, calc(100svh - var(--nav-height)));
+    --section-h: max(32rem, calc(100svh - var(--nav-height) - var(--story-local-nav, 0px)));
     --subject-center: 0.464;
     --subject-top: 0.28;
+    --subject-bottom: 0.655; /* dolna krawędź płytki (z odbiciem) */
     --target: 0.56;
     --gap-title: clamp(1.5rem, 4vh, 3rem);
+    --gap-bottom: clamp(3rem, 9vh, 6rem);
 
     position: relative;
-    height: var(--section-h);
+    /*
+     * Rozstawienie liczone jak dla pełnego ekranu (--section-h), ale sekcja kończy się
+     * --gap-bottom pod płytką: bez pustej czerni przed kolejną sceną.
+     * (100vw zamiast cqw: sekcja jest swoim własnym kontenerem, więc cqw liczy się od rodzica.)
+     */
+    height: min(
+      var(--section-h),
+      calc(
+        var(--section-h) * var(--target) + min(100vw, 120rem) * 0.5625 *
+          (var(--subject-bottom) - var(--subject-center)) + var(--gap-bottom)
+      )
+    );
     overflow: hidden;
     container-type: inline-size;
     background: var(--color-bg-dark);
@@ -159,6 +172,8 @@ const posterImage = await getImage({ src: poster, format: 'webp', width: 1920, q
       flex-direction: column-reverse;
       justify-content: center;
       gap: 1rem;
+      height: auto;
+      padding-block: clamp(3rem, 10vh, 5rem) clamp(1.5rem, 5vh, 2.5rem);
     }
 
     .intro__video {

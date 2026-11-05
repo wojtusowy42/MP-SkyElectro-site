@@ -10,7 +10,7 @@
  *   2. złącze: duży render                                    pełna szerokość
  *   3. energia (duża liczba)  |  chip ATmega328P              1/3 + 2/3
  *   4. zabezpieczenia         |  rozmiar                       1/2 + 1/2
- * Pod siatką pasek z ceną i "Zamów". Telefon: jedna kolumna.
+ * Telefon: jedna kolumna. (Ceny i "Zamów": sekcja "Który SkyTimer" na końcu strony.)
  *
  * Zasada jak u Apple: zdjęcie niesie kafelek, tekst to nagłówek i najwyżej jedno zdanie.
  * Rendery: ciemne studio ze sceny animacji (Blender, kolekcja "Kadry strony"),
@@ -23,10 +23,8 @@ import type { ComponentProps } from 'astro/types';
 import HighlightTile from '../HighlightTile.astro';
 import ChipReveal from '../ChipReveal.astro';
 import type { Locale } from '../../../i18n/locales.ts';
-import { format, getDictionary } from '../../../i18n/index.ts';
-import { configuratorPath } from '../../../i18n/routes.ts';
+import { getDictionary } from '../../../i18n/index.ts';
 import { getProduct } from '../../../data/products/index.ts';
-import { currentPrice, formatPrice } from '../../../lib/price.ts';
 import dipImage from '../../../assets/renders/skytimer-1/poznaj/przelaczniki-makro.png';
 import connectorImage from '../../../assets/renders/skytimer-1/poznaj/zlacze.png';
 import topImage from '../../../assets/renders/skytimer-1/poznaj/gora.png';
@@ -43,11 +41,6 @@ const h = dict.products[id].story.highlights;
 const product = getProduct(id);
 if (!product) throw new Error('Brak produktu skytimer-1 w danych');
 
-// Cena w pasku: sama płytka (bez przeceny, więc bez wymogu Omnibusa).
-const pcbOption = product.configurator?.steps
-  .find((s) => s.id === 'type')
-  ?.options.find((o) => o.id === 'pcb');
-const pcbPrice = pcbOption?.price ? currentPrice(pcbOption.price, new Date()) : null;
 const [c1, c2] = product.colors ?? [undefined, undefined];
 
 // Wspólne ustawienia obrazów: AVIF/WebP, jakość wyższa niż domyślna (rendery z drobnymi napisami).
@@ -139,42 +132,8 @@ const img = {
         />
       </HighlightTile>
     </div>
-
-    <div class="highlights__bar" data-reveal>
-      <div>
-        <p class="highlights__bar-title">{h.bar.title}</p>
-        {pcbPrice !== null && (
-          <p class="highlights__bar-text">
-            {format(h.bar.text, { price: formatPrice(pcbPrice, locale) })}
-          </p>
-        )}
-      </div>
-      <a class="highlights__cta" href={configuratorPath(locale, id)}>
-        {dict.common.order}
-      </a>
-    </div>
   </div>
 </section>
-
-<script>
-  // Wejście kafelków: raz, gdy wjeżdżają na ekran. Bez JS / z ograniczeniem ruchu: od razu widoczne.
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!reduce && 'IntersectionObserver' in window) {
-    document.documentElement.classList.add('reveal-js');
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-in');
-            io.unobserve(e.target);
-          }
-        }
-      },
-      { threshold: 0.15 },
-    );
-    document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
-  }
-</script>
 
 <style>
   /* Druga scena: ciemnoszare tło na całą szerokość, czarne kafelki (jak u Apple). */
@@ -235,7 +194,13 @@ const img = {
     width: 100%;
     height: auto;
     margin-top: 1.5rem;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 78%, transparent 100%);
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      #000 28%,
+      #000 78%,
+      transparent 100%
+    );
     mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 78%, transparent 100%);
   }
 
@@ -305,76 +270,13 @@ const img = {
     padding-block: 2.5rem 3rem;
   }
 
-  /* ---------- Pasek z ceną ---------- */
-  .highlights__bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.25rem 2rem;
-    margin-top: 1.25rem;
-    padding: 2.25rem 2.5rem;
-    border-radius: 1.75rem;
-    background: var(--color-bg-dark);
-  }
-
-  .highlights__bar-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-
-  .highlights__bar-text {
-    margin-top: 0.25rem;
-    color: var(--color-text-2-on-dark);
-    font-size: 1.0625rem;
-  }
-
-  .highlights__cta {
-    display: inline-flex;
-    align-items: center;
-    height: 2.75rem;
-    padding-inline: 1.375rem;
-    border-radius: 1.375rem;
-    background: var(--color-text-on-dark);
-    color: var(--color-bg-dark);
-    font-size: var(--text-body);
-    text-decoration: none;
-    text-box: trim-both cap alphabetic;
-  }
-
-  @media (max-width: 734px) {
-    .highlights__bar {
-      padding: 2rem 1.5rem;
-      border-radius: 1.5rem;
-    }
-  }
-
-  @media (hover: hover) {
-    .highlights__cta:hover {
-      background: color-mix(in srgb, var(--color-text-on-dark) 82%, var(--color-bg-dark));
-    }
-  }
-
   @media (prefers-reduced-motion: no-preference) {
-    .highlights__cta {
-      transition:
-        background-color 240ms var(--ease-out),
-        transform var(--duration-press) var(--ease-out);
-    }
-
-    .highlights__cta:active {
-      transform: scale(0.97);
-    }
-
-    :global(.reveal-js) .highlights__title:not(.is-in),
-    :global(.reveal-js) .highlights__bar:not(.is-in) {
+    :global(.reveal-js) .highlights__title:not(.is-in) {
       opacity: 0;
       transform: translateY(1.5rem);
     }
 
-    .highlights__title,
-    .highlights__bar {
+    .highlights__title {
       transition:
         opacity 700ms var(--ease-out),
         transform 700ms var(--ease-out);

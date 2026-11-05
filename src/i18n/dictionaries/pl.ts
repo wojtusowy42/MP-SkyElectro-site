@@ -126,10 +126,6 @@ export const pl = {
             text: 'Zaprojektowany do ciasnej wieży modelu F1E.', // roboczy: wymiary
             alt: 'Płytka SkyTimer 1 pod kątem, ze złączem i elektroniką',
           },
-          bar: {
-            title: 'Zestaw albo sama płytka.',
-            text: 'Sama płytka od {price}.',
-          },
         },
         // "Przyjrzyj się bliżej": płytka obracana o 360° (przeciąganie, przyciski widoków).
         closer: {
@@ -175,6 +171,71 @@ export const pl = {
               },
             },
           },
+        },
+        // Pasek produktu przyklejony u góry strony (opis dla czytników ekranu).
+        localNavLabel: 'SkyTimer 1: nawigacja produktu',
+        // "Jak to działa": 3 kroki. Fakty z podręcznika (rozdz. 11, 13, 14, 9, 16).
+        how: {
+          heading: 'Jak to działa.',
+          steps: [
+            {
+              title: 'Ustaw czasy.',
+              text: 'Przełączniki 1-4 to czas flop, 5-10 czas dether. Po włączeniu timer odtwarza ustawiony czas dether sygnałami, więc sprawdzisz go przed lotem.',
+            },
+            {
+              title: 'Naciśnij start.',
+              text: 'Przycisk startu uruchamia sekwencję lotu. Gdy model poleci bez startu, Anti Fly Away sam uruchomi ją po 2\u00a0minutach.',
+            },
+            {
+              title: 'Flop i dether.',
+              text: 'Timer zwalnia linkę flop, a po czasie dether sprowadza model w dół. Z RDT zrobisz to zdalnie. Po lądowaniu buzzer i LED dalej dają sygnały.',
+            },
+          ],
+        },
+        // "W zestawie". Pozycje oznaczone "roboczy" wynikają z podręcznika pośrednio: do potwierdzenia.
+        inBox: {
+          heading: 'W zestawie.',
+          lead: 'Wszystko, czego potrzebujesz do montażu w wieżyczce.',
+          items: {
+            board: { title: 'Płytka SkyTimer 1', text: 'W wybranym wariancie' },
+            battery: { title: 'Akumulator Li\u2011Pol', text: '1S, 250\u00a0mAh' },
+            power: { title: 'Moduł zasilania', text: 'Z czerwonym i czarnym złączem' }, // roboczy
+            charger: {
+              title: 'Ładowarka USB\u2011C',
+              text: 'Dioda: czerwona ładuje, zielona gotowe',
+            },
+            buzzer: { title: 'Moduł buzzera', text: 'Wsuwany, do szybkiej wymiany' },
+            led: { title: 'Moduł LED', text: 'Wystaje 5\u00a0mm ponad wieżyczkę' },
+            release: { title: 'Mechanizm puszczania linek', text: 'Flop i dether' }, // roboczy
+            mount: { title: 'Mocowanie przycisku startu', text: 'Do płytek wariantu 1 i 3' },
+            screws: { title: 'Śruby M2', text: 'M2 × 4, M2 × 6, M2 × 10' },
+          },
+        },
+        // "Współpracuje z".
+        partners: {
+          heading: 'Współpracuje z.',
+          tower: {
+            title: 'Wieża drukowana MP\u00a0SkyElectro',
+            text: 'Wieżyczka zaprojektowana pod SkyTimer 1, pusta albo z timerem.',
+          },
+          rdt: {
+            title: 'Moduły RDT',
+            text: 'Pełna zgodność z Aeris RDT firmy FF Electronics i MiniNeurone firmy Flying Neurons.',
+          },
+        },
+        // "Który SkyTimer dla Ciebie?": porównanie zestawu i samej płytki (koniec strony).
+        compare: {
+          heading: 'Który SkyTimer 1 dla Ciebie?',
+          orderLabel: 'Zamów {option}',
+          features: {
+            board: 'Płytka SkyTimer 1',
+            variant: 'Wybór wariantu płytki',
+            battery: 'Akumulator i ładowarka USB\u2011C',
+            modules: 'Moduły buzzera i LED',
+            mounting: 'Śruby i mocowanie przycisku startu',
+          },
+          included: 'W zestawie',
+          notIncluded: 'Brak',
         },
       },
       steps: {

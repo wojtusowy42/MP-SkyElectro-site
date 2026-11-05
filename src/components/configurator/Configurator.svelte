@@ -10,6 +10,7 @@
   Każdy krok to grupa radio: działa z klawiatury i czytnikiem ekranu.
 -->
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { ConfiguratorDefinition, ConfiguratorStep, Price } from '../../data/types.ts';
   import type { ProductTexts } from '../../i18n/index.ts';
   import type { Locale } from '../../i18n/locales.ts';
@@ -45,9 +46,14 @@
     locale: Locale;
     /** Dzień buildu 'RRRR-MM-DD': ceny i promocje liczą się tak samo jak na reszcie strony. */
     today: string;
+    /**
+     * Parametry adresu, które wybierają opcję przy starcie: nazwa parametru → id kroku.
+     * Np. { wersja: 'type' }: /konfigurator/?wersja=kit wybiera "Zestaw pełny".
+     */
+    urlParams?: Record<string, string>;
   }
 
-  const { definition, texts, labels, locale, today }: Props = $props();
+  const { definition, texts, labels, locale, today, urlParams = {} }: Props = $props();
   const date = new Date(`${today}T12:00:00`);
 
   // Kroki z jedną opcją są wybrane od razu (nie ma czego wybierać).
@@ -58,6 +64,21 @@
   }
 
   let selection = $state<Selection>(initial);
+
+  // Wybór z adresu (np. przycisk "Zamów" przy zestawie na stronie produktu), raz przy starcie.
+  // Tylko istniejące opcje; czyszczenie wyborów przez cleanSelection, jak przy kliknięciu.
+  onMount(() => {
+    const params = new URLSearchParams(window.location.search);
+    let next = selection;
+    for (const [param, stepId] of Object.entries(urlParams)) {
+      const value = params.get(param);
+      const step = definition.steps.find((s) => s.id === stepId);
+      if (value && step?.options.some((o) => o.id === value)) {
+        next = cleanSelection(definition, { ...next, [stepId]: value });
+      }
+    }
+    if (next !== selection) selection = next;
+  });
   let quantity = $state(definition.quantity.min);
 
   const clean = $derived(cleanSelection(definition, selection));

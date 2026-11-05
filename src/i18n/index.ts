@@ -37,6 +37,8 @@ export interface ProductTexts {
   story?: {
     tagline?: string;
     introDescription?: string;
+    /** Opis paska produktu (LocalNav) dla czytników ekranu. */
+    localNavLabel?: string;
   };
 }
 

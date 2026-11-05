@@ -3,24 +3,58 @@
  * Strona produktu "Dowiedz się więcej" (wzór: strony produktów na apple.com).
  * Ciemna: czarne tło całej strony, ciemny pasek menu.
  *
- * Na górze animacja otwierająca (IntroVideo), jeśli produkt ją ma.
+ * Na górze pasek produktu (LocalNav) i animacja otwierająca (IntroVideo), jeśli produkt je ma.
  * Niżej sekcje produktu, podawane jako dzieci (slot), np. siatka wyróżników.
  */
 import type { ComponentProps } from 'astro/types';
 import IntroVideo from './IntroVideo.astro';
+import LocalNav from './LocalNav.astro';
 
 interface Props {
   title: string;
   intro?: Omit<ComponentProps<typeof IntroVideo>, 'title'> | undefined;
+  /** Kolory produktu (od, do): gradienty w sekcjach (--accent-from / --accent-to). */
+  colors?: readonly [string, string] | undefined;
+  /** Pasek produktu przyklejony u góry. */
+  localNav?: Omit<ComponentProps<typeof LocalNav>, 'title'> | undefined;
 }
 
-const { title, intro } = Astro.props;
+const { title, intro, colors, localNav } = Astro.props;
+const style = [
+  colors && `--accent-from: ${colors[0]}; --accent-to: ${colors[1]}`,
+  // Animacja otwierająca odejmuje wysokość paska produktu, żeby mieściła się na ekranie.
+  localNav && '--story-local-nav: var(--local-nav-height)',
+]
+  .filter(Boolean)
+  .join('; ');
 ---
 
-<article class="story">
+<article class="story" style={style || undefined}>
+  {localNav && <LocalNav title={title} {...localNav} />}
   {intro ? <IntroVideo title={title} {...intro} /> : <h1 class="visually-hidden">{title}</h1>}
   <slot />
 </article>
+
+<script>
+  // Wejście elementów z [data-reveal] (kafelki we wszystkich sekcjach): raz, gdy wjeżdżają
+  // na ekran. Bez JS / z ograniczeniem ruchu: od razu widoczne (style w sekcjach).
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    document.documentElement.classList.add('reveal-js');
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in');
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.15 },
+    );
+    document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+  }
+</script>
 
 <style>
   /* Cała strona ciemna, także pod paskiem przy przewinięciu "z gumką" na Macu/iPhonie. */

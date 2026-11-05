@@ -1,0 +1,132 @@
+---
+/**
+ * "Jak to działa": trzy kroki obsługi SkyTimera 1 (fakty z podręcznika użytkownika).
+ * Scena ciemnoszara (--color-surface-dark), kafelki czarne, duży numer w kolorach produktu.
+ * Desktop: trzy kolumny. Telefon: jedna pod drugą.
+ */
+import type { Locale } from '../../../i18n/locales.ts';
+import { getDictionary } from '../../../i18n/index.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.how;
+---
+
+<section class="how" aria-labelledby="how-title">
+  <div class="how__inner">
+    <h2 class="how__title" id="how-title">
+      {t.heading}
+    </h2>
+    <ol class="how__steps" role="list">
+      {t.steps.map((step, i) => (
+        <li class="how__step" style={`--i: ${i}`} data-reveal>
+          <span class="how__num" aria-hidden="true">
+            {i + 1}
+          </span>
+          <h3 class="how__step-title">{step.title}</h3>
+          <p class="how__step-text">{step.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .how {
+    background: var(--color-surface-dark);
+    color: var(--color-text-on-dark);
+  }
+
+  .how__inner {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(5rem, 10vw, 8rem) var(--gutter);
+  }
+
+  .how__title {
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+  }
+
+  .how__steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .how__step {
+    padding: 2.5rem 2.25rem 2.75rem;
+    border-radius: 1.75rem;
+    background: var(--color-bg-dark);
+  }
+
+  .how__num {
+    display: block;
+    width: fit-content;
+    margin-bottom: 1.5rem;
+    font-size: clamp(3.5rem, 2.8rem + 2vw, 4.5rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(
+      135deg,
+      var(--accent-from, var(--color-text-on-dark)),
+      var(--accent-to, var(--color-text-on-dark))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .how__step-title {
+    font-size: clamp(1.5rem, 1.25rem + 0.8vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.022em;
+  }
+
+  .how__step-text {
+    margin-top: 0.75rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    line-height: 1.47;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 899px) {
+    .how__steps {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    .how__step {
+      padding: 2rem 1.75rem 2.25rem;
+      border-radius: 1.5rem;
+    }
+  }
+
+  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w siatce wyróżników dodaje .is-in). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .how__step:not(.is-in) {
+      opacity: 0;
+      transform: translateY(2rem);
+    }
+
+    .how__step {
+      transition:
+        opacity 900ms var(--ease-out),
+        transform 900ms var(--ease-out);
+      transition-delay: calc(var(--i) * 90ms);
+    }
+  }
+</style>

@@ -37,6 +37,14 @@ const GALLERIES: Record<string, { key: string; src: ImageMetadata }[]> = {
   ],
 };
 
+/**
+ * Parametry adresu wybierające opcję przy starcie (nazwa parametru → id kroku).
+ * Strona produktu linkuje np. do /pl/skytimer-1/konfigurator/?wersja=kit.
+ */
+const URL_PARAMS: Record<string, Record<string, string>> = {
+  'skytimer-1': { wersja: 'type' },
+};
+
 export const getStaticPaths = (() =>
   LOCALES.flatMap((lang) => {
     const dict = getDictionary(lang);
@@ -117,6 +125,7 @@ const fromPrice =
           texts={texts}
           locale={locale}
           today={toDateKey(today)}
+          urlParams={URL_PARAMS[product.id] ?? {}}
           labels={{
             summary: labels.summary,
             summaryHint: labels.summaryHint,
