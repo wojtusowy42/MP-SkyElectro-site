@@ -1,8 +1,11 @@
 ---
 /**
- * "Jak to działa": trzy kroki obsługi SkyTimera 1 (fakty z podręcznika użytkownika).
- * Scena ciemnoszara (--color-surface-dark), kafelki czarne, duży numer w kolorach produktu.
- * Desktop: trzy kolumny. Telefon: jedna pod drugą.
+ * "Jak to działa": jeden duży akapit (wzór: bloki tekstu na stronach iPhone'a na apple.com).
+ * Tekst szary, najważniejsze frazy białe. Mały nagłówek nad akapitem jak "nadtytuł" u Apple.
+ * Scena ciemnoszara (--color-surface-dark) między czarnymi.
+ *
+ * Wejście: raz, gdy akapit wjeżdża na ekran, wyróżnione frazy rozjaśniają się kolejno
+ * (bez JS i z ograniczeniem ruchu od razu białe). Fakty z podręcznika użytkownika.
  */
 import type { Locale } from '../../../i18n/locales.ts';
 import { getDictionary } from '../../../i18n/index.ts';
@@ -13,24 +16,19 @@ interface Props {
 
 const { locale } = Astro.props;
 const t = getDictionary(locale).products['skytimer-1'].story.how;
+let k = 0; // kolejność wyróżnień (opóźnienie rozjaśnienia)
 ---
 
 <section class="how" aria-labelledby="how-title">
   <div class="how__inner">
-    <h2 class="how__title" id="how-title">
+    <h2 class="how__eyebrow" id="how-title">
       {t.heading}
     </h2>
-    <ol class="how__steps" role="list">
-      {t.steps.map((step, i) => (
-        <li class="how__step" style={`--i: ${i}`} data-reveal>
-          <span class="how__num" aria-hidden="true">
-            {i + 1}
-          </span>
-          <h3 class="how__step-title">{step.title}</h3>
-          <p class="how__step-text">{step.text}</p>
-        </li>
-      ))}
-    </ol>
+    <p class="how__copy" data-reveal>
+      {t.parts.map(([text, strong]) =>
+        strong ? <strong style={`--k: ${k++}`}>{text}</strong> : text,
+      )}
+    </p>
   </div>
 </section>
 
@@ -43,90 +41,39 @@ const t = getDictionary(locale).products['skytimer-1'].story.how;
   .how__inner {
     max-width: calc(var(--content-max) + 2 * var(--gutter));
     margin-inline: auto;
-    padding: clamp(5rem, 10vw, 8rem) var(--gutter);
+    padding: clamp(6rem, 13vw, 11rem) var(--gutter);
   }
 
-  .how__title {
-    margin-bottom: clamp(2rem, 4vw, 3rem);
-    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
+  .how__eyebrow {
+    margin-bottom: 1.25rem;
+    font-size: clamp(1.1875rem, 1rem + 0.5vw, 1.5rem);
     font-weight: 600;
-    line-height: 1.07;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.015em;
   }
 
-  .how__steps {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .how__step {
-    padding: 2.5rem 2.25rem 2.75rem;
-    border-radius: 1.75rem;
-    background: var(--color-bg-dark);
-  }
-
-  .how__num {
-    display: block;
-    width: fit-content;
-    margin-bottom: 1.5rem;
-    font-size: clamp(3.5rem, 2.8rem + 2vw, 4.5rem);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums;
-    background: linear-gradient(
-      135deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .how__step-title {
-    font-size: clamp(1.5rem, 1.25rem + 0.8vw, 1.75rem);
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.022em;
-  }
-
-  .how__step-text {
-    margin-top: 0.75rem;
+  .how__copy {
+    max-width: 54rem;
     color: var(--color-text-2-on-dark);
-    font-size: 1.0625rem;
-    line-height: 1.47;
+    font-size: clamp(1.75rem, 1.15rem + 2.3vw, 3rem);
+    font-weight: 600;
+    line-height: 1.17;
+    letter-spacing: -0.026em;
     text-wrap: pretty;
   }
 
-  @media (max-width: 899px) {
-    .how__steps {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 0.75rem;
-    }
-
-    .how__step {
-      padding: 2rem 1.75rem 2.25rem;
-      border-radius: 1.5rem;
-    }
+  .how__copy strong {
+    font-weight: inherit;
+    color: var(--color-text-on-dark);
   }
 
-  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w siatce wyróżników dodaje .is-in). */
   @media (prefers-reduced-motion: no-preference) {
-    :global(.reveal-js) .how__step:not(.is-in) {
-      opacity: 0;
-      transform: translateY(2rem);
+    :global(.reveal-js) .how__copy:not(.is-in) strong {
+      color: var(--color-text-2-on-dark);
     }
 
-    .how__step {
-      transition:
-        opacity 900ms var(--ease-out),
-        transform 900ms var(--ease-out);
-      transition-delay: calc(var(--i) * 90ms);
+    .how__copy strong {
+      transition: color 700ms var(--ease-out);
+      transition-delay: calc(200ms + var(--k) * 180ms);
     }
   }
 </style>

@@ -95,34 +95,20 @@ const columns = typeStep.options.map((option) => {
           <ul class="compare__features" role="list">
             {c.features.map((f) => (
               <li class:list={['compare__feature', { 'is-off': !f.included }]}>
-                <span class="compare__mark" aria-hidden="true">
-                  {f.included ? (
-                    <svg viewBox="0 0 16 16" width="16" height="16">
-                      <path
-                        d="M3.5 8.5 6.5 11.5 12.5 4.5"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.75"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 16 16" width="16" height="16">
-                      <path
-                        d="M4 8h8"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.75"
-                        stroke-linecap="round"
-                      />
-                    </svg>
-                  )}
-                </span>
-                <span>
-                  {f.label}
-                  <span class="visually-hidden">: {f.included ? t.included : t.notIncluded}</span>
-                </span>
+                {f.included ? (
+                  f.label
+                ) : (
+                  <>
+                    {/* Niewidoczna nazwa trzyma wysokość wiersza równą z drugą kolumną. */}
+                    <span class="compare__ghost" aria-hidden="true">
+                      {f.label}
+                    </span>
+                    <span class="compare__dash" aria-hidden="true" />
+                    <span class="visually-hidden">
+                      {f.label}: {t.notIncluded}
+                    </span>
+                  </>
+                )}
               </li>
             ))}
           </ul>
@@ -231,47 +217,47 @@ const columns = typeStep.options.map((option) => {
     }
   }
 
-  /* Lista: te same pozycje w obu kolumnach, więc wiersze wypadają na tej samej wysokości. */
+  /*
+   * Lista jak w porównaniu iPhone'ów: pozycje zestawu białym tekstem, a gdzie czegoś nie ma,
+   * cienka kreska. Te same wiersze w obu kolumnach, więc wypadają na tej samej wysokości.
+   */
   .compare__features {
     display: grid;
-    gap: 1.75rem;
     width: 100%;
-    margin: 2.5rem 0 0;
-    padding: 2.5rem 0 0;
+    max-width: 18rem;
+    margin: 2.75rem 0 0;
+    padding: 0;
     border-top: 1px solid rgb(255 255 255 / 0.14);
     list-style: none;
   }
 
   .compare__feature {
     display: grid;
-    justify-items: center;
-    gap: 0.625rem;
+    min-height: 3.25rem;
+    padding-block: 0.875rem;
+    place-items: center;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
     font-size: 1.0625rem;
     line-height: 1.35;
     text-wrap: balance;
   }
 
   .compare__feature.is-off {
-    color: var(--color-text-2-on-dark);
+    position: relative;
   }
 
-  .compare__mark {
-    display: grid;
-    width: 2rem;
-    height: 2rem;
-    place-items: center;
-    border-radius: 50%;
-    background: linear-gradient(
-      135deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
-    );
-    color: var(--color-bg-dark);
+  .compare__ghost {
+    visibility: hidden;
   }
 
-  .is-off .compare__mark {
-    background: var(--color-surface-dark);
-    color: var(--color-text-2-on-dark);
+  .compare__dash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.25rem;
+    height: 1px;
+    background: var(--color-text-2-on-dark);
+    translate: -50% -50%;
   }
 
   @media (max-width: 734px) {

@@ -174,23 +174,24 @@ export const pl = {
         },
         // Pasek produktu przyklejony u góry strony (opis dla czytników ekranu).
         localNavLabel: 'SkyTimer 1: nawigacja produktu',
-        // "Jak to działa": 3 kroki. Fakty z podręcznika (rozdz. 11, 13, 14, 9, 16).
+        // "Jak to działa": jeden duży blok tekstu (wzór: akapity na stronach iPhone'a).
+        // Części: [tekst, wyróżnione?]. Fakty z podręcznika (rozdz. 9, 11, 13, 14).
         how: {
           heading: 'Jak to działa.',
-          steps: [
-            {
-              title: 'Ustaw czasy.',
-              text: 'Przełączniki 1-4 to czas flop, 5-10 czas dether. Po włączeniu timer odtwarza ustawiony czas dether sygnałami, więc sprawdzisz go przed lotem.',
-            },
-            {
-              title: 'Naciśnij start.',
-              text: 'Przycisk startu uruchamia sekwencję lotu. Gdy model poleci bez startu, Anti Fly Away sam uruchomi ją po 2\u00a0minutach.',
-            },
-            {
-              title: 'Flop i dether.',
-              text: 'Timer zwalnia linkę flop, a po czasie dether sprowadza model w dół. Z RDT zrobisz to zdalnie. Po lądowaniu buzzer i LED dalej dają sygnały.',
-            },
-          ],
+          parts: [
+            ['Ustaw czasy flop i dether ', false],
+            ['dziesięcioma przełącznikami.', true],
+            [' ', false],
+            ['Naciśnij start.', true],
+            [
+              ' SkyTimer zwolni linkę flop, a po czasie dether sprowadzi model w dół. Wcześniej zrobisz to zdalnie przez ',
+              false,
+            ],
+            ['RDT', true],
+            [', a ', false],
+            ['Anti Fly Away', true],
+            [' nie pozwoli modelowi uciec.', false],
+          ] as [string, boolean][],
         },
         // "W zestawie". Pozycje oznaczone "roboczy" wynikają z podręcznika pośrednio: do potwierdzenia.
         inBox: {
@@ -211,18 +212,6 @@ export const pl = {
             screws: { title: 'Śruby M2', text: 'M2 × 4, M2 × 6, M2 × 10' },
           },
         },
-        // "Współpracuje z".
-        partners: {
-          heading: 'Współpracuje z.',
-          tower: {
-            title: 'Wieża drukowana MP\u00a0SkyElectro',
-            text: 'Wieżyczka zaprojektowana pod SkyTimer 1, pusta albo z timerem.',
-          },
-          rdt: {
-            title: 'Moduły RDT',
-            text: 'Pełna zgodność z Aeris RDT firmy FF Electronics i MiniNeurone firmy Flying Neurons.',
-          },
-        },
         // "Który SkyTimer dla Ciebie?": porównanie zestawu i samej płytki (koniec strony).
         compare: {
           heading: 'Który SkyTimer 1 dla Ciebie?',
@@ -234,7 +223,6 @@ export const pl = {
             modules: 'Moduły buzzera i LED',
             mounting: 'Śruby i mocowanie przycisku startu',
           },
-          included: 'W zestawie',
           notIncluded: 'Brak',
         },
       },

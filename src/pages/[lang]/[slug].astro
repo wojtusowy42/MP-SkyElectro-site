@@ -14,7 +14,6 @@ import ProductStory from '../../components/product/ProductStory.astro';
 import SkyTimerHighlights from '../../components/product/skytimer/Highlights.astro';
 import SkyTimerCloserLook from '../../components/product/skytimer/CloserLook.astro';
 import SkyTimerHowItWorks from '../../components/product/skytimer/HowItWorks.astro';
-import SkyTimerPartners from '../../components/product/skytimer/Partners.astro';
 import SkyTimerCompare from '../../components/product/skytimer/Compare.astro';
 import skytimerIntroEnd from '../../assets/renders/skytimer-1/story/zlozenie-koniec.png';
 import { LOCALES } from '../../i18n/locales.ts';
@@ -104,12 +103,11 @@ function priceText(price: Price): string {
     >
       {product?.id === 'skytimer-1' && (
         <>
-          {/* Kolejność scen: animacja (czarna) → Poznaj (szara) → Przyjrzyj (czarna) →
-              Jak to działa (szara) → W zestawie (czarna) → Współpracuje z (szara) → Który (czarna) */}
+          {/* Kolejność scen (na przemian czarna / szara): animacja → Poznaj → Przyjrzyj →
+              Jak to działa → Który SkyTimer. "W zestawie" i "Współpracuje z" dojdą z renderami. */}
           <SkyTimerHighlights locale={locale} />
           <SkyTimerCloserLook locale={locale} />
           <SkyTimerHowItWorks locale={locale} />
-          <SkyTimerPartners locale={locale} />
           <SkyTimerCompare locale={locale} />
         </>
       )}
