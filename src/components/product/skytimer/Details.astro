@@ -1,7 +1,7 @@
 ---
 /**
  * "Detale": cztery liczby (bonus czasu dether, oszczędzanie energii, komora 16 mm, warianty).
- * Scena czarna. Duża liczba w kolorach produktu, pod nią jedno zdanie. Desktop: 4 kolumny
+ * Scena jasna (biała). Duża liczba w kolorach produktu, pod nią jedno zdanie. Desktop: 4 kolumny
  * oddzielone cienkimi liniami, telefon: 2 × 2. Fakty z podręcznika użytkownika.
  */
 import type { Locale } from '../../../i18n/locales.ts';
@@ -15,7 +15,7 @@ const { locale } = Astro.props;
 const t = getDictionary(locale).products['skytimer-1'].story.details;
 ---
 
-<section class="details" aria-labelledby="details-title">
+<section class="details" aria-labelledby="details-title" data-theme="light">
   <div class="details__inner">
     <p class="details__eyebrow">{t.eyebrow}</p>
     <h2 class="details__title" id="details-title">
@@ -34,8 +34,8 @@ const t = getDictionary(locale).products['skytimer-1'].story.details;
 
 <style>
   .details {
-    background: var(--color-bg-dark);
-    color: var(--color-text-on-dark);
+    background: var(--color-surface);
+    color: var(--color-text);
   }
 
   .details__inner {
@@ -46,7 +46,7 @@ const t = getDictionary(locale).products['skytimer-1'].story.details;
 
   .details__eyebrow {
     margin-bottom: 0.75rem;
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-2);
     font-size: clamp(1.1875rem, 1rem + 0.5vw, 1.5rem);
     font-weight: 600;
     letter-spacing: -0.015em;
@@ -71,7 +71,7 @@ const t = getDictionary(locale).products['skytimer-1'].story.details;
 
   .details__item {
     padding: 0 clamp(1rem, 2vw, 1.75rem);
-    border-left: 1px solid rgb(255 255 255 / 0.14);
+    border-left: 1px solid var(--color-line);
   }
 
   .details__item:first-child {
@@ -88,8 +88,8 @@ const t = getDictionary(locale).products['skytimer-1'].story.details;
     white-space: nowrap;
     background: linear-gradient(
       135deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
+      var(--accent-strong-from, var(--color-text)),
+      var(--accent-strong-to, var(--color-text))
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -98,8 +98,8 @@ const t = getDictionary(locale).products['skytimer-1'].story.details;
 
   .details__text {
     margin-top: 1rem;
-    color: var(--color-text-2-on-dark);
-    font-size: 1.0625rem;
+    color: var(--color-text-2);
+    font-size: 1.1875rem;
     line-height: 1.45;
     text-wrap: pretty;
   }

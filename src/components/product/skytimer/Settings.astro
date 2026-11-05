@@ -1,8 +1,9 @@
 ---
 /**
  * "Konfiguracja": osiem ustawień z trybu konfiguracji (podręcznik, rozdz. 12) z numerami
- * przełączników. Scena ciemnoszara, kafelki czarne. Na górze nagłówek + zdanie, obok zdjęcie
- * przełączników w czarnej karcie (render ma czarne tło).
+ * przełączników. Pierwsza JASNA scena strony (od niej w dół motyw jasny, jak u Apple):
+ * tło #F6F5F8, kafelki białe. Obok nagłówka zdjęcie przełączników w czarnej karcie
+ * (render ma czarne tło).
  * Zdjęcie: klatka 66 obrotu (Raw Assets/Blender Renders/SkyTimer obrót 360/), przycięta jak sekwencja.
  */
 import { Picture } from 'astro:assets';
@@ -18,7 +19,7 @@ const { locale } = Astro.props;
 const t = getDictionary(locale).products['skytimer-1'].story.settings;
 ---
 
-<section class="settings" aria-labelledby="settings-title">
+<section class="settings" aria-labelledby="settings-title" data-theme="light">
   <div class="settings__inner">
     <div class="settings__head">
       <div class="settings__copy">
@@ -59,8 +60,8 @@ const t = getDictionary(locale).products['skytimer-1'].story.settings;
 
 <style>
   .settings {
-    background: var(--color-surface-dark);
-    color: var(--color-text-on-dark);
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   .settings__inner {
@@ -78,7 +79,7 @@ const t = getDictionary(locale).products['skytimer-1'].story.settings;
 
   .settings__eyebrow {
     margin-bottom: 0.75rem;
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-2);
     font-size: clamp(1.1875rem, 1rem + 0.5vw, 1.5rem);
     font-weight: 600;
     letter-spacing: -0.015em;
@@ -94,7 +95,7 @@ const t = getDictionary(locale).products['skytimer-1'].story.settings;
 
   .settings__text {
     margin-top: 1.25rem;
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-2);
     font-size: clamp(1.0625rem, 0.98rem + 0.3vw, 1.3125rem);
     line-height: 1.42;
     text-wrap: pretty;
@@ -126,7 +127,7 @@ const t = getDictionary(locale).products['skytimer-1'].story.settings;
   .settings__tile {
     padding: 1.75rem 1.5rem 2rem;
     border-radius: 1.5rem;
-    background: var(--color-bg-dark);
+    background: var(--color-surface);
   }
 
   /* Numer przełącznika w kolorach produktu. */
@@ -140,8 +141,8 @@ const t = getDictionary(locale).products['skytimer-1'].story.settings;
     font-variant-numeric: tabular-nums;
     background: linear-gradient(
       135deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
+      var(--accent-strong-from, var(--color-text)),
+      var(--accent-strong-to, var(--color-text))
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -149,16 +150,16 @@ const t = getDictionary(locale).products['skytimer-1'].story.settings;
   }
 
   .settings__tile-title {
-    font-size: 1.1875rem;
+    font-size: 1.3125rem;
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.018em;
   }
 
   .settings__tile-text {
-    margin-top: 0.375rem;
-    color: var(--color-text-2-on-dark);
-    font-size: 0.9375rem;
+    margin-top: 0.5rem;
+    color: var(--color-text-2);
+    font-size: 1.0625rem;
     line-height: 1.4;
     text-wrap: pretty;
   }

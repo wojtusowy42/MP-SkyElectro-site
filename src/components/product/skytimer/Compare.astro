@@ -60,7 +60,7 @@ const columns = typeStep.options.map((option) => {
 });
 ---
 
-<section class="compare" aria-labelledby="compare-title">
+<section class="compare" aria-labelledby="compare-title" data-theme="light">
   <div class="compare__inner">
     <h2 class="compare__title" id="compare-title">
       {t.heading}
@@ -119,10 +119,10 @@ const columns = typeStep.options.map((option) => {
 </section>
 
 <style>
-  /* Ostatnia scena: czarna (sceny na przemian: czarna / ciemnoszara). */
+  /* Ostatnia scena: jasna, biała (dolna część strony w jasnym motywie). */
   .compare {
-    background: var(--color-bg-dark);
-    color: var(--color-text-on-dark);
+    background: var(--color-surface);
+    color: var(--color-text);
   }
 
   .compare__inner {
@@ -180,13 +180,13 @@ const columns = typeStep.options.map((option) => {
   }
 
   .compare__old {
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-2);
   }
 
   .compare__lowest {
     max-width: 16rem;
     margin-top: 0.375rem;
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-2);
     font-size: 0.875rem;
     line-height: 1.35;
   }
@@ -199,21 +199,21 @@ const columns = typeStep.options.map((option) => {
     margin-top: 1.5rem;
     padding-inline: 1.5rem;
     border-radius: var(--radius-pill);
-    background: var(--color-text-on-dark);
-    color: var(--color-bg-dark);
+    background: var(--color-text);
+    color: var(--color-surface);
     font-size: var(--text-body);
     text-decoration: none;
     text-box: trim-both cap alphabetic;
   }
 
   .compare__cta:focus-visible {
-    outline: 2px solid var(--color-text-on-dark);
+    outline: 2px solid var(--color-text);
     outline-offset: 3px;
   }
 
   @media (hover: hover) {
     .compare__cta:hover {
-      background: color-mix(in srgb, var(--color-text-on-dark) 82%, var(--color-bg-dark));
+      background: color-mix(in srgb, var(--color-text) 82%, var(--color-surface));
     }
   }
 
@@ -227,7 +227,7 @@ const columns = typeStep.options.map((option) => {
     max-width: 18rem;
     margin: 2.75rem 0 0;
     padding: 0;
-    border-top: 1px solid rgb(255 255 255 / 0.14);
+    border-top: 1px solid var(--color-line);
     list-style: none;
   }
 
@@ -236,7 +236,7 @@ const columns = typeStep.options.map((option) => {
     min-height: 3.25rem;
     padding-block: 0.875rem;
     place-items: center;
-    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
     font-size: 1.0625rem;
     line-height: 1.35;
     text-wrap: balance;
@@ -256,7 +256,7 @@ const columns = typeStep.options.map((option) => {
     left: 50%;
     width: 1.25rem;
     height: 1px;
-    background: var(--color-text-2-on-dark);
+    background: var(--color-text-2);
     translate: -50% -50%;
   }
 

@@ -1,7 +1,7 @@
 ---
 /**
  * "Dane techniczne": tabela parametrów z podręcznika + link do podręcznika w PDF.
- * Scena ciemnoszara. Desktop: nazwa po lewej, wartość po prawej, cienkie linie między wierszami.
+ * Scena jasna (#F6F5F8). Desktop: nazwa po lewej, wartość po prawej, cienkie linie między wierszami.
  * PDF: public/docs/ (wersja skompresowana do sieci, ok. 0,9 MB; oryginał 27 MB w projekcie).
  */
 import type { Locale } from '../../../i18n/locales.ts';
@@ -16,7 +16,7 @@ const t = getDictionary(locale).products['skytimer-1'].story.specs;
 const PDF = '/docs/skytimer-1-podrecznik-uzytkownika.pdf';
 ---
 
-<section class="specs" aria-labelledby="specs-title">
+<section class="specs" aria-labelledby="specs-title" data-theme="light">
   <div class="specs__inner">
     <h2 class="specs__title" id="specs-title">
       {t.heading}
@@ -47,8 +47,8 @@ const PDF = '/docs/skytimer-1-podrecznik-uzytkownika.pdf';
 
 <style>
   .specs {
-    background: var(--color-surface-dark);
-    color: var(--color-text-on-dark);
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   .specs__inner {
@@ -67,7 +67,7 @@ const PDF = '/docs/skytimer-1-podrecznik-uzytkownika.pdf';
 
   .specs__list {
     margin: 0;
-    border-top: 1px solid rgb(255 255 255 / 0.14);
+    border-top: 1px solid var(--color-line);
   }
 
   .specs__row {
@@ -75,8 +75,8 @@ const PDF = '/docs/skytimer-1-podrecznik-uzytkownika.pdf';
     grid-template-columns: minmax(10rem, 1fr) minmax(0, 2.2fr);
     gap: 1rem 2rem;
     padding-block: 1.125rem;
-    border-bottom: 1px solid rgb(255 255 255 / 0.1);
-    font-size: 1.0625rem;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 1.125rem;
     line-height: 1.45;
   }
 
@@ -84,9 +84,13 @@ const PDF = '/docs/skytimer-1-podrecznik-uzytkownika.pdf';
     font-weight: 600;
   }
 
+  /* Wartości ciemne (nie szare): to je się czyta, nazwy są tylko etykietą. */
   .specs__row dd {
     margin: 0;
-    color: var(--color-text-2-on-dark);
+  }
+
+  .specs__row dt {
+    color: var(--color-text-2);
   }
 
   .specs__pdf {
@@ -94,8 +98,8 @@ const PDF = '/docs/skytimer-1-podrecznik-uzytkownika.pdf';
     align-items: center;
     gap: 0.5rem;
     margin-top: 2rem;
-    color: var(--color-text-on-dark);
-    font-size: 1.0625rem;
+    color: var(--color-text);
+    font-size: 1.125rem;
     text-decoration: none;
   }
 

@@ -4,6 +4,9 @@
  * Nazwa produktu po lewej, mały "Zamów" po prawej. Półprzezroczyste, rozmyte tło.
  * Stoi pod paskiem menu strony, a przy przewijaniu przykleja się do górnej krawędzi
  * (position: sticky, bez JS). Wysokość: --local-nav-height (ustawia ProductStory).
+ *
+ * Motyw: nad sekcją z data-theme="light" pasek robi się jasny (jak na apple.com, gdy strona
+ * przechodzi w jasną część). Sprawdzane przy przewijaniu, najwyżej raz na klatkę.
  */
 interface Props {
   title: string;
@@ -16,7 +19,7 @@ interface Props {
 const { title, label, orderHref, orderLabel } = Astro.props;
 ---
 
-<nav class="local-nav" aria-label={label}>
+<nav class="local-nav" aria-label={label} data-local-nav>
   <div class="local-nav__bar">
     <p class="local-nav__title">{title}</p>
     <a class="local-nav__cta" href={orderHref}>
@@ -24,6 +27,26 @@ const { title, label, orderHref, orderLabel } = Astro.props;
     </a>
   </div>
 </nav>
+
+<script>
+  for (const nav of document.querySelectorAll<HTMLElement>('[data-local-nav]')) {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      // Co jest tuż pod dolną krawędzią paska?
+      const y = nav.getBoundingClientRect().bottom + 1;
+      const under = document.elementsFromPoint(innerWidth / 2, y).find((el) => !nav.contains(el));
+      const light = !!under?.closest('[data-theme="light"]');
+      nav.classList.toggle('is-light', light);
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    update();
+  }
+</script>
 
 <style>
   .local-nav {
@@ -77,6 +100,22 @@ const { title, label, orderHref, orderLabel } = Astro.props;
     .local-nav__cta:hover {
       background: color-mix(in srgb, var(--color-text-on-dark) 82%, var(--color-bg-dark));
     }
+
+    .local-nav:global(.is-light) .local-nav__cta:hover {
+      background: color-mix(in srgb, var(--color-text) 82%, var(--color-surface));
+    }
+  }
+
+  /* Jasny motyw (nad jasnymi sekcjami). */
+  .local-nav:global(.is-light) {
+    border-bottom-color: rgb(0 0 0 / 0.1);
+    background: rgb(251 251 253 / 0.8);
+    color: var(--color-text);
+  }
+
+  .local-nav:global(.is-light) .local-nav__cta {
+    background: var(--color-text);
+    color: var(--color-surface);
   }
 
   @media (max-width: 734px) {
@@ -86,9 +125,17 @@ const { title, label, orderHref, orderLabel } = Astro.props;
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    .local-nav {
+      transition:
+        background-color 300ms var(--ease-out),
+        color 300ms var(--ease-out),
+        border-color 300ms var(--ease-out);
+    }
+
     .local-nav__cta {
       transition:
         background-color 240ms var(--ease-out),
+        color 240ms var(--ease-out),
         transform var(--duration-press) var(--ease-out);
     }
 
