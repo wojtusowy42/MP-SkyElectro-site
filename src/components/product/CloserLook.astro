@@ -6,24 +6,48 @@
  * Dlaczego klatki, a nie 3D w przeglądarce: jakość renderu z Cycles, zero bibliotek,
  * a koszt to tylko waga klatek, które ładują się dopiero, gdy sekcja się zbliża.
  *
+ * Płynność: pozycja obrotu jest ułamkowa, a canvas przenika dwie sąsiednie klatki
+ * proporcjonalnie (np. 40% między klatką 12 i 13), więc ruch jest ciągły mimo kroku 3°.
+ * Rysowanie najwyżej raz na klatkę ekranu (requestAnimationFrame).
+ *
  * Obsługa:
  *  - przeciąganie myszą / palcem (z bezwładnością); w pionie strona przewija się normalnie,
+ *    puszczenie blisko widoku (do 15°) delikatnie dociąga do niego,
  *  - przyciski widoków: produkt obraca się do ujęcia najkrótszą drogą (ease-out),
- *  - klawiatura: scena to suwak (strzałki obracają, Home = pierwszy widok),
- *  - raz, przy pierwszym pokazaniu, krótki obrót do pierwszego widoku (podpowiedź, że to się kręci),
- *  - prefers-reduced-motion: bez animacji (przyciski przeskakują, bez bezwładności, bez podpowiedzi),
+ *  - klawiatura: scena to suwak (strzałki obracają, Home / End = pierwszy / ostatni widok),
+ *  - gdy produkt stoi na widoku, rysują się opisy: kreska od podpisu do elementu.
+ *    Desktop: podpisy po bokach. Telefon: numerowane punkty na produkcie i lista pod nim,
+ *  - raz, przy pierwszym pokazaniu, krótki obrót do pierwszego widoku (podpowiedź),
+ *  - prefers-reduced-motion: bez animacji (przyciski przeskakują, bez bezwładności, opisy od razu),
  *  - bez JS: zwykły obrazek pierwszej klatki.
  *
- * Klatki: public/<frames>/<szerokość>/<numer>.webp, numery od 000. Dwie szerokości (desktop / telefon).
- * Ładowanie stopniowe: najpierw co 8. klatka, potem co 4., co 2. i reszta; do tego czasu
- * rysowana jest najbliższa wczytana, więc obrót działa od razu.
+ * Klatki: public/<frames>/<szerokość>/<numer>.webp, numery od 000. Ładowanie stopniowe:
+ * najpierw co 8. klatka, potem co 4., co 2. i reszta.
  */
+export interface CloserLookCallout {
+  /** Punkt na klatce, 0-1 od lewego górnego rogu. */
+  x: number;
+  y: number;
+  /** Po której stronie produktu stoi podpis (desktop). */
+  side: 'left' | 'right';
+  /** Opcjonalnie: klamra pod grupą elementów, od x1 do x2 (na wysokości y). Punkt = środek klamry. */
+  span?: [number, number] | undefined;
+  /**
+   * Obszar w pełnym świetle (reszta produktu przyciemniona): elipsa, wszystko jako ułamek
+   * SZEROKOŚCI klatki. Domyślnie okrąg o promieniu 0.08 wokół punktu.
+   */
+  focus?: { x: number; y: number; rx: number; ry: number } | undefined;
+  title: string;
+  text: string;
+}
+
 export interface CloserLookView {
   id: string;
   label: string;
   caption: string;
   /** Numer klatki z tym ujęciem. */
   frame: number;
+  callouts: CloserLookCallout[];
 }
 
 interface Props {
@@ -38,7 +62,7 @@ interface Props {
   /** Ścieżka w public/ bez końcowego ukośnika, np. '/sequence/skytimer-1/obrot'. */
   frames: string;
   count: number;
-  /** Szerokości dostępnych zestawów klatek (rosnąco), np. [800, 1440]. */
+  /** Szerokości dostępnych zestawów klatek (rosnąco), np. [720, 1130]. */
   widths: number[];
   /** Proporcje klatki (szerokość / wysokość). */
   aspect: number;
@@ -49,6 +73,20 @@ const { heading, hint, stageLabel, valueText, viewsLabel, views, frames, count, 
 const first = views[0]?.frame ?? 0;
 const pad = (n: number) => String(n).padStart(3, '0');
 const posterSrc = (w: number) => `${frames}/${w}/${pad(first)}.webp`;
+
+// Maska przyciemnienia: każda elipsa to warstwa "czarne wszędzie poza elipsą"; część wspólna
+// warstw (mask-composite: intersect) = czarne wszędzie poza wszystkimi elipsami.
+const pct = (n: number) => `${+(n * 100).toFixed(2)}%`;
+function shadeMask(callouts: CloserLookCallout[]): string {
+  return callouts
+    .map((c) => {
+      const f = c.focus ?? { x: c.x, y: c.y, rx: 0.08, ry: 0.08 };
+      // ry podane względem szerokości, a w gradiencie % liczy się od wysokości: × proporcje.
+      return `radial-gradient(ellipse ${pct(f.rx)} ${pct(f.ry * aspect)} at ${pct(f.x)} ${pct(f.y)}, transparent 62%, #000 100%)`;
+    })
+    .join(', ');
+}
+
 const config = {
   frames,
   count,
@@ -69,28 +107,101 @@ const config = {
       {heading}
     </h2>
 
-    <div
-      class="closer__stage"
-      style={`--aspect: ${aspect}`}
-      role="slider"
-      tabindex="0"
-      aria-label={stageLabel}
-      aria-valuemin="0"
-      aria-valuemax="359"
-      aria-valuenow="0"
-      data-stage
-    >
-      <img
-        class="closer__poster"
-        src={posterSrc(widths.at(-1) ?? 1440)}
-        srcset={widths.map((w) => `${posterSrc(w)} ${w}w`).join(', ')}
-        sizes="(max-width: 734px) 100vw, 1130px"
-        alt=""
-        loading="lazy"
-        decoding="async"
-        draggable="false"
-      />
-      <canvas class="closer__canvas" aria-hidden="true" data-canvas></canvas>
+    <div class="closer__wrap" data-wrap>
+      <div
+        class="closer__stage"
+        style={`--aspect: ${aspect}`}
+        role="slider"
+        tabindex="0"
+        aria-label={stageLabel}
+        aria-valuemin="0"
+        aria-valuemax="359"
+        aria-valuenow="0"
+        data-stage
+      >
+        <img
+          class="closer__poster"
+          src={posterSrc(widths.at(-1) ?? 1130)}
+          srcset={widths.map((w) => `${posterSrc(w)} ${w}w`).join(', ')}
+          sizes="(max-width: 899px) 100vw, 760px"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
+        <canvas class="closer__canvas" aria-hidden="true" data-canvas></canvas>
+
+        {/* Reflektor: przyciemnienie z wycięciami na opisywane elementy (maska CSS, bez JS) */}
+        {views.map((v) => (
+          <span
+            class="closer__shade"
+            style={`--mask: ${shadeMask(v.callouts)}`}
+            data-shade={v.id}
+            aria-hidden="true"
+          />
+        ))}
+
+        {/* Klamry pod grupami elementów (np. przełączniki 1-4) */}
+        {views.map((v) =>
+          v.callouts.map(
+            (c, i) =>
+              c.span && (
+                <span
+                  class="closer__bracket"
+                  style={`left: ${c.span[0] * 100}%; width: ${(c.span[1] - c.span[0]) * 100}%; top: ${c.y * 100}%; --i: ${i}`}
+                  data-bracket={v.id}
+                  aria-hidden="true"
+                />
+              ),
+          ),
+        )}
+
+        {/* Punkty na produkcie (na telefonie z numerem) */}
+        {views.map((v) =>
+          v.callouts.map((c, i) => (
+            <span
+              class="closer__dot"
+              style={`left: ${c.x * 100}%; top: ${c.y * 100}%; --i: ${i}`}
+              data-dot={v.id}
+              aria-hidden="true"
+            >
+              <span class="closer__dot-num">{i + 1}</span>
+            </span>
+          )),
+        )}
+      </div>
+
+      {/* Kreski od podpisu do punktu (desktop). Ścieżki liczone w JS względem warstwy. */}
+      <svg class="closer__lines" aria-hidden="true" data-lines>
+        {views.map((v) =>
+          v.callouts.map((_, i) => (
+            <path data-line={v.id} data-index={i} pathLength="1" style={`--i: ${i}`} />
+          )),
+        )}
+      </svg>
+
+      {/* Podpisy: desktop po bokach (pozycje z JS), telefon lista pod produktem */}
+      {views.map((v) => (
+        <ol class="closer__labels" data-labels={v.id}>
+          {v.callouts.map((c, i) => (
+            <li
+              class:list={['closer__label', `closer__label--${c.side}`]}
+              style={`--i: ${i}`}
+              data-side={c.side}
+              data-x={c.x}
+              data-y={c.y}
+            >
+              <span class="closer__label-num" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span class="closer__label-body">
+                <strong class="closer__label-title">{c.title}</strong>
+                <span class="closer__label-text">{c.text}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ))}
     </div>
 
     <p class="closer__hint" data-hint>
@@ -146,15 +257,18 @@ const config = {
   }
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const desktop = matchMedia('(min-width: 900px)');
   const pad = (n: number) => String(n).padStart(3, '0');
   const mod = (n: number, m: number) => ((n % m) + m) % m;
   const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-closer]')) {
     const cfg = JSON.parse(root.dataset.config ?? '{}') as Config;
+    const wrap = root.querySelector<HTMLElement>('[data-wrap]')!;
     const stage = root.querySelector<HTMLElement>('[data-stage]')!;
     const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
     const ctx = canvas.getContext('2d')!;
+    const linesSvg = root.querySelector<SVGSVGElement>('[data-lines]')!;
     const hint = root.querySelector<HTMLElement>('[data-hint]')!;
     const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-view]')];
     const captions = [...root.querySelectorAll<HTMLElement>('[data-caption]')];
@@ -162,10 +276,11 @@ const config = {
 
     // ---------- Stan ----------
     let pos = cfg.views[0]?.frame ?? 0; // pozycja w klatkach (ułamkowa)
-    let drawn = -1;
-    let anim: number | null = null; // id requestAnimationFrame animacji / bezwładności
+    let anim: number | null = null; // animacja obrotu / bezwładności
+    let raf: number | null = null; // zaplanowane rysowanie
     const images: (HTMLImageElement | null)[] = new Array(N).fill(null);
     let started = false;
+    let shownView = ''; // widok, którego opisy są teraz pokazane
 
     // ---------- Ładowanie klatek ----------
     // Najmniejszy zestaw, który pokryje scenę; do 15% powiększenia jest niewidoczne
@@ -179,7 +294,6 @@ const config = {
       if (started) return;
       started = true;
       const w = pickWidth();
-      // Kolejność: co 8., co 4., co 2., reszta. Obrót działa od razu na rzadszych klatkach.
       const order: number[] = [];
       for (const step of [8, 4, 2, 1]) {
         for (let i = 0; i < N; i += step) if (!order.includes(i)) order.push(i);
@@ -193,7 +307,7 @@ const config = {
           try {
             await img.decode();
             images[i] = img;
-            if (drawn < 0 || nearestLoaded(Math.round(pos)) === i) render(true);
+            requestRender();
           } catch {
             /* brak klatki: zostaje najbliższa wczytana */
           }
@@ -218,44 +332,145 @@ const config = {
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
-        drawn = -1;
       }
     }
 
-    function render(force = false) {
-      const frame = nearestLoaded(mod(Math.round(pos), N));
-      if (frame < 0) return;
-      if (frame !== drawn || force) {
-        sizeCanvas();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(images[frame]!, 0, 0, canvas.width, canvas.height);
-        if (drawn < 0) root.classList.add('is-ready');
-        drawn = frame;
+    function requestRender() {
+      if (raf === null) raf = requestAnimationFrame(draw);
+    }
+
+    function draw() {
+      raf = null;
+      const base = Math.floor(pos);
+      const t = pos - base;
+      const a = mod(base, N);
+      const b = mod(base + 1, N);
+      // Obie sąsiednie klatki wczytane: przenikanie. Inaczej najbliższa wczytana.
+      const exactA = images[a];
+      const exactB = images[b];
+      const fallback = nearestLoaded(mod(Math.round(pos), N));
+      if (fallback < 0) return;
+      sizeCanvas();
+      ctx.imageSmoothingQuality = 'high';
+      if (exactA && exactB) {
+        ctx.globalAlpha = 1;
+        ctx.drawImage(exactA, 0, 0, canvas.width, canvas.height);
+        if (t > 0.01) {
+          ctx.globalAlpha = t;
+          ctx.drawImage(exactB, 0, 0, canvas.width, canvas.height);
+          ctx.globalAlpha = 1;
+        }
+      } else {
+        ctx.globalAlpha = 1;
+        ctx.drawImage(images[fallback]!, 0, 0, canvas.width, canvas.height);
       }
+      root.classList.add('is-ready');
       updateUi();
     }
 
-    let activeView = '';
+    // Najbliższy widok i odległość do niego (w klatkach).
+    function nearestView(p = pos): { view: View; dist: number; delta: number } {
+      let view = cfg.views[0]!;
+      let best = Infinity;
+      let bestDelta = 0;
+      for (const v of cfg.views) {
+        let d = mod(v.frame - p, N);
+        if (d > N / 2) d -= N;
+        if (Math.abs(d) < best) [best, view, bestDelta] = [Math.abs(d), v, d];
+      }
+      return { view, dist: best, delta: bestDelta };
+    }
+
+    let pressedView = '';
     function updateUi() {
       const f = mod(Math.round(pos), N);
       const deg = Math.round((f / N) * 360) % 360;
-      // Najbliższy widok (do opisu dla czytnika) i widok dokładnie trafiony (do przycisku).
-      let near = cfg.views[0]!;
-      let best = Infinity;
-      for (const v of cfg.views) {
-        const d = Math.min(mod(f - v.frame, N), mod(v.frame - f, N));
-        if (d < best) [best, near] = [d, v];
-      }
-      const exact = best <= 1 ? near.id : '';
+      const { view, dist } = nearestView();
       stage.setAttribute('aria-valuenow', String(deg));
       stage.setAttribute(
         'aria-valuetext',
-        cfg.valueText.replace('{deg}', String(deg)).replace('{view}', near.label),
+        cfg.valueText.replace('{deg}', String(deg)).replace('{view}', view.label),
       );
-      if (exact === activeView) return;
-      activeView = exact;
+      const exact = dist < 0.5 ? view.id : '';
+      if (exact === pressedView) return;
+      pressedView = exact;
       for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.view === exact));
-      for (const c of captions) c.hidden = c.dataset.caption !== (exact || near.id);
+      for (const c of captions) c.hidden = c.dataset.caption !== (exact || view.id);
+    }
+
+    // ---------- Opisy (kreski + podpisy) ----------
+    const calloutParts = (id?: string) =>
+      root.querySelectorAll<Element>(
+        id
+          ? `[data-shade="${id}"], [data-dot="${id}"], [data-bracket="${id}"], [data-line="${id}"], [data-labels="${id}"]`
+          : '[data-shade], [data-dot], [data-bracket], [data-line], [data-labels]',
+      );
+
+    function hideCallouts() {
+      if (!shownView) return;
+      shownView = '';
+      for (const el of calloutParts()) el.classList.remove('is-on');
+    }
+
+    function showCallouts(id: string) {
+      layoutCallouts(id);
+      shownView = id;
+      // Klasa w następnej klatce, żeby przejście CSS ruszyło od stanu ukrytego.
+      requestAnimationFrame(() => {
+        if (shownView !== id) return;
+        for (const el of calloutParts(id)) el.classList.add('is-on');
+      });
+    }
+
+    // Desktop: podpisy po bokach produktu, na wysokości swojego punktu (rozsunięte, gdy
+    // nachodzą na siebie), kreska: poziomo od podpisu, potem prosto do punktu.
+    function layoutCallouts(id: string) {
+      if (!desktop.matches) return;
+      const wr = wrap.getBoundingClientRect();
+      const sr = stage.getBoundingClientRect();
+      linesSvg.setAttribute('viewBox', `0 0 ${wr.width} ${wr.height}`);
+      const list = root.querySelector<HTMLElement>(`[data-labels="${id}"]`);
+      if (!list) return;
+      const items = [...list.querySelectorAll<HTMLElement>('.closer__label')];
+      const gap = 20; // odstęp podpisu od krawędzi produktu
+      for (const side of ['left', 'right'] as const) {
+        const group = items
+          .filter((el) => el.dataset.side === side)
+          .map((el) => ({ el, ay: sr.top - wr.top + Number(el.dataset.y) * sr.height }))
+          .sort((p, q) => p.ay - q.ay);
+        let lastBottom = -Infinity;
+        for (const g of group) {
+          const h = g.el.offsetHeight;
+          let top = Math.max(g.ay - h / 2, lastBottom + 16);
+          top = Math.min(top, wr.height - h);
+          g.el.style.top = `${top}px`;
+          if (side === 'left') {
+            g.el.style.right = `${wr.right - sr.left + gap}px`;
+            g.el.style.left = 'auto';
+          } else {
+            g.el.style.left = `${sr.right - wr.left + gap}px`;
+            g.el.style.right = 'auto';
+          }
+          lastBottom = top + h;
+        }
+      }
+      // Ścieżki
+      items.forEach((el, i) => {
+        const path = linesSvg.querySelector<SVGPathElement>(
+          `[data-line="${id}"][data-index="${i}"]`,
+        );
+        if (!path) return;
+        const er = el.getBoundingClientRect();
+        const ax = sr.left - wr.left + Number(el.dataset.x) * sr.width;
+        const ay = sr.top - wr.top + Number(el.dataset.y) * sr.height;
+        const ly = er.top - wr.top + 14; // na wysokości tytułu
+        const left = el.dataset.side === 'left';
+        const lx = left ? er.right - wr.left + 12 : er.left - wr.left - 12;
+        // Łamanie: poziomo do krawędzi produktu, dalej prosto do punktu.
+        const ex = left ? sr.left - wr.left + 6 : sr.right - wr.left - 6;
+        const bend = (left && ex < ax) || (!left && ex > ax) ? ex : (lx + ax) / 2;
+        path.setAttribute('d', `M${lx} ${ly} H${bend} L${ax} ${ay}`);
+      });
     }
 
     function stop() {
@@ -263,26 +478,49 @@ const config = {
       anim = null;
     }
 
-    // Obrót do klatki najkrótszą drogą, ease-out. Czas rośnie z odległością (max ~1 s).
+    // Po zatrzymaniu: na widoku pokaż opisy.
+    function settled() {
+      const { view, dist } = nearestView();
+      if (dist < 0.5) {
+        pos = Math.round(pos);
+        requestRender();
+        showCallouts(view.id);
+      }
+    }
+
+    // Obrót do klatki najkrótszą drogą, ease-out. Czas rośnie z odległością.
     function rotateTo(target: number, minMs = 0) {
       stop();
+      hideCallouts();
       let delta = mod(target - pos, N);
       if (delta > N / 2) delta -= N;
-      if (reduce || Math.abs(delta) < 0.5) {
+      if (reduce || Math.abs(delta) < 0.05) {
         pos = target;
-        render();
+        requestRender();
+        settled();
         return;
       }
       const from = pos;
-      const ms = Math.max(minMs, 380 + (Math.abs(delta) / (N / 2)) * 620);
+      const ms = Math.max(minMs, 450 + (Math.abs(delta) / (N / 2)) * 750);
       const t0 = performance.now();
       const tick = (now: number) => {
         const t = Math.min(1, (now - t0) / ms);
         pos = from + delta * easeOut(t);
-        render();
-        anim = t < 1 ? requestAnimationFrame(tick) : null;
+        draw();
+        if (t < 1) anim = requestAnimationFrame(tick);
+        else {
+          anim = null;
+          settled();
+        }
       };
       anim = requestAnimationFrame(tick);
+    }
+
+    // Po puszczeniu: blisko widoku (do 15°) dociągnij do niego, inaczej zostań.
+    function snapOrSettle() {
+      const { view, dist } = nearestView();
+      if (dist > 0.05 && dist <= N / 24) rotateTo(view.frame);
+      else settled();
     }
 
     // ---------- Przeciąganie z bezwładnością ----------
@@ -295,6 +533,7 @@ const config = {
     stage.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
       stop();
+      hideCallouts();
       dragging = true;
       lastX = e.clientX;
       lastT = e.timeStamp;
@@ -314,7 +553,7 @@ const config = {
       velocity = 0.8 * (df / dt) + 0.2 * velocity;
       lastX = e.clientX;
       lastT = e.timeStamp;
-      render();
+      requestRender();
     });
 
     const endDrag = (e: PointerEvent) => {
@@ -323,7 +562,10 @@ const config = {
       stage.classList.remove('is-dragging');
       if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
       // Puszczenie po chwili bez ruchu = bez bezwładności.
-      if (reduce || e.timeStamp - lastT > 80 || Math.abs(velocity) < 0.002) return;
+      if (reduce || e.timeStamp - lastT > 80 || Math.abs(velocity) < 0.002) {
+        snapOrSettle();
+        return;
+      }
       let v = velocity;
       let prev = performance.now();
       const tick = (now: number) => {
@@ -331,8 +573,12 @@ const config = {
         prev = now;
         pos += v * dt;
         v *= Math.pow(0.994, dt); // tarcie
-        render();
-        anim = Math.abs(v) > 0.0008 ? requestAnimationFrame(tick) : null;
+        draw();
+        if (Math.abs(v) > 0.0015) anim = requestAnimationFrame(tick);
+        else {
+          anim = null;
+          snapOrSettle();
+        }
       };
       anim = requestAnimationFrame(tick);
     };
@@ -380,11 +626,13 @@ const config = {
           load();
           if (e.intersectionRatio >= 0.5 && !hinted) {
             hinted = true;
-            if (!reduce) {
-              const home = cfg.views[0]?.frame ?? 0;
+            const home = cfg.views[0]?.frame ?? 0;
+            if (reduce) {
+              settled();
+            } else {
               pos = home + N / 8; // start 45° obok, obrót do pierwszego widoku
-              render();
-              setTimeout(() => rotateTo(home, 1400), 150);
+              requestRender();
+              setTimeout(() => rotateTo(home, 1500), 150);
             }
           }
         }
@@ -393,7 +641,10 @@ const config = {
     );
     io.observe(stage);
 
-    new ResizeObserver(() => render(true)).observe(stage);
+    new ResizeObserver(() => {
+      requestRender();
+      if (shownView) layoutCallouts(shownView);
+    }).observe(wrap);
   }
 </script>
 
@@ -411,7 +662,7 @@ const config = {
   }
 
   .closer__title {
-    max-width: calc(var(--content-max));
+    max-width: var(--content-max);
     margin: 0 auto clamp(1.5rem, 3vw, 2.5rem);
     font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
     font-weight: 600;
@@ -419,11 +670,26 @@ const config = {
     letter-spacing: -0.03em;
   }
 
+  /* Warstwa: produkt na środku, po bokach miejsce na podpisy (desktop). */
+  .closer__wrap {
+    position: relative;
+  }
+
+  /* Desktop: sekcja szersza niż reszta strony (do 1400 px), żeby produkt był duży mimo podpisów. */
+  @media (min-width: 900px) {
+    .closer__inner {
+      max-width: calc(87.5rem + 2 * var(--gutter));
+    }
+
+    .closer__title {
+      max-width: calc(var(--content-wide));
+    }
+  }
+
   /* ---------- Scena ---------- */
   .closer__stage {
     position: relative;
-    /* Szerokość ograniczona też wysokością okna: cała płytka zawsze mieści się na ekranie. */
-    width: min(100%, 70.625rem, calc(72svh * var(--aspect)));
+    width: 100%;
     margin-inline: auto;
     aspect-ratio: var(--aspect);
     cursor: grab;
@@ -431,6 +697,13 @@ const config = {
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (min-width: 900px) {
+    /* Produkt węższy niż sekcja: po bokach po ~15 rem na podpisy. Cały mieści się w oknie. */
+    .closer__stage {
+      width: min(calc(100% - 2 * 18rem), 56rem, calc(62svh * var(--aspect)));
+    }
   }
 
   .closer__stage.is-dragging {
@@ -469,6 +742,242 @@ const config = {
     visibility: hidden;
   }
 
+  /* ---------- Punkty na produkcie ---------- */
+  .closer__dot {
+    position: absolute;
+    z-index: 1;
+    display: grid;
+    width: 0.75rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-text-on-dark);
+    box-shadow:
+      0 0 0 0.375rem rgb(255 255 255 / 0.25),
+      0 0.125rem 0.625rem rgb(0 0 0 / 0.7);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+
+  .closer__dot-num {
+    display: none;
+  }
+
+  /* Reflektor: przyciemnia produkt poza opisywanymi elementami. */
+  .closer__shade {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.62);
+    -webkit-mask-image: var(--mask);
+    mask-image: var(--mask);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .closer__shade:global(.is-on) {
+    opacity: 1;
+  }
+
+  /* Klamra: pozioma kreska z ząbkami w górę na końcach, rozwija się od środka. */
+  .closer__bracket {
+    position: absolute;
+    height: 0.5rem;
+    border: 1.5px solid var(--color-text-on-dark);
+    border-top: 0;
+    filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-100%) scaleX(0.2);
+  }
+
+  .closer__bracket:global(.is-on) {
+    opacity: 1;
+    transform: translateY(-100%) scaleX(1);
+  }
+
+  /* ---------- Kreski ---------- */
+  .closer__lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .closer__lines path {
+    fill: none;
+    stroke: var(--color-text-on-dark);
+    stroke-width: 1.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.9));
+    opacity: 0;
+  }
+
+  /* ---------- Podpisy ---------- */
+  .closer__labels {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .closer__label {
+    display: flex;
+    gap: 0.625rem;
+    opacity: 0;
+  }
+
+  .closer__label-body {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .closer__label-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.022em;
+  }
+
+  .closer__label-text {
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    line-height: 1.35;
+  }
+
+  .closer__label-num {
+    display: none;
+  }
+
+  /* Desktop: podpisy po bokach, ustawiane przez JS (top/left/right). */
+  @media (min-width: 900px) {
+    .closer__labels {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .closer__label {
+      position: absolute;
+      width: 16.5rem;
+    }
+
+    .closer__label--left {
+      justify-content: flex-end;
+      text-align: right;
+    }
+  }
+
+  /* Opisy aktywnego widoku (klasa .is-on z JS): kropka, kreska, podpis. */
+  .closer__dot:global(.is-on) {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .closer__lines path:global(.is-on) {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  .closer__labels:global(.is-on) .closer__label {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Telefon / wąski ekran: numerowane punkty na produkcie, lista pod przyciskami (lista ma
+     2-4 pozycje zależnie od widoku, więc nad przyciskami przesuwałaby je spod palca), bez kresek. */
+  @media (max-width: 899px) {
+    .closer__inner {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .closer__wrap {
+      display: contents;
+    }
+
+    .closer__title {
+      order: 0;
+      width: 100%;
+    }
+
+    .closer__stage {
+      order: 1;
+    }
+
+    .closer__hint {
+      order: 2;
+    }
+
+    .closer__controls {
+      order: 3;
+    }
+
+    .closer__labels {
+      order: 4;
+    }
+
+    .closer__lines {
+      display: none;
+    }
+
+    .closer__dot {
+      width: 1.375rem;
+      background: var(--color-text-on-dark);
+      color: var(--color-bg-dark);
+      box-shadow:
+        0 0 0 0.25rem rgb(255 255 255 / 0.2),
+        0 0.125rem 0.5rem rgb(0 0 0 / 0.6);
+    }
+
+    .closer__dot-num {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .closer__labels {
+      display: none;
+      gap: 0.875rem;
+      width: 100%;
+      max-width: 26rem;
+      margin: 1.75rem auto 0;
+    }
+
+    .closer__labels:global(.is-on) {
+      display: grid;
+    }
+
+    .closer__label-num {
+      display: grid;
+      flex-shrink: 0;
+      width: 1.625rem;
+      height: 1.625rem;
+      margin-top: 0.0625rem;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--color-text-on-dark);
+      color: var(--color-bg-dark);
+      font-size: 0.875rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .closer__label-title {
+      font-size: 1.25rem;
+    }
+
+    .closer__label-text {
+      font-size: 1rem;
+    }
+  }
+
   /* ---------- Podpowiedź ---------- */
   .closer__hint {
     display: flex;
@@ -477,7 +986,7 @@ const config = {
     gap: 0.5rem;
     margin-top: 0.5rem;
     color: var(--color-text-2-on-dark);
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 
   .closer__hint.is-hidden {
@@ -503,13 +1012,13 @@ const config = {
   }
 
   .closer__view {
-    min-height: 2.5rem;
-    padding: 0 1.125rem;
+    min-height: 2.75rem;
+    padding: 0 1.375rem;
     border: 0;
     border-radius: var(--radius-pill);
     background: transparent;
     color: var(--color-text-on-dark);
-    font-size: 0.9375rem;
+    font-size: 1.0625rem;
     letter-spacing: -0.01em;
     cursor: pointer;
   }
@@ -533,26 +1042,31 @@ const config = {
   .closer__captions {
     display: grid;
     min-height: 1.5em;
-    max-width: 36rem;
+    max-width: 40rem;
     text-align: center;
   }
 
   .closer__caption {
     grid-area: 1 / 1;
     color: var(--color-text-2-on-dark);
-    font-size: 1.0625rem;
+    font-size: 1.25rem;
     line-height: 1.42;
     text-wrap: balance;
   }
 
   @media (max-width: 734px) {
     .closer__view {
-      min-height: 2.25rem;
+      min-height: 2.5rem;
       padding: 0 0.875rem;
-      font-size: 0.875rem;
+      font-size: 1rem;
+    }
+
+    .closer__caption {
+      font-size: 1.125rem;
     }
   }
 
+  /* ---------- Ruch ---------- */
   @media (prefers-reduced-motion: no-preference) {
     .closer__canvas,
     .closer__hint {
@@ -567,6 +1081,51 @@ const config = {
 
     .closer__caption:not([hidden]) {
       animation: caption-in 400ms var(--ease-out);
+    }
+
+    /* Ukrywanie: szybko i razem. */
+    .closer__shade,
+    .closer__bracket,
+    .closer__dot,
+    .closer__lines path,
+    .closer__label {
+      transition:
+        opacity 160ms var(--ease-out),
+        transform 160ms var(--ease-out),
+        stroke-dashoffset 160ms var(--ease-out);
+    }
+
+    .closer__label {
+      transform: translateY(0.25rem);
+    }
+
+    /* Pokazywanie: kropka → kreska rysuje się od podpisu do punktu → podpis. Kolejne opisy co 90 ms. */
+    .closer__dot:global(.is-on) {
+      transition:
+        opacity 300ms var(--ease-out) calc(var(--i) * 90ms),
+        transform 400ms var(--ease-out) calc(var(--i) * 90ms);
+    }
+
+    .closer__shade:global(.is-on) {
+      transition: opacity 500ms var(--ease-out);
+    }
+
+    .closer__bracket:global(.is-on) {
+      transition:
+        opacity 200ms var(--ease-out) calc(var(--i) * 90ms),
+        transform 500ms var(--ease-out) calc(var(--i) * 90ms);
+    }
+
+    .closer__lines path:global(.is-on) {
+      transition:
+        opacity 100ms linear calc(var(--i) * 90ms + 80ms),
+        stroke-dashoffset 650ms var(--ease-out) calc(var(--i) * 90ms + 80ms);
+    }
+
+    .closer__labels:global(.is-on) .closer__label {
+      transition:
+        opacity 450ms var(--ease-out) calc(var(--i) * 90ms + 300ms),
+        transform 450ms var(--ease-out) calc(var(--i) * 90ms + 300ms);
     }
   }
 

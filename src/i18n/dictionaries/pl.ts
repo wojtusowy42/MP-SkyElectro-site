@@ -140,21 +140,39 @@ export const pl = {
           valueText: 'Obrót {deg}°, widok: {view}',
           viewsLabel: 'Widoki płytki',
           views: {
+            // callouts = opisy z kreskami rysowane, gdy płytka zatrzyma się na widoku.
             electronics: {
               label: 'Elektronika',
               caption: 'Mikrokontroler ATmega328P i zworki JP1, JP2 do funkcji DTA.',
+              callouts: {
+                mcu: { title: 'ATmega328P', text: 'Mikrokontroler' },
+                connector: { title: 'Złącze 2\u00a0×\u00a07', text: 'Wszystkie podłączenia' },
+                resonator: { title: 'Rezonator 4\u00a0MHz', text: 'Precyzyjne odmierzanie czasu' },
+                jumpers: { title: 'Zworki JP1, JP2', text: 'Włączenie funkcji DTA' },
+              },
             },
             connector: {
               label: 'Złącze',
               caption: 'Kątowe złącze 2\u00a0×\u00a07: wszystkie podłączenia w jednym miejscu.',
+              callouts: {
+                pins: { title: 'Piny kątowe', text: 'Przewody podłączasz z boku' },
+                header: {
+                  title: 'Złącze 2\u00a0×\u00a07',
+                  text: 'Zasilanie, serwo, RDT, start, buzzer, LED',
+                },
+              },
             },
             switches: {
               label: 'Przełączniki',
               caption: 'Dziesięć przełączników DIP: czasy flop, dether i ustawienia.',
-            },
-            profile: {
-              label: 'Profil',
-              caption: 'Do komory w wieżyczce wystarczy 16\u00a0mm głębokości.',
+              callouts: {
+                on: { title: 'Wszystkie na ON', text: 'Tryb konfiguracji' },
+                flop: { title: 'Przełączniki 1-4', text: 'Czas flop, co 0,2\u00a0s' },
+                dether: {
+                  title: 'Przełączniki 5-10',
+                  text: 'Czas dether, do 15\u00a0min 45\u00a0s',
+                },
+              },
             },
           },
         },
