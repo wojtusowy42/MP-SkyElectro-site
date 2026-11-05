@@ -193,6 +193,103 @@ export const pl = {
             [' nie pozwoli modelowi uciec.', false],
           ] as [string, boolean][],
         },
+        // "Bezpieczeństwo": zdjęcie + 4 funkcje (podręcznik: rozdz. 9, 11, 14, 17).
+        safety: {
+          eyebrow: 'Bezpieczeństwo.',
+          heading: 'Zrobiony, żeby model wrócił.', // roboczy
+          imageAlt: 'Płytka SkyTimer 1 pod kątem, złocone piny złącza',
+          items: [
+            {
+              title: 'Anti Fly Away',
+              text: 'Gdy model poleci bez naciśnięcia startu, timer sam uruchomi sekwencję lotu po 2\u00a0minutach. 10\u00a0s wcześniej ostrzeże ciągłym tonem.',
+            },
+            {
+              title: 'Radio dether',
+              text: 'Po sekwencji startowej RDT reaguje natychmiast po odebraniu sygnału. Zgodny z Aeris RDT i MiniNeurone.',
+            },
+            {
+              title: 'Odtwarzanie czasu dether',
+              text: 'Po włączeniu timer zagra ustawiony czas: długi sygnał to minuta, krótki to 15\u00a0sekund.',
+            },
+            {
+              title: 'Ostrzeżenia przy starcie',
+              text: 'Sześć szybkich sygnałów: ustawienia uszkodzone, wczytane fabryczne. Krótki i długi: czas flop zmienił się od ostatniego włączenia.',
+            },
+          ],
+        },
+        // "Konfiguracja": 8 ustawień z trybu konfiguracji (podręcznik: rozdz. 12).
+        settings: {
+          eyebrow: 'Konfiguracja.',
+          heading: 'Ustawienia bez komputera.',
+          text: 'Wszystkie przełączniki na ON i włączenie zasilania: timer odpowie „prg” alfabetem Morse’a. Opcje ustawiasz tymi samymi przełącznikami, a zapisujesz przyciskiem startu.',
+          imageAlt: 'Przełączniki DIP SkyTimer 1 widziane pod kątem',
+          switchLabel: 'Przełącznik',
+          items: [
+            { switches: '1', title: 'RDT', text: 'Włączone albo wyłączone' },
+            { switches: '2', title: 'DTA', text: '+15\u00a0s za impuls, maks. 60\u00a0s' },
+            { switches: '3-4', title: 'Melodia buzzera', text: 'Cztery do wyboru' },
+            { switches: '5', title: 'LED', text: 'Jak buzzer albo dwa błyski' },
+            {
+              switches: '6',
+              title: 'Częstotliwość sygnału',
+              text: 'Co 2,5\u00a0s albo co 5\u00a0s',
+            },
+            { switches: '7', title: 'Kierunek serwa', text: 'Normalny albo rewers' },
+            { switches: '8', title: 'Wychylenie serwa', text: 'Małe albo duże' },
+            {
+              switches: '9-10',
+              title: 'Anti Fly Away',
+              text: 'Osobno dla przycisku wciśniętego i puszczonego',
+            },
+          ],
+        },
+        // "Detale": liczby (podręcznik: rozdz. 15, 16, 21, 2).
+        details: {
+          eyebrow: 'Detale.',
+          heading: 'Przemyślany do ostatniej sekundy.', // roboczy
+          items: [
+            {
+              value: '+10\u00a0s',
+              text: 'Bonus do czasu dether powyżej 5\u00a0minut, +5\u00a0s od 2 do 5\u00a0minut. Timer sam wyrównuje niedokładność elektroniki.',
+            },
+            {
+              value: '12×',
+              text: 'Rzadziej miga LED godzinę po dether, buzzer 2 razy rzadziej. Tak timer oszczędza energię po lądowaniu.',
+            },
+            {
+              value: '16\u00a0mm',
+              text: 'Tyle głębokości wystarczy na komorę płytki w wieżyczce.',
+            },
+            {
+              value: '3',
+              text: 'Warianty płytki. Wariant 2 ma gniazdo przycisku startu prosto na płytce.',
+            },
+          ],
+        },
+        // "Dane techniczne" (podręcznik; mikrokontroler i rezonator z modelu płytki).
+        specs: {
+          heading: 'Dane techniczne.',
+          manual: 'Podręcznik użytkownika (PDF, 0,9\u00a0MB)',
+          rows: [
+            ['Mikrokontroler', 'ATmega328P, rezonator 4\u00a0MHz'],
+            ['Zasilanie', 'Akumulator Li\u2011Pol 1S 250\u00a0mAh przez moduł zasilania'],
+            ['Ładowanie', 'USB\u2011C, przy wyłączonym timerze'],
+            ['Czas flop', 'Przełączniki 1-4: 0,2 / 0,4 / 0,8 / 1,6\u00a0s, plus 0,4\u00a0s'],
+            [
+              'Czas dether',
+              'Przełączniki 5-10: od 10\u00a0s do 15\u00a0min 45\u00a0s, co 15\u00a0s',
+            ],
+            ['Bonus dether', '+5\u00a0s od 2 do 5\u00a0min, +10\u00a0s powyżej 5\u00a0min'],
+            ['RDT', 'Aeris RDT (FF Electronics), MiniNeurone (Flying Neurons)'],
+            ['DTA', '+15\u00a0s za impuls, maks. 4 razy; zworki JP1, JP2; funkcja na przyszłość'],
+            ['Anti Fly Away', 'Po 2\u00a0min, ostrzeżenie 10\u00a0s wcześniej'],
+            ['Sygnalizacja', 'Buzzer (4 melodie) i LED, co 2,5\u00a0s lub 5\u00a0s'],
+            ['Serwo', 'Kierunek normalny lub rewers, wychylenie małe lub duże'],
+            ['Złącze', '2\u00a0×\u00a07: zasilanie, serwo, RDT, start, buzzer, LED'],
+            ['Montaż', 'Śruby M2, komora w wieżyczce od 16\u00a0mm'],
+            ['Warianty płytki', '1, 2, 3 (wariant 2 z gniazdem przycisku startu)'],
+          ] as [string, string][],
+        },
         // "W zestawie". Pozycje oznaczone "roboczy" wynikają z podręcznika pośrednio: do potwierdzenia.
         inBox: {
           heading: 'W zestawie.',

@@ -1,0 +1,132 @@
+---
+/**
+ * "Detale": cztery liczby (bonus czasu dether, oszczędzanie energii, komora 16 mm, warianty).
+ * Scena czarna. Duża liczba w kolorach produktu, pod nią jedno zdanie. Desktop: 4 kolumny
+ * oddzielone cienkimi liniami, telefon: 2 × 2. Fakty z podręcznika użytkownika.
+ */
+import type { Locale } from '../../../i18n/locales.ts';
+import { getDictionary } from '../../../i18n/index.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.details;
+---
+
+<section class="details" aria-labelledby="details-title">
+  <div class="details__inner">
+    <p class="details__eyebrow">{t.eyebrow}</p>
+    <h2 class="details__title" id="details-title">
+      {t.heading}
+    </h2>
+    <ul class="details__grid" role="list">
+      {t.items.map((item, i) => (
+        <li class="details__item" style={`--i: ${i}`} data-reveal>
+          <p class="details__value">{item.value}</p>
+          <p class="details__text">{item.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .details {
+    background: var(--color-bg-dark);
+    color: var(--color-text-on-dark);
+  }
+
+  .details__inner {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(5rem, 11vw, 9rem) var(--gutter);
+  }
+
+  .details__eyebrow {
+    margin-bottom: 0.75rem;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.1875rem, 1rem + 0.5vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .details__title {
+    max-width: 40rem;
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .details__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: clamp(3rem, 6vw, 5rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .details__item {
+    padding: 0 clamp(1rem, 2vw, 1.75rem);
+    border-left: 1px solid rgb(255 255 255 / 0.14);
+  }
+
+  .details__item:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .details__value {
+    width: fit-content;
+    font-size: clamp(2.5rem, 1.8rem + 2.4vw, 4rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+    background: linear-gradient(
+      135deg,
+      var(--accent-from, var(--color-text-on-dark)),
+      var(--accent-to, var(--color-text-on-dark))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .details__text {
+    margin-top: 1rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 899px) {
+    .details__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 2.5rem;
+    }
+
+    .details__item:nth-child(odd) {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .details__item:not(.is-in) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .details__item {
+      transition:
+        opacity 900ms var(--ease-out),
+        transform 900ms var(--ease-out);
+      transition-delay: calc(var(--i) * 90ms);
+    }
+  }
+</style>
