@@ -1,0 +1,571 @@
+---
+/**
+ * Rozdział "Ustawianie czasów" SkyTimer 1 (wzór: rozdział "Wyświetlacz PROLED XDR" na apple.com:
+ * nagłówek → główna atrakcja rozdziału). Blok "Liczby mówią same za siebie" usunięty
+ * (decyzja właściciela 2026-11-06).
+ * UKRYTY na stronie (2026-11-06): wywołanie zakomentowane w src/pages/[lang]/[slug].astro.
+ *
+ * Atrakcja: symulator przełączników DIP. Klikasz przełączniki jak na płytce i widzisz,
+ * co ustawi timer: czas flop, czas dether (z bonusem) i sygnały, które zagra po włączeniu.
+ * Wygląd (2026-11-06, uwagi właściciela): monochrom bez gradientów, smukłe przełączniki
+ * w jednej obudowie, wyniki w trzech kolumnach rozdzielonych cienkimi liniami.
+ * Dlaczego symulator, a nie kolejny render: tego nie da się pokazać zdjęciem, a to jest
+ * główna zaleta timera (czasy bez komputera). Liczy src/lib/skytimer-timing.ts (testy),
+ * fakty z src/data/skytimer-1-spec.ts.
+ *
+ * Bez JS: stan początkowy policzony w buildzie (ten sam kod), przełączniki nieaktywne.
+ * Dostępność: każdy przełącznik to button role="switch" (aria-checked), wynik w aria-live.
+ */
+import StoryChapter from '../StoryChapter.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { HTML_LANG } from '../../../i18n/locales.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
+import { SKYTIMER_1_TIMING as T } from '../../../data/skytimer-1-spec.ts';
+import { timing } from '../../../lib/skytimer-timing.ts';
+import { formatDuration } from '../../../lib/duration.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const lang = HTML_LANG[locale];
+const story = getDictionary(locale).products['skytimer-1'].story;
+const t = story.timing;
+const u = story.units;
+const dur = (ms: number, tenths = false) => formatDuration(ms, u, lang, tenths);
+
+// Przełączniki: grupa i wartość (tekst). Flop z dziesiątymi częściami sekundy.
+const switches = [
+  ...T.flop.switches.map((ms) => ({ group: 'flop' as const, label: dur(ms, true) })),
+  ...T.dether.switches.map((ms) => ({ group: 'dether' as const, label: dur(ms) })),
+];
+
+// Stan początkowy: flop 1,0 s (1 + 2), dether 2 min 15 s (5 + 8), jak przykład w tekstach.
+const initial = [1, 2, 5, 8];
+const state = switches.map((_, i) => initial.includes(i + 1));
+const r = timing(state);
+
+const flopNote = format(t.sim.flopNote, { offset: dur(T.flop.offset, true) });
+const flopText = r.flopMs === null ? t.sim.flopOff : dur(r.flopMs, true);
+const detherText = dur(r.detherMs);
+const totalText = dur(r.detherMs + r.bonusMs);
+const bonusText =
+  r.bonusMs > 0
+    ? format(t.sim.bonus, { bonus: format(u.plus, { value: dur(r.bonusMs) }) })
+    : t.sim.noBonus;
+
+// Teksty dla skryptu (zmiany w przeglądarce).
+const config = {
+  lang,
+  units: { sec: u.sec, min: u.min, minSec: u.minSec },
+  flopOff: t.sim.flopOff,
+  flopOffNote: t.sim.flopOffNote,
+  flopNote,
+  plus: u.plus,
+  bonus: t.sim.bonus,
+  noBonus: t.sim.noBonus,
+  signals: t.sim.signals,
+};
+
+const flopCount = T.flop.switches.length;
+---
+
+<StoryChapter id="czasy" eyebrow={t.eyebrow} heading={t.heading} intro={t.intro}>
+  <div
+    class="sim"
+    role="group"
+    aria-label={t.sim.label}
+    data-sim
+    data-config={JSON.stringify(config)}
+  >
+    {/* Przełączniki jak na płytce: obudowa z "ON" u góry, suwak w górze = ON. */}
+    <div class="dip">
+      <div class="dip__body">
+        <p class="dip__on" aria-hidden="true">
+          {t.sim.on}
+        </p>
+        <div class="dip__row" role="group" aria-label={t.sim.switchesLabel}>
+          {switches.map((sw, i) => (
+            <button
+              class="dip__switch"
+              type="button"
+              role="switch"
+              aria-checked={state[i] ? 'true' : 'false'}
+              aria-label={format(t.sim.switch, { n: i + 1, value: sw.label })}
+              disabled
+              data-switch={i}
+            >
+              <span class="dip__slot" aria-hidden="true">
+                <span class="dip__knob" />
+              </span>
+              <span class="dip__num" aria-hidden="true">
+                {i + 1}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Wartości pod przełącznikami i klamry grup: 1-4 flop, 5-10 dether. */}
+      <div class="dip__values" aria-hidden="true">
+        {switches.map((sw) => (
+          <span>{sw.label}</span>
+        ))}
+      </div>
+      <div class="dip__groups" aria-hidden="true" style={`--flop: ${flopCount}`}>
+        <p class="dip__group">{t.sim.flopGroup}</p>
+        <p class="dip__group">{t.sim.detherGroup}</p>
+      </div>
+    </div>
+
+    {/* Wyniki: flop | dether | z bonusem */}
+    <dl class="sim__results" aria-live="polite">
+      <div class="sim__cell">
+        <dt class="sim__label">{t.sim.flop}</dt>
+        <dd class="sim__value" data-flop>
+          {flopText}
+        </dd>
+        <dd class="sim__note" data-flop-note>
+          {r.flopMs === null ? t.sim.flopOffNote : flopNote}
+        </dd>
+      </div>
+      <div class="sim__cell">
+        <dt class="sim__label">{t.sim.dether}</dt>
+        <dd class="sim__value" data-dether>
+          {detherText}
+        </dd>
+        <dd class="sim__note">{t.sim.detherNote}</dd>
+      </div>
+      <div class="sim__cell">
+        <dt class="sim__label">{t.sim.total}</dt>
+        <dd class="sim__value" data-total>
+          {totalText}
+        </dd>
+        <dd class="sim__note" data-bonus>
+          {bonusText}
+        </dd>
+      </div>
+    </dl>
+
+    {/* Co zagra timer po włączeniu */}
+    <div class="sim__playback">
+      <p class="sim__label">{t.sim.playback}</p>
+      <div class="sim__signals">
+        <div
+          class="beeps"
+          role="img"
+          aria-label={r.playback ? format(t.sim.signals, r.playback) : t.sim.noPlayback}
+          data-beeps
+          hidden={!r.playback || r.configMode}
+        >
+          {r.playback &&
+            [
+              ...Array.from({ length: r.playback.long }, () => 'long'),
+              ...Array.from({ length: r.playback.short }, () => 'short'),
+            ].map((k) => <span class={`beeps__${k}`} />)}
+        </div>
+        <p class="sim__note" data-no-playback hidden={!!r.playback || r.configMode}>
+          {t.sim.noPlayback}
+        </p>
+        <p class="sim__note" data-config-mode hidden={!r.configMode}>
+          {t.sim.config}
+        </p>
+      </div>
+      <p class="sim__legend" aria-hidden="true">
+        {t.sim.legend}
+      </p>
+    </div>
+  </div>
+</StoryChapter>
+
+<script>
+  import { timing } from '../../../lib/skytimer-timing.ts';
+  import { formatDuration } from '../../../lib/duration.ts';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-sim]')) {
+    const c = JSON.parse(root.dataset.config ?? '{}') as {
+      lang: string;
+      units: { sec: string; min: string; minSec: string };
+      flopOff: string;
+      flopOffNote: string;
+      flopNote: string;
+      plus: string;
+      bonus: string;
+      noBonus: string;
+      signals: string;
+    };
+    const fill = (t: string, v: Record<string, string | number>) =>
+      t.replace(/\{(\w+)\}/g, (m, k: string) => (k in v ? String(v[k]) : m));
+    const dur = (ms: number, tenths = false) => formatDuration(ms, c.units, c.lang, tenths);
+    const $ = (sel: string) => root.querySelector<HTMLElement>(sel)!;
+
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-switch]')];
+    const flop = $('[data-flop]');
+    const flopNote = $('[data-flop-note]');
+    const dether = $('[data-dether]');
+    const total = $('[data-total]');
+    const bonus = $('[data-bonus]');
+    const beeps = $('[data-beeps]');
+    const noPlayback = $('[data-no-playback]');
+    const configMode = $('[data-config-mode]');
+
+    const update = () => {
+      const r = timing(buttons.map((b) => b.getAttribute('aria-checked') === 'true'));
+      flop.textContent = r.flopMs === null ? c.flopOff : dur(r.flopMs, true);
+      flopNote.textContent = r.flopMs === null ? c.flopOffNote : c.flopNote;
+      dether.textContent = dur(r.detherMs);
+      total.textContent = dur(r.detherMs + r.bonusMs);
+      bonus.textContent =
+        r.bonusMs > 0
+          ? fill(c.bonus, { bonus: fill(c.plus, { value: dur(r.bonusMs) }) })
+          : c.noBonus;
+
+      beeps.hidden = !r.playback || r.configMode;
+      noPlayback.hidden = !!r.playback || r.configMode;
+      configMode.hidden = !r.configMode;
+      if (r.playback) {
+        beeps.setAttribute('aria-label', fill(c.signals, r.playback));
+        const kinds = [
+          ...Array<string>(r.playback.long).fill('long'),
+          ...Array<string>(r.playback.short).fill('short'),
+        ];
+        beeps.replaceChildren(
+          ...kinds.map((k) => {
+            const s = document.createElement('span');
+            s.className = `beeps__${k}`;
+            return s;
+          }),
+        );
+      }
+    };
+
+    for (const b of buttons) {
+      b.disabled = false;
+      b.addEventListener('click', () => {
+        b.setAttribute(
+          'aria-checked',
+          b.getAttribute('aria-checked') === 'true' ? 'false' : 'true',
+        );
+        update();
+      });
+    }
+  }
+</script>
+
+<style>
+  /* ---------- Panel ---------- */
+  .sim {
+    width: calc(100% - 2 * var(--gutter));
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding: clamp(1.5rem, 0.8rem + 3vw, 3.5rem);
+    border-radius: 1.75rem;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  }
+
+  /* ---------- Przełączniki ---------- */
+  .dip {
+    /* Kolumny przełączników, wartości i klamer muszą się pokrywać: jedna siatka 10 kolumn. */
+    --cols: repeat(10, minmax(0, 1fr));
+    --gap: clamp(0.25rem, 0.1rem + 0.8vw, 0.875rem);
+    /* Ten sam odstęp od boków w obudowie i pod nią: kolumny wartości stoją pod przełącznikami. */
+    --pad-x: clamp(0.5rem, 0.2rem + 1.2vw, 1.25rem);
+
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  /* Obudowa: jedna czarna listwa jak prawdziwy DIP, "ON" w lewym górnym rogu. */
+  .dip__body {
+    padding: clamp(0.625rem, 0.3rem + 1.2vw, 1.25rem) var(--pad-x)
+      clamp(0.5rem, 0.3rem + 0.8vw, 0.875rem);
+    border-radius: 0.75rem;
+    background: #111112;
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.08),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  .dip__on {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(0.6875rem, 0.6rem + 0.3vw, 0.8125rem);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+
+  .dip__row,
+  .dip__values,
+  .dip__groups {
+    display: grid;
+    grid-template-columns: var(--cols);
+    gap: var(--gap);
+  }
+
+  .dip__switch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    /* Obszar kliknięcia większy niż sam suwak (cała kolumna z numerem). */
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dip__switch:disabled {
+    cursor: default;
+  }
+
+  .dip__switch:focus-visible {
+    outline: none;
+  }
+
+  .dip__switch:focus-visible .dip__slot {
+    outline: 2px solid var(--color-text-on-dark);
+    outline-offset: 3px;
+  }
+
+  /* Gniazdo: smukłe, wysokie, z cienką krawędzią. */
+  .dip__slot {
+    position: relative;
+    width: min(100%, 1.75rem);
+    aspect-ratio: 1 / 2.1;
+    border-radius: 0.3125rem;
+    background: #232325;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+
+  /* Suwak: górna połowa = ON, dolna = OFF. */
+  .dip__knob {
+    position: absolute;
+    inset: 3px 3px auto;
+    height: calc(50% - 4.5px);
+    border-radius: 0.1875rem;
+    background: #f5f5f7;
+    transform: translateY(calc(100% + 3px));
+  }
+
+  .dip__switch[aria-checked='true'] .dip__knob {
+    transform: translateY(0);
+  }
+
+  .dip__num {
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(0.75rem, 0.65rem + 0.35vw, 0.9375rem);
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dip__switch[aria-checked='true'] .dip__num {
+    color: var(--color-text-on-dark);
+  }
+
+  .dip__values {
+    margin-top: 0.625rem;
+    padding-inline: var(--pad-x);
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(0.5625rem, 0.45rem + 0.4vw, 0.8125rem);
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Klamry: cienka linia z ząbkami na końcach, podpis pod spodem. */
+  .dip__groups {
+    grid-template-columns:
+      calc(var(--flop) * (100% - 9 * var(--gap)) / 10 + (var(--flop) - 1) * var(--gap))
+      1fr;
+    margin-top: 0.625rem;
+    padding-inline: var(--pad-x);
+  }
+
+  .dip__group {
+    position: relative;
+    padding-top: 0.625rem;
+    border-top: 1px solid rgb(255 255 255 / 0.24);
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(0.75rem, 0.65rem + 0.35vw, 0.9375rem);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .dip__group::before,
+  .dip__group::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    width: 1px;
+    height: 6px;
+    background: rgb(255 255 255 / 0.24);
+  }
+
+  .dip__group::before {
+    left: 0;
+  }
+
+  .dip__group::after {
+    right: 0;
+  }
+
+  /* ---------- Wyniki ---------- */
+  .sim__results {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: clamp(2rem, 4vw, 3rem) 0 0;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+  }
+
+  .sim__cell {
+    padding: 1.5rem 1.25rem 0 0;
+  }
+
+  .sim__cell + .sim__cell {
+    padding-left: 1.25rem;
+    border-left: 1px solid rgb(255 255 255 / 0.14);
+  }
+
+  .sim__label {
+    color: var(--color-text-2-on-dark);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .sim__value {
+    margin: 0.375rem 0 0;
+    font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sim__note {
+    margin: 0.375rem 0 0;
+    color: var(--color-text-2-on-dark);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .sim__note[hidden],
+  .beeps[hidden] {
+    display: none;
+  }
+
+  /* ---------- Sygnały ---------- */
+  .sim__playback {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: clamp(1.75rem, 3vw, 2.5rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+  }
+
+  .beeps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /* :global: sygnały po zmianie tworzy skrypt (bez atrybutu zakresu stylów Astro). */
+  .beeps :global(span) {
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-text-on-dark);
+  }
+
+  .beeps :global(.beeps__long) {
+    width: 2.25rem;
+  }
+
+  .beeps :global(.beeps__short) {
+    width: 0.5rem;
+  }
+
+  .sim__signals .sim__note {
+    margin: 0;
+  }
+
+  .sim__legend {
+    color: var(--color-text-2-on-dark);
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 734px) {
+    .sim__results {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sim__cell,
+    .sim__cell + .sim__cell {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      column-gap: 1rem;
+      padding: 1rem 0;
+      border-left: 0;
+    }
+
+    .sim__cell + .sim__cell {
+      border-top: 1px solid rgb(255 255 255 / 0.14);
+    }
+
+    .sim__label {
+      grid-area: 1 / 1;
+    }
+
+    .sim__value {
+      grid-area: 1 / 2 / span 2;
+      margin: 0;
+      font-size: 1.75rem;
+    }
+
+    .sim__cell .sim__note {
+      grid-area: 2 / 1;
+    }
+
+    .sim__playback {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: 0;
+    }
+  }
+
+  @media (hover: hover) {
+    .dip__switch:not(:disabled):hover .dip__slot {
+      background: #2e2e30;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .dip__knob {
+      transition: transform 180ms var(--ease-out);
+    }
+
+    .dip__slot {
+      transition:
+        background-color var(--duration-ui) var(--ease-out),
+        transform var(--duration-press) var(--ease-out);
+    }
+
+    .dip__num {
+      transition: color var(--duration-ui) var(--ease-out);
+    }
+
+    .dip__switch:not(:disabled):active .dip__slot {
+      transform: scale(0.95);
+    }
+  }
+</style>

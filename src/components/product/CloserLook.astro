@@ -24,6 +24,8 @@
  * Klatki: public/<frames>/<szerokość>/<numer>.webp, numery od 000. Ładowanie stopniowe:
  * najpierw co 8. klatka, potem co 4., co 2. i reszta.
  */
+import { richText } from '../../i18n/rich-text.ts';
+
 export interface CloserLookCallout {
   /** Punkt na klatce, 0-1 od lewego górnego rogu. */
   x: number;
@@ -51,6 +53,10 @@ export interface CloserLookView {
 
 interface Props {
   heading: string;
+  /** Mała etykieta nad nagłówkiem, jak w rozdziałach (StoryChapter). */
+  eyebrow?: string | undefined;
+  /** Wstęp pod nagłówkiem, z wyróżnieniami *...* (richText). */
+  intro?: string | undefined;
   hint: string;
   /** Opis sceny dla czytników ekranu. */
   stageLabel: string;
@@ -67,8 +73,20 @@ interface Props {
   aspect: number;
 }
 
-const { heading, hint, stageLabel, valueText, viewsLabel, views, frames, count, widths, aspect } =
-  Astro.props;
+const {
+  heading,
+  eyebrow,
+  intro,
+  hint,
+  stageLabel,
+  valueText,
+  viewsLabel,
+  views,
+  frames,
+  count,
+  widths,
+  aspect,
+} = Astro.props;
 const first = views[0]?.frame ?? 0;
 const pad = (n: number) => String(n).padStart(3, '0');
 const posterSrc = (w: number) => `${frames}/${w}/${pad(first)}.webp`;
@@ -102,9 +120,13 @@ const config = {
   data-config={JSON.stringify(config)}
 >
   <div class="closer__inner">
-    <h2 class="closer__title" id="closer-title">
-      {heading}
-    </h2>
+    <header class="closer__title" data-reveal>
+      {eyebrow && <p class="closer__eyebrow">{eyebrow}</p>}
+      <h2 class="closer__heading" id="closer-title">
+        {heading}
+      </h2>
+      {intro && <p class="closer__intro" set:html={richText(intro)} />}
+    </header>
 
     <div class="closer__wrap" data-wrap>
       <div
@@ -648,16 +670,59 @@ const config = {
   .closer__inner {
     max-width: calc(var(--content-wide) + 2 * var(--gutter));
     margin-inline: auto;
-    padding: clamp(5rem, 11vw, 9rem) var(--gutter) clamp(4rem, 8vw, 6rem);
+    padding: clamp(6rem, 13vw, 11rem) var(--gutter) 0;
   }
 
+  /* Nagłówek jak w rozdziałach strony (StoryChapter): etykieta, wielki nagłówek, wstęp. */
   .closer__title {
     max-width: var(--content-max);
-    margin: 0 auto clamp(1.5rem, 3vw, 2.5rem);
-    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
+    margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+    text-align: center;
+  }
+
+  .closer__eyebrow {
+    margin-bottom: 0.5rem;
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem);
     font-weight: 600;
-    line-height: 1.07;
-    letter-spacing: -0.03em;
+    line-height: 1.17;
+    letter-spacing: -0.01em;
+  }
+
+  .closer__heading {
+    font-size: clamp(2.75rem, 1.6rem + 4.6vw, 5rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+
+  .closer__intro {
+    max-width: 46rem;
+    margin: clamp(1.25rem, 2.5vw, 2rem) auto 0;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.3125rem);
+    font-weight: 600;
+    line-height: 1.43;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+
+  .closer__intro :global(strong) {
+    color: var(--color-text-on-dark);
+    font-weight: inherit;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .closer__title:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .closer__title {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
   }
 
   /* Warstwa: produkt na środku, po bokach miejsce na podpisy (desktop). */

@@ -4,7 +4,8 @@
  * Ciemna: czarne tło całej strony, ciemny pasek menu.
  *
  * Na górze pasek produktu (LocalNav) i animacja otwierająca (IntroVideo), jeśli produkt je ma.
- * Niżej sekcje produktu, podawane jako dzieci (slot), np. siatka wyróżników.
+ * Niżej sekcje produktu, podawane jako dzieci (slot): galeria wyróżników i rozdziały
+ * (StoryChapter), jak na stronie MacBooka Pro z PROLED XDR. Cała strona czarna.
  */
 import type { ComponentProps } from 'astro/types';
 import IntroVideo from './IntroVideo.astro';
@@ -13,27 +14,17 @@ import LocalNav from './LocalNav.astro';
 interface Props {
   title: string;
   intro?: Omit<ComponentProps<typeof IntroVideo>, 'title'> | undefined;
-  /** Kolory produktu (od, do): gradienty w sekcjach (--accent-from / --accent-to). */
-  colors?: readonly [string, string] | undefined;
   /** Pasek produktu przyklejony u góry. */
   localNav?: Omit<ComponentProps<typeof LocalNav>, 'title'> | undefined;
 }
 
-const { title, intro, colors, localNav } = Astro.props;
-const style = [
-  colors && `--accent-from: ${colors[0]}; --accent-to: ${colors[1]}`,
-  // Na jasnym tle jasny koniec gradientu (np. #FFB08A) ginie: w jasnych sekcjach gradient
-  // od koloru głębszego do jeszcze ciemniejszego (--accent-strong-*).
-  colors &&
-    `--accent-strong-from: ${colors[1]}; --accent-strong-to: color-mix(in oklab, ${colors[1]} 62%, #000)`,
-  // Animacja otwierająca odejmuje wysokość paska produktu, żeby mieściła się na ekranie.
-  localNav && '--story-local-nav: var(--local-nav-height)',
-]
-  .filter(Boolean)
-  .join('; ');
+const { title, intro, localNav } = Astro.props;
+// Animacja otwierająca odejmuje wysokość paska produktu, żeby mieściła się na ekranie.
+// (Bez kolorów produktu: strona monochromatyczna, uwaga właściciela 2026-11-06.)
+const style = localNav ? '--story-local-nav: var(--local-nav-height)' : undefined;
 ---
 
-<article class="story" style={style || undefined}>
+<article class="story" style={style}>
   {localNav && <LocalNav title={title} {...localNav} />}
   {intro ? <IntroVideo title={title} {...intro} /> : <h1 class="visually-hidden">{title}</h1>}
   <slot />
@@ -67,7 +58,9 @@ const style = [
     color: var(--color-text-on-dark);
   }
 
+  /* Rozdziały mają tylko górny odstęp; dolny ma cała strona. */
   .story {
     min-height: calc(100dvh - var(--nav-height));
+    padding-bottom: clamp(6rem, 13vw, 11rem);
   }
 </style>

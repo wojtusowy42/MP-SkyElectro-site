@@ -85,66 +85,146 @@ export const pl = {
         tagline: 'Każda sekunda lotu pod kontrolą.', // roboczy
         introDescription:
           'Animacja: elementy płytki SkyTimer 1 zjeżdżają się w powietrzu i składają w gotową płytkę.',
-        // Siatka "Poznaj SkyTimer 1" (układ jak "Poznaj MacBooka Pro" na apple.com).
-        // Fakty z podręcznika użytkownika V3, chyba że oznaczone "roboczy".
+        // Strona w układzie rozdziałów jak "MacBook Pro z wyświetlaczem PROLED XDR" na apple.com.
+        // Fakty z podręcznika użytkownika V3 (numer rozdziału w komentarzu), liczby z danych
+        // (src/data/skytimer-1-spec.ts, physical w skytimer-1.ts). Nagłówki marketingowe: "roboczy".
+        // *fraza* = biała fraza w szarym akapicie (richText).
         // \u00a0 = twarda spacja, \u2011 = twardy łącznik: te miejsca nie łamią się na dwie linie.
-        highlights: {
-          heading: 'Poznaj SkyTimer 1.',
-          // Kafelki: title = krótki nagłówek (biały), text = najwyżej dwa krótkie zdania (szary).
-          dip: {
-            title: 'Dziesięć przełączników.',
-            text: 'Czas flop, czas dether i\u00a0ustawienia ustawiasz palcem. Bez komputera.',
-            alt: 'Zbliżenie na rząd dziesięciu przełączników DIP z napisem ON',
-            // Liczby pod zdjęciem: przełączniki 1-4 = flop (0,2 / 0,4 / 0,8 / 1,6 s),
-            // 5-10 = dether (15 s ... 8 min, razem 15 min 45 s).
-            stats: [
-              { value: '0,2\u00a0s', label: 'Krok czasu flop' },
-              { value: '15\u00a0s', label: 'Krok czasu dether' },
-              { value: '15\u00a0min 45\u00a0s', label: 'Najdłuższy czas dether' },
-            ],
+        units: {
+          // {n} już sformatowane (np. "0,2").
+          sec: '{n}\u00a0s',
+          min: '{n}\u00a0min',
+          minSec: '{m}\u00a0min {s}\u00a0s',
+          plus: '+{value}',
+          times: '{n}×',
+        },
+        // "Co go wyróżnia.": poziomy rząd kart. {weight}, {short}, {long} z danych.
+        gallery: {
+          heading: 'Co go wyróżnia.',
+          prev: 'Poprzednie wyróżnienie',
+          next: 'Następne wyróżnienie',
+          dot: 'Wyróżnienie {n} z\u00a0{total}',
+          items: {
+            dip: {
+              text: '*Dziesięć przełączników.* Czasy flop i\u00a0dether ustawiasz palcem, bez komputera.',
+              alt: 'Zbliżenie na rząd dziesięciu przełączników DIP z\u00a0napisem ON',
+            },
+            connector: {
+              text: '*Jedno złącze 2\u00a0×\u00a07.* Zasilanie, serwo, RDT, start, buzzer i\u00a0LED w\u00a0jednym miejscu.',
+              alt: 'Płytka SkyTimer 1 pod kątem: kątowe złącze 2 × 7 ze złoconymi pinami',
+            },
+            // Rozdz. 14.
+            playback: {
+              text: '*Słyszysz, co ustawiłeś.* Przed każdym lotem timer zagra ustawiony czas dether.',
+              // Grafika: przykład 2 min 15 s. {time} = suma.
+              total: '= {time}',
+            },
+            size: {
+              text: '*{weight}\u00a0g.* Płytka {short}\u00a0×\u00a0{long}\u00a0mm do ciasnej wieży F1E.',
+              alt: 'Płytka SkyTimer 1 widziana z góry',
+            },
           },
-          connector: {
-            title: 'Jedno złącze 2\u00a0×\u00a07.',
-            text: 'Zasilanie, serwo, RDT, przycisk startu, buzzer i\u00a0LED. Wszystko w\u00a0jednym miejscu.',
-            alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
+        },
+        // Rozdział "Konstrukcja": nagłówek nad obrotem 360° (teksty obrotu niżej, w closer).
+        design: {
+          eyebrow: 'Konstrukcja',
+          // Rozdz. 1.
+          intro:
+            'SkyTimer 1 to *elektroniczny timer do szybowców F1E*. Steruje flopem i\u00a0detherem z\u00a0wysoką precyzją, a\u00a0mieści się na płytce *{short}\u00a0×\u00a0{long}\u00a0mm* o\u00a0masie *{weight}\u00a0g*.',
+        },
+        // Rozdział "Ustawianie czasów" (rozdz. 12-15) z symulatorem przełączników.
+        timing: {
+          eyebrow: 'Ustawianie czasów',
+          heading: 'Dziesięć przełączników. Zero kabli.', // roboczy
+          intro:
+            'Przełączniki *1\u20114 ustawiają czas flop*, a\u00a0*5\u201110 czas dether*. Każdy dodaje swoją wartość, więc czas to po prostu suma. Spróbuj sam.',
+          sim: {
+            label: 'Symulator przełączników SkyTimer 1',
+            switchesLabel: 'Przełączniki czasów',
+            // Czytnik ekranu: "Przełącznik 5, 15 s".
+            switch: 'Przełącznik {n}, {value}',
+            on: 'ON',
+            flopGroup: 'Flop',
+            detherGroup: 'Dether',
+            flop: 'Czas flop',
+            flopOff: 'Wyłączony',
+            flopOffNote: 'Przełączniki 1\u20114 na OFF',
+            flopNote: 'Suma przełączników + {offset}',
+            dether: 'Czas dether',
+            detherNote: 'Suma przełączników 5\u201110',
+            total: 'Z\u00a0bonusem',
+            bonus: '{bonus} doliczone automatycznie',
+            noBonus: 'Poniżej 2\u00a0min bez bonusu',
+            playback: 'Po włączeniu usłyszysz',
+            noPlayback: 'Bez odtwarzania: wszystkie przełączniki 5\u201110 na OFF to 10\u00a0s.',
+            // Opis sygnałów dla czytnika ekranu.
+            signals: 'Sygnały: {long} × długi, {short} × krótki',
+            legend: 'Długi = 1\u00a0min · Krótki = 15\u00a0s',
+            config: 'Wszystkie na ON: po włączeniu timer wejdzie w\u00a0tryb konfiguracji.',
           },
-          power: {
-            value: '250\u00a0mAh',
-            // Podręcznik: rozdz. 4 (Li-Pol 1S 250 mAh), 5 (ładowarka USB-C), 16 (oszczędzanie energii).
-            // Liczba to pojemność akumulatora, więc tytuł mówi o zasilaniu, nie o zużyciu.
-            title: 'Zasilanie w\u00a0zestawie.',
-            text: 'Akumulator Li\u2011Pol i\u00a0ładowarka USB\u2011C. Po lądowaniu timer sam oszczędza energię.',
+        },
+        // Rozdział "Bezpieczeństwo" (rozdz. 9, 11, 14, 17).
+        safety: {
+          eyebrow: 'Bezpieczeństwo',
+          heading: 'Pilnuje lotu od włączenia do lądowania.', // roboczy
+          intro:
+            'Zanim wypuścisz model, timer *zagra ustawiony czas dether* i\u00a0*zgłosi zmienione ustawienia*. W\u00a0powietrzu *RDT* ściągnie model na sygnał radiowy, a\u00a0*AFA* uruchomi lot, gdy model poleci bez wciśniętego przycisku startu.',
+          items: {
+            playback: {
+              title: 'Odtwarzanie czasu.',
+              text: 'Po włączeniu buzzer i\u00a0LED podają czas dether: długi sygnał to minuta, krótki 15\u00a0sekund.',
+            },
+            warnings: {
+              title: 'Ostrzeżenia.',
+              text: 'Sześć szybkich sygnałów: ustawienia wróciły do fabrycznych. Krótki z\u00a0długim: zmienił się czas flop.',
+            },
+            rdt: {
+              title: 'RDT.',
+              text: 'Dether na sygnał radiowy, od razu po sekwencji startowej. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
+            },
+            afa: {
+              title: 'AFA.',
+              // {minutes}, {warning} z danych.
+              text: 'Przycisk startu nie wciśnięty albo trzymany dłużej niż {minutes}? Timer sam uruchomi lot, a\u00a0{warning} wcześniej ostrzeże buzzerem.',
+            },
           },
-          // Odtwarzanie czasu dether (podręcznik, rozdz. 14): długi sygnał = minuta, krótki = 15 s.
-          playback: {
-            title: 'Słyszysz, co ustawiłeś.',
-            text: 'Po włączeniu timer zagra czas dether. Dwa długie i\u00a0krótki sygnał to\u00a02\u00a0min\u00a015\u00a0s.',
+        },
+        // Rozdział "Zasilanie" (rozdz. 4, 5, 16).
+        power: {
+          eyebrow: 'Zasilanie',
+          heading: 'Zasilanie w\u00a0zestawie.',
+          intro:
+            'Zestaw ma *akumulator Li\u2011Pol 1S*, moduł zasilania i\u00a0*ładowarkę USB\u2011C*. Po lądowaniu timer *sam coraz rzadziej miga i\u00a0piszczy*, żeby oszczędzać energię.',
+          stats: {
+            battery: {
+              label: 'Akumulator',
+              value: '{n}\u00a0mAh',
+              caption: 'Li\u2011Pol 1S w\u00a0zestawie',
+            },
+            charger: {
+              label: 'Ładowanie',
+              value: 'USB\u2011C',
+              caption: 'Czerwona dioda ładuje, zielona: gotowe',
+            },
+            saving: { label: 'Godzinę po dether', caption: 'Rzadziej miga LED' },
           },
-          // Podręcznik: rozdz. 9 (RDT), 11 (AFA), 17 (ostrzeżenia).
-          safety: {
-            title: 'Wbudowane zabezpieczenia.',
-            items: [
-              {
-                term: 'RDT',
-                text: 'Dether na sygnał radiowy, od razu. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
-              },
-              {
-                term: 'AFA',
-                text: 'Gdy przycisk startu przez 2\u00a0minuty nie zostanie wciśnięty albo puszczony, timer sam uruchomi lot.',
-              },
-              {
-                term: 'Ostrzeżenia',
-                text: 'Po włączeniu LED i\u00a0buzzer zgłoszą błędne ustawienia albo zmieniony czas flop.',
-              },
-            ],
-          },
-          // Liczby z danych produktu (physical): {weight}, {kitWeight} w gramach, {short} × {long} w mm.
-          size: {
-            value: '{weight}\u00a0g',
-            title: 'Lekki i\u00a0mały.',
-            text: 'Płytka {short}\u00a0×\u00a0{long}\u00a0mm do ciasnej wieży F1E. Cały zestaw waży około {kitWeight}\u00a0g.',
-            dimension: '{n}\u00a0mm',
-            alt: 'Płytka SkyTimer 1 z góry, z liniami wymiarów: {long} na {short} mm',
+        },
+        // Rozdział "Podłączenia" (rozdz. 3, 6-8).
+        connections: {
+          eyebrow: 'Podłączenia',
+          heading: 'Wszystko w\u00a0jednym złączu.',
+          intro:
+            'Dwurzędowe *złącze 2\u00a0×\u00a07* zbiera wszystkie przewody. *Moduły buzzera i\u00a0LED* zaprojektowano do szybkiej wymiany, a\u00a0*mechanizm puszczania linek* obsługuje obie linki: flop i\u00a0dether.',
+          alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
+          // {pins} = lista numerów pinów z danych.
+          pins: 'Piny {pins}',
+          items: {
+            power: 'Zasilanie',
+            servo: 'Serwo',
+            start: 'Przycisk startu',
+            buzzer: 'Buzzer',
+            led: 'LED',
+            rdt: 'RDT',
           },
         },
         // "Przyjrzyj się bliżej": płytka obracana o 360° (przeciąganie, przyciski widoków).

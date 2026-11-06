@@ -15,14 +15,20 @@
  */
 import CloserLookBase, { type CloserLookView } from '../CloserLook.astro';
 import type { Locale } from '../../../i18n/locales.ts';
-import { getDictionary } from '../../../i18n/index.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
+import { getProduct } from '../../../data/products/index.ts';
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
-const t = getDictionary(locale).products['skytimer-1'].story.closer;
+const story = getDictionary(locale).products['skytimer-1'].story;
+const t = story.closer;
+const physical = getProduct('skytimer-1')?.physical;
+if (!physical) throw new Error('Brak wymiarów i masy (physical) w danych skytimer-1');
+const [short, long] = physical.sizeMm;
+const intro = format(story.design.intro, { short, long, weight: physical.weightG });
 
 const FRAMES = {
   path: '/sequence/skytimer-1/obrot',
@@ -112,7 +118,9 @@ const views: CloserLookView[] = (Object.keys(VIEWS) as (keyof typeof VIEWS)[]).m
 ---
 
 <CloserLookBase
+  eyebrow={story.design.eyebrow}
   heading={t.heading}
+  intro={intro}
   hint={t.hint}
   stageLabel={t.stageLabel}
   valueText={t.valueText}
