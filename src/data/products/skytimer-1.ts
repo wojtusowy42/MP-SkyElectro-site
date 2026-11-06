@@ -5,6 +5,8 @@ export const skytimer1: Product = {
   status: 'available',
   // Czerwień płytki z renderu: jaśniejsza (światło) → głęboka (cień).
   colors: ['#ffb08a', '#f0142f'],
+  // Od właściciela 2026-11-06. Masa zestawu szacunkowa (patrz todo).
+  physical: { sizeMm: [29, 37], weightG: 7, kitWeightG: 25 },
   configurator: {
     steps: [
       {
@@ -45,5 +47,6 @@ export const skytimer1: Product = {
     'Czym różnią się warianty płytki 1/2/3 i czy mają różne ceny',
     'Lista kolorów (krok "Kolor" dla zestawu; na razie tylko czerwony z renderu) i czy kolor zmienia cenę',
     'Daty przeceny świątecznej (od/do)',
+    'Dokładna masa zestawu (teraz szacunek 25 g, na stronie "około")',
   ],
 };

@@ -1,33 +1,35 @@
 ---
 /**
- * "Poznaj SkyTimer 1": siatka wyróżników (wzór: "Poznaj MacBooka Pro" na apple.com).
+ * "Poznaj SkyTimer 1": siatka wyróżników (wzór: kafelki "Poznaj..." na apple.com).
  *
  * Druga "scena" strony: ciemnoszare tło na całą szerokość (--color-surface-dark),
  * na nim czarne kafelki. Pierwsza scena (animacja) zostaje czarna.
  *
- * Układ (desktop, siatka 6 kolumn):
- *   1. przełączniki: zdjęcie makro + 3 liczby               pełna szerokość
- *   2. złącze: duży render                                    pełna szerokość
- *   3. zasilanie (duża liczba) |  odtwarzanie czasu (sygnały)  1/3 + 2/3
- *   4. zabezpieczenia         |  rozmiar                       1/2 + 1/2
- * Telefon: jedna kolumna. (Ceny i "Zamów": sekcja "Który SkyTimer" na końcu strony.)
+ * Układ (desktop, siatka 6 kolumn), każdy kafelek z innym rodzajem obrazu:
+ *   1. przełączniki: makro + 3 liczby                         pełna szerokość
+ *   2. złącze: render od frontu                                pełna szerokość
+ *   3. zasilanie | sygnały | zabezpieczenia (kafelki tekstowe) 3 × 1/3
+ *   4. rozmiar: tekst po lewej, płytka z góry z wymiarami      pełna szerokość, dzielony
+ * Telefon: jedna kolumna. (Ceny i "Zamów": pasek produktu u góry.)
  *
- * Zasada jak u Apple: zdjęcie niesie kafelek, tekst to nagłówek i najwyżej jedno zdanie.
- * Rendery: ciemne studio ze sceny animacji (Blender, kolekcja "Kadry strony"),
- * oryginały w Raw Assets/Blender Renders/SkyTimer strona produktu/.
- * Teksty: słownik (products.skytimer-1.story.highlights), fakty z podręcznika użytkownika.
+ * Tekst kafelka: jedno zdanie, fraza wiodąca biała + dopowiedzenie szare (HighlightTile).
+ * Rendery: ciemne studio ze sceny animacji (Blender, F1E_SkyTimer_v0.1.blend, scena
+ * SkyTimer_Anim_Zlozenie), oryginały w Raw Assets/Blender Renders/SkyTimer strona produktu/:
+ *   01 przełączniki-makro (kamera Kadr_01_dip_makro),
+ *   05 zlacze-front (kamera od frontu, 20° nad płytką, 135 mm; przycięte 1440 × 655),
+ *   06 gora-wymiary (kamera ortograficzna z góry, ortho_scale 4.4, 1600 × 1200).
+ * Teksty: słownik (products.skytimer-1.story.highlights), wymiary i masa: dane produktu.
  */
 import { Picture } from 'astro:assets';
 import type { ImageOutputFormat } from 'astro';
 import type { ComponentProps } from 'astro/types';
 import HighlightTile from '../HighlightTile.astro';
 import type { Locale } from '../../../i18n/locales.ts';
-import { getDictionary } from '../../../i18n/index.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
 import { getProduct } from '../../../data/products/index.ts';
 import dipImage from '../../../assets/renders/skytimer-1/poznaj/przelaczniki-makro.png';
-import connectorImage from '../../../assets/renders/skytimer-1/poznaj/zlacze.png';
-import topImage from '../../../assets/renders/skytimer-1/poznaj/gora.png';
-import angleImage from '../../../assets/renders/skytimer-1/poznaj/trzy-czwarte.png';
+import connectorImage from '../../../assets/renders/skytimer-1/poznaj/zlacze-front.png';
+import topImage from '../../../assets/renders/skytimer-1/poznaj/gora-wymiary.png';
 
 interface Props {
   locale: Locale;
@@ -39,8 +41,24 @@ const dict = getDictionary(locale);
 const h = dict.products[id].story.highlights;
 const product = getProduct(id);
 if (!product) throw new Error('Brak produktu skytimer-1 w danych');
+if (!product.physical) throw new Error('Brak wymiarów i masy (physical) w danych skytimer-1');
 
 const [c1, c2] = product.colors ?? [undefined, undefined];
+
+const { sizeMm, weightG, kitWeightG } = product.physical;
+const [short, long] = sizeMm;
+const sizeVars = { weight: weightG, kitWeight: kitWeightG ?? '', short, long };
+
+/*
+ * Krawędzie płytki na renderze z góry (piksele klatki 1600 × 1200, zmierzone na renderze).
+ * Kamera ortograficzna: 1600 px = 4,4 j., płytka 3,01 × 2,33 j. = 1095 × 847 px, na środku.
+ * Linie wymiarów stoją 50 px od krawędzi płytki.
+ */
+const FRAME = { w: 1600, h: 1200 };
+const BOARD = { left: 252, right: 1347, top: 176, bottom: 1023 };
+const GAP = 50;
+const TICK = 18;
+const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
 
 // Wspólne ustawienia obrazów: AVIF/WebP, jakość wyższa niż domyślna (rendery z drobnymi napisami).
 const img = {
@@ -86,23 +104,23 @@ const img = {
       {/* 2. Złącze */}
       <HighlightTile span="full" title={h.connector.title} text={h.connector.text} index={1}>
         <Picture
-          class="highlights__img highlights__img--wide"
+          class="highlights__img"
           src={connectorImage}
           alt={h.connector.alt}
-          widths={[800, 1300, 1960]}
+          widths={[800, 1440]}
           sizes="(max-width: 734px) 100vw, 980px"
           {...img}
         />
       </HighlightTile>
 
-      {/* 3. Zasilanie | odtwarzanie czasu dether */}
+      {/* 3. Zasilanie | sygnały | zabezpieczenia */}
       <HighlightTile span="third" title={h.power.title} text={h.power.text} index={2}>
         <p slot="before" class="big-value">
           {h.power.value}
         </p>
       </HighlightTile>
 
-      <HighlightTile span="two-thirds" title={h.playback.title} text={h.playback.text} index={3}>
+      <HighlightTile span="third" title={h.playback.title} text={h.playback.text} index={3}>
         {/* Dwa długie i krótki sygnał = 2 min 15 s. Ozdoba: treść jest w tekście kafelka. */}
         <p slot="before" class="signals" aria-hidden="true">
           <span class="signals__long"></span>
@@ -111,27 +129,68 @@ const img = {
         </p>
       </HighlightTile>
 
-      {/* 4. Zabezpieczenia | rozmiar */}
-      <HighlightTile span="half" title={h.safety.title} text={h.safety.text} index={4}>
-        <Picture
-          class="highlights__img"
-          src={topImage}
-          alt={h.safety.alt}
-          widths={[600, 980]}
-          sizes="(max-width: 734px) 100vw, 490px"
-          {...img}
-        />
+      <HighlightTile span="third" title={h.safety.title} text={h.safety.text} index={4}>
+        <p slot="before" class="big-value">
+          {h.safety.value}
+        </p>
       </HighlightTile>
 
-      <HighlightTile span="half" title={h.size.title} text={h.size.text} index={5}>
-        <Picture
-          class="highlights__img"
-          src={angleImage}
-          alt={h.size.alt}
-          widths={[600, 980]}
-          sizes="(max-width: 734px) 100vw, 490px"
-          {...img}
-        />
+      {/* 4. Rozmiar: masa + wymiary na rzucie z góry */}
+      <HighlightTile
+        span="full"
+        layout="split"
+        title={h.size.title}
+        text={format(h.size.text, sizeVars)}
+        index={5}
+      >
+        <p slot="before" class="big-value">
+          {format(h.size.value, sizeVars)}
+        </p>
+        <figure class="dims">
+          <Picture
+            class="dims__img"
+            src={topImage}
+            alt={format(h.size.alt, sizeVars)}
+            widths={[640, 1100, 1600]}
+            sizes="(max-width: 734px) 100vw, 560px"
+            {...img}
+          />
+          <svg
+            class="dims__lines"
+            viewBox={`0 0 ${FRAME.w} ${FRAME.h}`}
+            aria-hidden="true"
+            preserveAspectRatio="none"
+          >
+            {/* Długość (poziomo, nad płytką) */}
+            <path
+              pathLength="1"
+              d={`M${BOARD.left} ${BOARD.top - GAP}H${BOARD.right}
+                  M${BOARD.left} ${BOARD.top - GAP - TICK}v${2 * TICK}
+                  M${BOARD.right} ${BOARD.top - GAP - TICK}v${2 * TICK}`}
+            />
+            {/* Szerokość (pionowo, na lewo od płytki) */}
+            <path
+              pathLength="1"
+              d={`M${BOARD.left - GAP} ${BOARD.top}V${BOARD.bottom}
+                  M${BOARD.left - GAP - TICK} ${BOARD.top}h${2 * TICK}
+                  M${BOARD.left - GAP - TICK} ${BOARD.bottom}h${2 * TICK}`}
+            />
+          </svg>
+          <span
+            class="dims__label dims__label--long"
+            style={`left: 50%; top: ${pct(BOARD.top - GAP, FRAME.h)}`}
+            aria-hidden="true"
+          >
+            {format(h.size.dimension, { n: long })}
+          </span>
+          <span
+            class="dims__label dims__label--short"
+            style={`left: ${pct(BOARD.left - GAP, FRAME.w)}; top: ${pct((BOARD.top + BOARD.bottom) / 2, FRAME.h)}`}
+            aria-hidden="true"
+          >
+            {format(h.size.dimension, { n: short })}
+          </span>
+        </figure>
       </HighlightTile>
     </div>
   </div>
@@ -147,11 +206,11 @@ const img = {
   .highlights__inner {
     max-width: calc(var(--content-max) + 2 * var(--gutter));
     margin-inline: auto;
-    padding: clamp(4.5rem, 10vw, 8rem) var(--gutter) clamp(5rem, 10vw, 8rem);
+    padding: clamp(5rem, 11vw, 9rem) var(--gutter) clamp(5rem, 11vw, 9rem);
   }
 
   .highlights__title {
-    margin-bottom: clamp(2rem, 4vw, 3rem);
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
     font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
     font-weight: 600;
     line-height: 1.07;
@@ -161,13 +220,25 @@ const img = {
   .highlights__grid {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 1.25rem;
+    gap: 1.5rem;
   }
 
   @media (max-width: 734px) {
     .highlights__grid {
       grid-template-columns: minmax(0, 1fr);
-      gap: 0.75rem;
+      gap: 0.875rem;
+    }
+  }
+
+  /* Tablet: trzy wąskie kafelki byłyby za ciasne. Dwa obok siebie, trzeci (5. w siatce:
+     zabezpieczenia) na całą szerokość. */
+  @media (min-width: 735px) and (max-width: 1068px) {
+    .highlights__grid > :global(.tile--third) {
+      grid-column: span 3;
+    }
+
+    .highlights__grid > :global(.tile--third:nth-child(5)) {
+      grid-column: span 6;
     }
   }
 
@@ -182,8 +253,14 @@ const img = {
     height: auto;
   }
 
-  .highlights__grid :global(.highlights__img--wide) {
-    margin-top: 0.5rem;
+  /* Telefon: płytka zajmuje 75% kadru złącza, więc kadr powiększony o 25% (boki to czerń,
+     obcina je karta). */
+  @media (max-width: 734px) {
+    .highlights__grid :global(.highlights__img) {
+      width: 125%;
+      max-width: none;
+      margin-inline: -12.5%;
+    }
   }
 
   /* ---------- 1. Przełączniki: zdjęcie + liczby ---------- */
@@ -195,7 +272,7 @@ const img = {
   .dip :global(.dip__img) {
     width: 100%;
     height: auto;
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     -webkit-mask-image: linear-gradient(
       180deg,
       transparent 0%,
@@ -206,49 +283,50 @@ const img = {
     mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 78%, transparent 100%);
   }
 
+  /* Liczby wyrównane do tekstu kafelka (ten sam odstęp od lewej krawędzi). */
   .stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 2rem;
     margin: 0;
-    padding: 2.5rem 2.5rem 3rem;
+    padding: 0.5rem var(--pad) var(--pad);
   }
 
   .stats__item {
     display: flex;
     flex-direction: column-reverse;
-    gap: 0.375rem;
+    gap: 0.25rem;
   }
 
   .stats__value {
     margin: 0;
-    font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+    font-size: clamp(2rem, 1.4rem + 1.8vw, 3rem);
     font-weight: 600;
     line-height: 1.05;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.035em;
     white-space: nowrap;
   }
 
   .stats__label {
     color: var(--color-text-2-on-dark);
     font-size: 1.0625rem;
+    font-weight: 600;
   }
 
   @media (max-width: 734px) {
     .stats {
       grid-template-columns: minmax(0, 1fr);
-      gap: 1.5rem;
-      padding: 1.5rem 1.5rem 2.25rem;
+      gap: 1.25rem;
     }
   }
 
-  /* ---------- 3. Energia: duża liczba w kolorach produktu ---------- */
+  /* ---------- Duże liczby w kolorach produktu (zasilanie, zabezpieczenia, masa) ---------- */
+  /* Rozmiar od szerokości kafelka (cqi), żeby "RDT + AFA" mieściło się w wąskim kafelku. */
   .big-value {
     width: fit-content;
-    margin-inline: auto;
-    font-size: clamp(2.75rem, 2rem + 1.6vw, 3.5rem);
+    font-size: clamp(2.25rem, 13cqi, 3.5rem);
     font-weight: 600;
-    line-height: 1;
+    line-height: 1.1;
     letter-spacing: -0.04em;
     white-space: nowrap;
     background: linear-gradient(
@@ -264,11 +342,10 @@ const img = {
   /* ---------- 3. Odtwarzanie czasu: sygnały jak w Morse'ie, w kolorach produktu ---------- */
   .signals {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 0.75rem;
-    /* Ta sama wysokość co liczba "250 mAh" obok, żeby tytuły w obu kartach stały w jednej linii. */
-    height: clamp(2.75rem, 2rem + 1.6vw, 3.5rem);
+    gap: 0.625rem;
+    /* Ta sama wysokość co duże liczby obok: teksty w wierszu zaczynają się na jednej wysokości. */
+    height: calc(clamp(2.25rem, 13cqi, 3.5rem) * 1.1);
   }
 
   .signals span {
@@ -282,25 +359,88 @@ const img = {
   }
 
   .signals__long {
-    width: 4.5rem;
+    width: 3.5rem;
   }
 
   .signals__short {
     width: 0.875rem;
   }
 
-  /* Raz, przy wejściu kafelka: sygnały "grają" po kolei jak z buzzera (długi, długi, krótki).
-     clip-path zamiast scaleX: skalowanie spłaszczałoby zaokrąglone końce w trakcie ruchu.
-     Bez JS / z ograniczeniem ruchu: od razu pełne. */
+  /* ---------- 4. Rozmiar: rzut z góry z liniami wymiarów ---------- */
+  .dims {
+    position: relative;
+    width: min(100%, 35rem);
+    margin: 0 auto;
+    color: var(--color-text-2-on-dark);
+  }
+
+  .dims :global(.dims__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .dims__lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .dims__lines path {
+    fill: none;
+    stroke: currentColor;
+    /* Jednostki rysunku 1600 px: 3,5 ≈ 1,2 px przy szerokości 560 px. (Bez non-scaling-stroke:
+       psuje rysowanie linii przez pathLength.) */
+    stroke-width: 3.5;
+  }
+
+  .dims__label {
+    position: absolute;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Nad linią poziomą. */
+  .dims__label--long {
+    transform: translate(-50%, calc(-100% - 0.5rem));
+  }
+
+  /* Na lewo od linii pionowej, obrócony jak na rysunku technicznym. */
+  .dims__label--short {
+    /* Po obrocie o -90° oś Y patrzy w prawo, więc ujemne translateY odsuwa w lewo od linii. */
+    transform: translate(-50%, -50%) rotate(-90deg) translateY(calc(-0.5em - 0.5rem));
+  }
+
+  /* Na telefonie obraz zostaje od krawędzi do krawędzi, ale nie wyższy niż potrzeba. */
+  @media (max-width: 734px) {
+    .dims {
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+  }
+
+  /* ---------- Ruch: tylko raz, przy wejściu kafelka; bez JS / z ograniczeniem ruchu od razu pełne ---------- */
   @media (prefers-reduced-motion: no-preference) {
-    /* Stan końcowy jawnie jako inset(0): "none" nie interpoluje się z inset() i przeskakuje. */
-    .signals span {
-      clip-path: inset(0 0 0 0 round 999px);
+    :global(.reveal-js) .highlights__title:not(.is-in) {
+      opacity: 0;
+      transform: translateY(1.5rem);
     }
 
-    /* Przejście tylko przy odsłanianiu: ukrycie po starcie skryptu ma być natychmiastowe. */
-    :global(.tile.is-in) .signals span {
-      transition: clip-path var(--t) var(--ease-out) var(--d);
+    .highlights__title {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+
+    /* Sygnały "grają" po kolei jak z buzzera (długi, długi, krótki).
+       clip-path zamiast scaleX: skalowanie spłaszczałoby zaokrąglone końce w trakcie ruchu.
+       Stan końcowy jawnie jako inset(0): "none" nie interpoluje się z inset() i przeskakuje. */
+    .signals span {
+      clip-path: inset(0 0 0 0 round 999px);
     }
 
     .signals span:nth-child(1) {
@@ -321,23 +461,31 @@ const img = {
     :global(.reveal-js) :global(.tile:not(.is-in)) .signals span {
       clip-path: inset(0 100% 0 0 round 999px);
     }
-  }
 
-  /* Wąska karta: tytuł mniejszy niż w kartach bez obrazu, żeby mieścił się w 2 liniach. */
-  .highlights__grid :global(.tile--third .tile__title) {
-    font-size: clamp(1.5rem, 1.3rem + 0.5vw, 1.75rem);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.reveal-js) .highlights__title:not(.is-in) {
-      opacity: 0;
-      transform: translateY(1.5rem);
+    /* Przejście tylko przy odsłanianiu: ukrycie po starcie skryptu ma być natychmiastowe. */
+    :global(.tile.is-in) .signals span {
+      transition: clip-path var(--t) var(--ease-out) var(--d);
     }
 
-    .highlights__title {
-      transition:
-        opacity 700ms var(--ease-out),
-        transform 700ms var(--ease-out);
+    /* Linie wymiarów rysują się od końca do końca, potem pojawiają się liczby. */
+    :global(.reveal-js) :global(.tile:not(.is-in)) .dims__lines path {
+      stroke-dashoffset: 1;
+    }
+
+    :global(.reveal-js) :global(.tile:not(.is-in)) .dims__label {
+      opacity: 0;
+    }
+
+    .dims__lines path {
+      stroke-dasharray: 1;
+    }
+
+    :global(.tile.is-in) .dims__lines path {
+      transition: stroke-dashoffset 700ms var(--ease-out) 500ms;
+    }
+
+    :global(.tile.is-in) .dims__label {
+      transition: opacity 400ms var(--ease-out) 1000ms;
     }
   }
 </style>

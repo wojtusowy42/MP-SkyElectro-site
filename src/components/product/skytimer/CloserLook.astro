@@ -101,7 +101,6 @@ const views: CloserLookView[] = (Object.keys(VIEWS) as (keyof typeof VIEWS)[]).m
   return {
     id,
     label: texts.label,
-    caption: texts.caption,
     frame: VIEWS[id].frame,
     callouts: Object.entries(VIEWS[id].callouts as Record<string, Pos>).map(([key, pos]) => {
       const c = callouts[key];

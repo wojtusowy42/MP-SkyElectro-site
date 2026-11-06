@@ -1,43 +1,58 @@
 ---
 /**
- * Jeden kafelek w siatce wyróżników (wzór: "Poznaj MacBooka Pro" na apple.com).
- * Czarna karta na ciemnoszarym tle sekcji, wyśrodkowany nagłówek u góry,
- * pod nim (opcjonalnie) jedno zdanie, a niżej obraz/grafika ze slotu, która wypełnia resztę.
+ * Jeden kafelek w siatce wyróżników (wzór: kafelki "Poznaj..." na apple.com).
+ * Czarna karta na ciemnoszarym tle sekcji.
+ *
+ * Tekst jak u Apple: JEDEN akapit wyrównany do lewej, fraza wiodąca biała (title),
+ * dopowiedzenie szare (text), oba tym samym pogrubionym krojem. Rozmiar zależy od
+ * szerokości kafelka (container query): szeroki kafelek ok. 28 px, wąski 19 px.
+ * W HTML to nagłówek h3 + akapit, wyświetlane w jednej linii (czytnik ekranu dostaje nagłówek).
  *
  * span: szerokość w siatce 6-kolumnowej (desktop):
  *   full = cały wiersz, two-thirds = 4/6, half = 3/6, third = 2/6.
  * Na telefonie każdy kafelek ma pełną szerokość.
  *
- * Slot domyślny (obraz) sięga do lewej, prawej i dolnej krawędzi karty, jak zdjęcia u Apple.
- * Rendery mają czarne tło (#000) jak karta, więc krawędzi obrazu nie widać.
- * Slot "before": element NAD nagłówkiem (np. duża liczba). Kafelek bez obrazu
- * (pusty slot domyślny) ma treść wyśrodkowaną w pionie.
+ * layout:
+ *   stack (domyślnie) = [before] → tekst → obraz od krawędzi do krawędzi u dołu,
+ *   split = tekst po lewej, obraz po prawej (desktop; na telefonie jak stack).
+ *
+ * Slot domyślny (obraz) sięga do krawędzi karty, jak zdjęcia u Apple; rendery mają
+ * czarne tło (#000) jak karta, więc krawędzi obrazu nie widać.
+ * Slot "before": element NAD tekstem (np. duża liczba).
  */
 interface Props {
   span: 'full' | 'two-thirds' | 'half' | 'third';
   title: string;
   text?: string | undefined;
-  /** Kolejność w siatce: opóźnia wejście kafelka (90 ms na pozycję). */
+  layout?: 'stack' | 'split';
+  /** Kolejność w siatce: opóźnia wejście kafelka (90 ms na pozycję, tylko desktop). */
   index?: number;
 }
 
-const { span, title, text, index = 0 } = Astro.props;
+const { span, title, text, layout = 'stack', index = 0 } = Astro.props;
 const hasVisual = Astro.slots.has('default');
 ---
 
 <article
-  class:list={['tile', `tile--${span}`, { 'tile--text': !hasVisual }]}
+  class:list={['tile', `tile--${span}`, `tile--${layout}`, { 'tile--text': !hasVisual }]}
   style={`--i: ${index}`}
   data-reveal
 >
-  {Astro.slots.has('before') && (
-    <div class="tile__before">
-      <slot name="before" />
+  <div class="tile__head">
+    {Astro.slots.has('before') && (
+      <div class="tile__before">
+        <slot name="before" />
+      </div>
+    )}
+    <div class="tile__copy">
+      <h3 class="tile__title">{title}</h3>
+      {text && (
+        <>
+          {' '}
+          <p class="tile__text">{text}</p>
+        </>
+      )}
     </div>
-  )}
-  <div class="tile__copy">
-    <h3 class="tile__title">{title}</h3>
-    {text && <p class="tile__text">{text}</p>}
   </div>
   {hasVisual && (
     <div class="tile__visual">
@@ -48,16 +63,19 @@ const hasVisual = Astro.slots.has('default');
 
 <style>
   .tile {
+    /* Odstęp od krawędzi karty; obraz znosi go ujemnym marginesem. */
+    --pad: clamp(1.75rem, 1rem + 2.4vw, 3rem);
+
     position: relative;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
-    padding: 2.5rem 2.5rem 0;
+    padding: var(--pad) var(--pad) 0;
     border-radius: 1.75rem;
     background: var(--color-bg-dark);
     color: var(--color-text-on-dark);
-    text-align: center;
+    container-type: inline-size;
     isolation: isolate;
   }
 
@@ -77,51 +95,38 @@ const hasVisual = Astro.slots.has('default');
     grid-column: span 2;
   }
 
-  /* Kafelek bez obrazu: treść od góry, nie wyśrodkowana w pionie. Dwa kafelki tekstowe w jednym
-     wierszu mają wtedy tytuły na tej samej wysokości, nawet gdy jeden tytuł łamie się na 2 linie. */
+  /* Kafelek bez obrazu: treść od góry. Kafelki tekstowe w jednym wierszu mają wtedy
+     liczby i teksty na tych samych wysokościach. */
   .tile--text {
-    justify-content: flex-start;
-    padding-block: 3rem;
+    padding-bottom: var(--pad);
   }
 
   .tile__before {
-    display: grid;
-    place-items: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
 
+  /* Jeden akapit: biała fraza + szare dopowiedzenie. */
   .tile__copy {
     position: relative;
     z-index: 1;
     max-width: 34rem;
-    margin-inline: auto;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.1875rem, 4.4cqi, 1.75rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.016em;
+    text-wrap: pretty;
   }
 
-  .tile--full .tile__copy {
-    max-width: 42rem;
+  .tile__title,
+  .tile__text {
+    display: inline;
+    font: inherit;
+    letter-spacing: inherit;
   }
 
   .tile__title {
-    font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem);
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.022em;
-    text-wrap: balance;
-  }
-
-  .tile--text .tile__title {
-    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
-    line-height: 1.08;
-    letter-spacing: -0.028em;
-  }
-
-  .tile__text {
-    margin-top: 0.75rem;
-    color: var(--color-text-2-on-dark);
-    font-size: 1.0625rem;
-    line-height: 1.42;
-    letter-spacing: -0.012em;
-    text-wrap: pretty;
+    color: var(--color-text-on-dark);
   }
 
   /* Obraz od krawędzi do krawędzi: ujemny margines znosi boczny padding karty. */
@@ -130,8 +135,23 @@ const hasVisual = Astro.slots.has('default');
     display: grid;
     flex: 1;
     min-height: 0;
-    margin-inline: -2.5rem;
+    margin-inline: calc(-1 * var(--pad));
     place-items: center;
+  }
+
+  /* Tekst po lewej, obraz po prawej (np. rozmiar płytki z wymiarami). */
+  @media (min-width: 735px) {
+    .tile--split {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: center;
+      gap: var(--pad);
+      padding-bottom: var(--pad);
+    }
+
+    .tile--split .tile__visual {
+      margin: 0 calc(-1 * var(--pad)) 0 0;
+    }
   }
 
   @media (max-width: 734px) {
@@ -144,20 +164,11 @@ const hasVisual = Astro.slots.has('default');
     }
 
     .tile {
-      padding: 2rem 1.5rem 0;
       border-radius: 1.5rem;
-    }
-
-    .tile--text {
-      padding-bottom: 2rem;
-    }
-
-    .tile__visual {
-      margin-inline: -1.5rem;
     }
   }
 
-  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w siatce dodaje .is-in). */
+  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w ProductStory dodaje .is-in). */
   @media (prefers-reduced-motion: no-preference) {
     :global(.reveal-js) .tile:not(.is-in) {
       opacity: 0;

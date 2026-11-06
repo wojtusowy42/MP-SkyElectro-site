@@ -61,6 +61,15 @@ export interface Product {
    * To jedyne miejsce, gdzie na stronie pojawia się kolor spoza monochromatycznej palety.
    */
   colors?: readonly [string, string];
+  /** Wymiary i masa (np. do kafelka "rozmiar" na stronie produktu). */
+  physical?: {
+    /** Wymiary płytki w mm: [krótszy bok, dłuższy bok]. */
+    sizeMm: readonly [number, number];
+    /** Masa samego produktu w gramach. */
+    weightG: number;
+    /** Masa całego zestawu w gramach (jeśli produkt ma wersję "zestaw"). */
+    kitWeightG?: number;
+  };
   /**
    * Brakujące informacje. Build wypisuje je jako ostrzeżenia,
    * żeby nic nie zginęło. Usuń wpis, gdy dane są uzupełnione.

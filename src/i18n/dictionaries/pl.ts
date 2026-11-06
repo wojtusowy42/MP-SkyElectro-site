@@ -90,9 +90,10 @@ export const pl = {
         // \u00a0 = twarda spacja, \u2011 = twardy łącznik: te miejsca nie łamią się na dwie linie.
         highlights: {
           heading: 'Poznaj SkyTimer 1.',
+          // Kafelki: title = fraza wiodąca (biała), text = dopowiedzenie (szare), czytane jako jedno zdanie.
           dip: {
-            title: 'Dziesięć przełączników. Wszystko pod palcem.',
-            text: 'Czas flop, czas dether i ustawienia timera.',
+            title: 'Dziesięć przełączników.',
+            text: 'Czas flop, czas dether i\u00a0ustawienia timera ustawiasz palcem, bez komputera.',
             alt: 'Zbliżenie na rząd dziesięciu przełączników DIP z napisem ON',
             // Liczby pod zdjęciem: przełączniki 1-4 = flop (0,2 / 0,4 / 0,8 / 1,6 s),
             // 5-10 = dether (15 s ... 8 min, razem 15 min 45 s).
@@ -103,9 +104,9 @@ export const pl = {
             ],
           },
           connector: {
-            title: 'Jedno złącze. Wszystko w\u00a0jednym miejscu.',
-            text: 'Zasilanie, serwo, RDT, przycisk startu, buzzer i LED na jednym złączu 2\u00a0×\u00a07.',
-            alt: 'Płytka SkyTimer 1 z kątowym złączem 2 × 7 i złoconymi pinami',
+            title: 'Jedno złącze 2\u00a0×\u00a07.',
+            text: 'Zasilanie, serwo, RDT, przycisk startu, buzzer i\u00a0LED podłączasz w\u00a0jednym miejscu.',
+            alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
           },
           power: {
             value: '250\u00a0mAh',
@@ -117,17 +118,20 @@ export const pl = {
           // Odtwarzanie czasu dether (podręcznik, rozdz. 14): długi sygnał = minuta, krótki = 15 s.
           playback: {
             title: 'Słyszysz, co ustawiłeś.',
-            text: 'Po włączeniu timer zagra czas dether. Dwa długie i\u00a0krótki sygnał to\u00a02\u00a0min\u00a015\u00a0s.',
+            text: 'Po włączeniu timer zagra czas dether: dwa długie i\u00a0krótki sygnał to\u00a02\u00a0min\u00a015\u00a0s.',
           },
           safety: {
+            value: 'RDT\u00a0+\u00a0AFA',
             title: 'Wbudowane zabezpieczenia.',
-            text: 'RDT, Anti Fly Away i ostrzeżenia przy starcie. Zgodny z Aeris RDT i MiniNeurone.',
-            alt: 'Płytka SkyTimer 1 z góry: mikrokontroler, złącze i zworki JP1, JP2',
+            text: 'Radio dether, Anti Fly Away i\u00a0ostrzeżenia przy starcie. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
           },
+          // Liczby z danych produktu (physical): {weight}, {kitWeight} w gramach, {short} × {long} w mm.
           size: {
-            title: 'Mały. Naprawdę mały.',
-            text: 'Zaprojektowany do ciasnej wieży modelu F1E.', // roboczy: wymiary
-            alt: 'Płytka SkyTimer 1 pod kątem, ze złączem i elektroniką',
+            value: '{weight}\u00a0g',
+            title: 'Lekki i\u00a0mały.',
+            text: 'Płytka {short}\u00a0×\u00a0{long}\u00a0mm, zaprojektowana do ciasnej wieży F1E. Cały zestaw z\u00a0akumulatorem waży około {kitWeight}\u00a0g.',
+            dimension: '{n}\u00a0mm',
+            alt: 'Płytka SkyTimer 1 z góry, z liniami wymiarów: {long} na {short} mm',
           },
         },
         // "Przyjrzyj się bliżej": płytka obracana o 360° (przeciąganie, przyciski widoków).
@@ -142,7 +146,6 @@ export const pl = {
             // callouts = opisy z kreskami rysowane, gdy płytka zatrzyma się na widoku.
             electronics: {
               label: 'Elektronika',
-              caption: 'Mikrokontroler ATmega328P i zworki JP1, JP2 do funkcji DTA.',
               callouts: {
                 mcu: { title: 'ATmega328P', text: 'Mikrokontroler' },
                 connector: { title: 'Złącze 2\u00a0×\u00a07', text: 'Wszystkie podłączenia' },
@@ -152,7 +155,6 @@ export const pl = {
             },
             connector: {
               label: 'Złącze',
-              caption: 'Kątowe złącze 2\u00a0×\u00a07: wszystkie podłączenia w jednym miejscu.',
               callouts: {
                 pins: { title: 'Piny kątowe', text: 'Przewody podłączasz z boku' },
                 header: {
@@ -163,7 +165,6 @@ export const pl = {
             },
             switches: {
               label: 'Przełączniki',
-              caption: 'Dziesięć przełączników DIP: czasy flop, dether i ustawienia.',
               callouts: {
                 on: { title: 'Wszystkie na ON', text: 'Tryb konfiguracji' },
                 flop: { title: 'Przełączniki 1-4', text: 'Czas flop, co 0,2\u00a0s' },

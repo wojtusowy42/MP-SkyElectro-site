@@ -44,7 +44,6 @@ export interface CloserLookCallout {
 export interface CloserLookView {
   id: string;
   label: string;
-  caption: string;
   /** Numer klatki z tym ujęciem. */
   frame: number;
   callouts: CloserLookCallout[];
@@ -231,13 +230,6 @@ const config = {
           </button>
         ))}
       </div>
-      <div class="closer__captions" aria-live="polite">
-        {views.map((v, i) => (
-          <p class="closer__caption" data-caption={v.id} hidden={i !== 0}>
-            {v.caption}
-          </p>
-        ))}
-      </div>
     </div>
   </div>
 </section>
@@ -271,7 +263,6 @@ const config = {
     const linesSvg = root.querySelector<SVGSVGElement>('[data-lines]')!;
     const hint = root.querySelector<HTMLElement>('[data-hint]')!;
     const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-view]')];
-    const captions = [...root.querySelectorAll<HTMLElement>('[data-caption]')];
     const N = cfg.count;
 
     // ---------- Stan ----------
@@ -395,7 +386,6 @@ const config = {
       if (exact === pressedView) return;
       pressedView = exact;
       for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.view === exact));
-      for (const c of captions) c.hidden = c.dataset.caption !== (exact || view.id);
     }
 
     // ---------- Opisy (kreski + podpisy) ----------
@@ -679,10 +669,6 @@ const config = {
   @media (min-width: 900px) {
     .closer__inner {
       max-width: calc(87.5rem + 2 * var(--gutter));
-    }
-
-    .closer__title {
-      max-width: calc(var(--content-wide));
     }
   }
 
@@ -1039,30 +1025,11 @@ const config = {
     outline-offset: 2px;
   }
 
-  .closer__captions {
-    display: grid;
-    min-height: 1.5em;
-    max-width: 40rem;
-    text-align: center;
-  }
-
-  .closer__caption {
-    grid-area: 1 / 1;
-    color: var(--color-text-2-on-dark);
-    font-size: 1.25rem;
-    line-height: 1.42;
-    text-wrap: balance;
-  }
-
   @media (max-width: 734px) {
     .closer__view {
       min-height: 2.5rem;
       padding: 0 0.875rem;
       font-size: 1rem;
-    }
-
-    .closer__caption {
-      font-size: 1.125rem;
     }
   }
 
@@ -1077,10 +1044,6 @@ const config = {
       transition:
         background-color 240ms var(--ease-out),
         color 240ms var(--ease-out);
-    }
-
-    .closer__caption:not([hidden]) {
-      animation: caption-in 400ms var(--ease-out);
     }
 
     /* Ukrywanie: szybko i razem. */
@@ -1126,13 +1089,6 @@ const config = {
       transition:
         opacity 450ms var(--ease-out) calc(var(--i) * 90ms + 300ms),
         transform 450ms var(--ease-out) calc(var(--i) * 90ms + 300ms);
-    }
-  }
-
-  @keyframes caption-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.25rem);
     }
   }
 </style>
