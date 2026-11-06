@@ -8,11 +8,12 @@
  * Układ (desktop, siatka 6 kolumn), każdy kafelek z innym rodzajem obrazu:
  *   1. przełączniki: makro + 3 liczby                         pełna szerokość
  *   2. złącze: render od frontu                                pełna szerokość
- *   3. zasilanie | sygnały | zabezpieczenia (kafelki tekstowe) 3 × 1/3
- *   4. rozmiar: tekst po lewej, płytka z góry z wymiarami      pełna szerokość, dzielony
+ *   3. zasilanie | sygnały (kafelki tekstowe)                  1/2 + 1/2
+ *   4. zabezpieczenia: trzy punkty (RDT, AFA, ostrzeżenia)     pełna szerokość
+ *   5. rozmiar: masa i tekst po lewej, rzut z góry z wymiarami pełna szerokość, dzielony
  * Telefon: jedna kolumna. (Ceny i "Zamów": pasek produktu u góry.)
  *
- * Tekst kafelka: jedno zdanie, fraza wiodąca biała + dopowiedzenie szare (HighlightTile).
+ * Tekst kafelka: tytuł + najwyżej dwa krótkie zdania (HighlightTile).
  * Rendery: ciemne studio ze sceny animacji (Blender, F1E_SkyTimer_v0.1.blend, scena
  * SkyTimer_Anim_Zlozenie), oryginały w Raw Assets/Blender Renders/SkyTimer strona produktu/:
  *   01 przełączniki-makro (kamera Kadr_01_dip_makro),
@@ -80,7 +81,7 @@ const img = {
 
     <div class="highlights__grid">
       {/* 1. Przełączniki */}
-      <HighlightTile span="full" title={h.dip.title} text={h.dip.text} index={0}>
+      <HighlightTile span="full" title={h.dip.title} text={h.dip.text}>
         <div class="dip">
           <Picture
             class="dip__img"
@@ -102,7 +103,7 @@ const img = {
       </HighlightTile>
 
       {/* 2. Złącze */}
-      <HighlightTile span="full" title={h.connector.title} text={h.connector.text} index={1}>
+      <HighlightTile span="full" title={h.connector.title} text={h.connector.text}>
         <Picture
           class="highlights__img"
           src={connectorImage}
@@ -113,14 +114,14 @@ const img = {
         />
       </HighlightTile>
 
-      {/* 3. Zasilanie | sygnały | zabezpieczenia */}
-      <HighlightTile span="third" title={h.power.title} text={h.power.text} index={2}>
+      {/* 3. Zasilanie | sygnały */}
+      <HighlightTile span="half" title={h.power.title} text={h.power.text} index={0}>
         <p slot="before" class="big-value">
           {h.power.value}
         </p>
       </HighlightTile>
 
-      <HighlightTile span="third" title={h.playback.title} text={h.playback.text} index={3}>
+      <HighlightTile span="half" title={h.playback.title} text={h.playback.text} index={1}>
         {/* Dwa długie i krótki sygnał = 2 min 15 s. Ozdoba: treść jest w tekście kafelka. */}
         <p slot="before" class="signals" aria-hidden="true">
           <span class="signals__long"></span>
@@ -129,21 +130,26 @@ const img = {
         </p>
       </HighlightTile>
 
-      <HighlightTile span="third" title={h.safety.title} text={h.safety.text} index={4}>
-        <p slot="before" class="big-value">
-          {h.safety.value}
-        </p>
+      {/* 4. Zabezpieczenia: trzy punkty */}
+      <HighlightTile span="full" title={h.safety.title}>
+        <dl slot="after" class="points">
+          {h.safety.items.map((item) => (
+            <div class="points__item">
+              <dt class="points__term">{item.term}</dt>
+              <dd class="points__text">{item.text}</dd>
+            </div>
+          ))}
+        </dl>
       </HighlightTile>
 
-      {/* 4. Rozmiar: masa + wymiary na rzucie z góry */}
+      {/* 5. Rozmiar: masa + wymiary na rzucie z góry */}
       <HighlightTile
         span="full"
         layout="split"
         title={h.size.title}
         text={format(h.size.text, sizeVars)}
-        index={5}
       >
-        <p slot="before" class="big-value">
+        <p slot="before" class="big-value big-value--hero">
           {format(h.size.value, sizeVars)}
         </p>
         <figure class="dims">
@@ -230,18 +236,6 @@ const img = {
     }
   }
 
-  /* Tablet: trzy wąskie kafelki byłyby za ciasne. Dwa obok siebie, trzeci (5. w siatce:
-     zabezpieczenia) na całą szerokość. */
-  @media (min-width: 735px) and (max-width: 1068px) {
-    .highlights__grid > :global(.tile--third) {
-      grid-column: span 3;
-    }
-
-    .highlights__grid > :global(.tile--third:nth-child(5)) {
-      grid-column: span 6;
-    }
-  }
-
   /* ---------- Obrazy ---------- */
   .highlights__grid :global(picture) {
     display: block;
@@ -310,7 +304,7 @@ const img = {
   .stats__label {
     color: var(--color-text-2-on-dark);
     font-size: 1.0625rem;
-    font-weight: 600;
+    line-height: 1.4;
   }
 
   @media (max-width: 734px) {
@@ -320,13 +314,12 @@ const img = {
     }
   }
 
-  /* ---------- Duże liczby w kolorach produktu (zasilanie, zabezpieczenia, masa) ---------- */
-  /* Rozmiar od szerokości kafelka (cqi), żeby "RDT + AFA" mieściło się w wąskim kafelku. */
+  /* ---------- Duże liczby w kolorach produktu (zasilanie, masa) ---------- */
   .big-value {
     width: fit-content;
-    font-size: clamp(2.25rem, 13cqi, 3.5rem);
+    font-size: clamp(2.75rem, 2.1rem + 2vw, 4rem);
     font-weight: 600;
-    line-height: 1.1;
+    line-height: 1.05;
     letter-spacing: -0.04em;
     white-space: nowrap;
     background: linear-gradient(
@@ -339,13 +332,54 @@ const img = {
     color: transparent;
   }
 
+  /* Masa: główna liczba kafelka, większa. */
+  .big-value--hero {
+    font-size: clamp(4rem, 2.6rem + 4.4vw, 6.5rem);
+    line-height: 1;
+  }
+
+  /* ---------- 4. Zabezpieczenia: trzy punkty w kolumnach ---------- */
+  .points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    margin: 0;
+  }
+
+  .points__item {
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(255 255 255 / 0.16);
+  }
+
+  .points__term {
+    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .points__text {
+    margin: 0.5rem 0 0;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 899px) {
+    .points {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+
   /* ---------- 3. Odtwarzanie czasu: sygnały jak w Morse'ie, w kolorach produktu ---------- */
   .signals {
     display: flex;
     align-items: center;
     gap: 0.625rem;
-    /* Ta sama wysokość co duże liczby obok: teksty w wierszu zaczynają się na jednej wysokości. */
-    height: calc(clamp(2.25rem, 13cqi, 3.5rem) * 1.1);
+    /* Ta sama wysokość co liczba "250 mAh" obok: tytuły w wierszu stoją na jednej wysokości. */
+    height: calc(clamp(2.75rem, 2.1rem + 2vw, 4rem) * 1.05);
   }
 
   .signals span {
@@ -359,7 +393,7 @@ const img = {
   }
 
   .signals__long {
-    width: 3.5rem;
+    width: 4.5rem;
   }
 
   .signals__short {
@@ -369,7 +403,7 @@ const img = {
   /* ---------- 4. Rozmiar: rzut z góry z liniami wymiarów ---------- */
   .dims {
     position: relative;
-    width: min(100%, 35rem);
+    width: min(100%, 36rem);
     margin: 0 auto;
     color: var(--color-text-2-on-dark);
   }
@@ -419,7 +453,7 @@ const img = {
   @media (max-width: 734px) {
     .dims {
       width: 100%;
-      margin-top: 1.5rem;
+      margin-top: 2rem;
     }
   }
 
@@ -444,17 +478,17 @@ const img = {
     }
 
     .signals span:nth-child(1) {
-      --d: 500ms;
+      --d: 400ms;
       --t: 420ms;
     }
 
     .signals span:nth-child(2) {
-      --d: 1050ms;
+      --d: 950ms;
       --t: 420ms;
     }
 
     .signals span:nth-child(3) {
-      --d: 1600ms;
+      --d: 1500ms;
       --t: 160ms;
     }
 
@@ -481,11 +515,11 @@ const img = {
     }
 
     :global(.tile.is-in) .dims__lines path {
-      transition: stroke-dashoffset 700ms var(--ease-out) 500ms;
+      transition: stroke-dashoffset 600ms var(--ease-out) 300ms;
     }
 
     :global(.tile.is-in) .dims__label {
-      transition: opacity 400ms var(--ease-out) 1000ms;
+      transition: opacity 300ms var(--ease-out) 800ms;
     }
   }
 </style>

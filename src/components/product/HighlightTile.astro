@@ -3,29 +3,27 @@
  * Jeden kafelek w siatce wyróżników (wzór: kafelki "Poznaj..." na apple.com).
  * Czarna karta na ciemnoszarym tle sekcji.
  *
- * Tekst jak u Apple: JEDEN akapit wyrównany do lewej, fraza wiodąca biała (title),
- * dopowiedzenie szare (text), oba tym samym pogrubionym krojem. Rozmiar zależy od
- * szerokości kafelka (container query): szeroki kafelek ok. 28 px, wąski 19 px.
- * W HTML to nagłówek h3 + akapit, wyświetlane w jednej linii (czytnik ekranu dostaje nagłówek).
+ * Czytelność przede wszystkim: tytuł (biały, pogrubiony) i tekst (zwykły, szary) w osobnych
+ * liniach, wyrównane do lewej, jedna stała skala w całej sekcji:
+ *   tytuł 22-28 px, tekst 17-19 px, interlinia 1,5, najwyżej ok. 40 znaków w linii.
  *
- * span: szerokość w siatce 6-kolumnowej (desktop):
- *   full = cały wiersz, two-thirds = 4/6, half = 3/6, third = 2/6.
+ * span: szerokość w siatce 6-kolumnowej (desktop): full = cały wiersz, half = 3/6.
  * Na telefonie każdy kafelek ma pełną szerokość.
  *
  * layout:
- *   stack (domyślnie) = [before] → tekst → obraz od krawędzi do krawędzi u dołu,
+ *   stack (domyślnie) = [before] → tytuł i tekst → obraz od krawędzi do krawędzi u dołu,
  *   split = tekst po lewej, obraz po prawej (desktop; na telefonie jak stack).
  *
  * Slot domyślny (obraz) sięga do krawędzi karty, jak zdjęcia u Apple; rendery mają
  * czarne tło (#000) jak karta, więc krawędzi obrazu nie widać.
- * Slot "before": element NAD tekstem (np. duża liczba).
+ * Slot "before": element NAD tytułem (np. duża liczba). Slot "after": pod tekstem (np. lista).
  */
 interface Props {
-  span: 'full' | 'two-thirds' | 'half' | 'third';
+  span: 'full' | 'half';
   title: string;
   text?: string | undefined;
   layout?: 'stack' | 'split';
-  /** Kolejność w siatce: opóźnia wejście kafelka (90 ms na pozycję, tylko desktop). */
+  /** Pozycja w wierszu: kafelek obok wjeżdża 80 ms później (tylko desktop). */
   index?: number;
 }
 
@@ -44,15 +42,13 @@ const hasVisual = Astro.slots.has('default');
         <slot name="before" />
       </div>
     )}
-    <div class="tile__copy">
-      <h3 class="tile__title">{title}</h3>
-      {text && (
-        <>
-          {' '}
-          <p class="tile__text">{text}</p>
-        </>
-      )}
-    </div>
+    <h3 class="tile__title">{title}</h3>
+    {text && <p class="tile__text">{text}</p>}
+    {Astro.slots.has('after') && (
+      <div class="tile__after">
+        <slot name="after" />
+      </div>
+    )}
   </div>
   {hasVisual && (
     <div class="tile__visual">
@@ -75,7 +71,6 @@ const hasVisual = Astro.slots.has('default');
     border-radius: 1.75rem;
     background: var(--color-bg-dark);
     color: var(--color-text-on-dark);
-    container-type: inline-size;
     isolation: isolate;
   }
 
@@ -83,50 +78,45 @@ const hasVisual = Astro.slots.has('default');
     grid-column: span 6;
   }
 
-  .tile--two-thirds {
-    grid-column: span 4;
-  }
-
   .tile--half {
     grid-column: span 3;
   }
 
-  .tile--third {
-    grid-column: span 2;
-  }
-
-  /* Kafelek bez obrazu: treść od góry. Kafelki tekstowe w jednym wierszu mają wtedy
-     liczby i teksty na tych samych wysokościach. */
   .tile--text {
     padding-bottom: var(--pad);
   }
 
-  .tile__before {
-    margin-bottom: 1rem;
-  }
-
-  /* Jeden akapit: biała fraza + szare dopowiedzenie. */
-  .tile__copy {
+  .tile__head {
     position: relative;
     z-index: 1;
-    max-width: 34rem;
-    color: var(--color-text-2-on-dark);
-    font-size: clamp(1.1875rem, 4.4cqi, 1.75rem);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.016em;
-    text-wrap: pretty;
   }
 
-  .tile__title,
-  .tile__text {
-    display: inline;
-    font: inherit;
-    letter-spacing: inherit;
+  .tile__before {
+    margin-bottom: 1.25rem;
   }
 
   .tile__title {
-    color: var(--color-text-on-dark);
+    max-width: 24ch;
+    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .tile__text {
+    max-width: 40ch;
+    margin-top: 0.625rem;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+
+  .tile__after {
+    margin-top: clamp(1.75rem, 3vw, 2.5rem);
   }
 
   /* Obraz od krawędzi do krawędzi: ujemny margines znosi boczny padding karty. */
@@ -139,27 +129,25 @@ const hasVisual = Astro.slots.has('default');
     place-items: center;
   }
 
-  /* Tekst po lewej, obraz po prawej (np. rozmiar płytki z wymiarami). */
+  /* Tekst po lewej (węższa kolumna), obraz po prawej. */
   @media (min-width: 735px) {
     .tile--split {
       display: grid;
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
       align-items: center;
       gap: var(--pad);
       padding-bottom: var(--pad);
     }
 
     .tile--split .tile__visual {
-      margin: 0 calc(-1 * var(--pad)) 0 0;
+      margin: 0;
     }
   }
 
   @media (max-width: 734px) {
     .tile,
     .tile--full,
-    .tile--two-thirds,
-    .tile--half,
-    .tile--third {
+    .tile--half {
       grid-column: auto;
     }
 
@@ -168,21 +156,22 @@ const hasVisual = Astro.slots.has('default');
     }
   }
 
-  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w ProductStory dodaje .is-in). */
+  /* Wejście: raz, gdy kafelek wjeżdża na ekran (skrypt w ProductStory dodaje .is-in).
+     Krótko i bez skalowania: treść ma być czytelna od razu, ruch tylko ją podaje. */
   @media (prefers-reduced-motion: no-preference) {
     :global(.reveal-js) .tile:not(.is-in) {
       opacity: 0;
-      transform: translateY(2rem) scale(0.98);
+      transform: translateY(1.5rem);
     }
 
     .tile {
       transition:
-        opacity 900ms var(--ease-out),
-        transform 900ms var(--ease-out);
-      transition-delay: calc(var(--i) * 90ms);
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+      transition-delay: calc(var(--i) * 80ms);
     }
 
-    /* Telefon: jedna kolumna, każdy kafelek wjeżdża sam, więc kaskada tylko by opóźniała. */
+    /* Telefon: jedna kolumna, każdy kafelek wjeżdża sam. */
     @media (max-width: 734px) {
       .tile {
         transition-delay: 0ms;
