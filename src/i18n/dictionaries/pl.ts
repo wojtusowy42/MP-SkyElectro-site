@@ -109,8 +109,10 @@ export const pl = {
           },
           power: {
             value: '250\u00a0mAh',
-            title: 'Bardzo niskie zużycie energii.',
-            text: 'Akumulator Li\u2011Pol w zestawie. Ładowanie przez USB\u2011C.',
+            // Podręcznik: rozdz. 4 (Li-Pol 1S 250 mAh), 5 (ładowarka USB-C), 16 (oszczędzanie energii).
+            // Liczba to pojemność akumulatora, więc tytuł mówi o zasilaniu, nie o zużyciu.
+            title: 'Zasilanie w\u00a0zestawie.',
+            text: 'Akumulator Li\u2011Pol i\u00a0ładowarka USB\u2011C. Po lądowaniu timer sam oszczędza energię.',
           },
           // Odtwarzanie czasu dether (podręcznik, rozdz. 14): długi sygnał = minuta, krótki = 15 s.
           playback: {

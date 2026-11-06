@@ -77,10 +77,11 @@ const hasVisual = Astro.slots.has('default');
     grid-column: span 2;
   }
 
-  /* Kafelek bez obrazu: ikona + tekst wyśrodkowane w pionie (jak "24 godziny na baterii"). */
+  /* Kafelek bez obrazu: treść od góry, nie wyśrodkowana w pionie. Dwa kafelki tekstowe w jednym
+     wierszu mają wtedy tytuły na tej samej wysokości, nawet gdy jeden tytuł łamie się na 2 linie. */
   .tile--text {
-    justify-content: center;
-    padding-bottom: 2.5rem;
+    justify-content: flex-start;
+    padding-block: 3rem;
   }
 
   .tile__before {
@@ -168,6 +169,13 @@ const hasVisual = Astro.slots.has('default');
         opacity 900ms var(--ease-out),
         transform 900ms var(--ease-out);
       transition-delay: calc(var(--i) * 90ms);
+    }
+
+    /* Telefon: jedna kolumna, każdy kafelek wjeżdża sam, więc kaskada tylko by opóźniała. */
+    @media (max-width: 734px) {
+      .tile {
+        transition-delay: 0ms;
+      }
     }
   }
 </style>
