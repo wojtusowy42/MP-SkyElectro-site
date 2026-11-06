@@ -302,7 +302,7 @@ const img = {
   }
 
   .stats__label {
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-body-on-dark);
     font-size: 1.0625rem;
     line-height: 1.4;
   }
@@ -322,6 +322,10 @@ const img = {
     line-height: 1.05;
     letter-spacing: -0.04em;
     white-space: nowrap;
+    /* Gradient maluje się tylko w pudełku elementu: dolny zapas, żeby ogonki liter
+       (g, y, j) nie były ucięte. Ujemny margines oddaje ten zapas układowi. */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
     background: linear-gradient(
       90deg,
       var(--accent-from, var(--color-text-on-dark)),
@@ -359,8 +363,8 @@ const img = {
   }
 
   .points__text {
-    margin: 0.5rem 0 0;
-    color: var(--color-text-2-on-dark);
+    margin: 0.625rem 0 0;
+    color: var(--color-text-body-on-dark);
     font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
     line-height: 1.5;
     text-wrap: pretty;

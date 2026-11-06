@@ -16,7 +16,10 @@
   --color-bg-dark: #000000;
   --color-surface-dark: #1c1c1e;
   --color-text-on-dark: #f6f5f8;
-  --color-text-2-on-dark: #a1a1a6;
+  --color-text-2-on-dark: #a1a1a6; /* podpisy, etykiety */
+  /* Tekst ciągły (opisy w kafelkach) na czarnym: #a1a1a6 przy 17-19 px zwykłej grubości
+     optycznie "znika" na #000, mimo kontrastu 7,9:1. Jaśniejszy: 12,6:1 na #000. */
+  --color-text-body-on-dark: #c7c7cc;
 
   /* ---------- Kolory informacyjne (jasne / ciemne tło) ---------- */
   --color-available: #1a7f37;

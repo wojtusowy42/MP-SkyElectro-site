@@ -60,7 +60,7 @@ const hasVisual = Astro.slots.has('default');
 <style>
   .tile {
     /* Odstęp od krawędzi karty; obraz znosi go ujemnym marginesem. */
-    --pad: clamp(1.75rem, 1rem + 2.4vw, 3rem);
+    --pad: clamp(1.75rem, 0.9rem + 2.8vw, 3.5rem);
 
     position: relative;
     display: flex;
@@ -92,7 +92,7 @@ const hasVisual = Astro.slots.has('default');
   }
 
   .tile__before {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
   }
 
   .tile__title {
@@ -105,9 +105,9 @@ const hasVisual = Astro.slots.has('default');
   }
 
   .tile__text {
-    max-width: 40ch;
-    margin-top: 0.625rem;
-    color: var(--color-text-2-on-dark);
+    max-width: 42ch;
+    margin-top: 0.75rem;
+    color: var(--color-text-body-on-dark);
     font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
     font-weight: 400;
     line-height: 1.5;
