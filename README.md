@@ -3,9 +3,9 @@
 Katalog produktów MP SkyElectro (elektronika i osprzęt do modeli szybowców, m.in. F1E).
 Bez płatności: przeglądanie, konfiguratory i zamówienie mailem.
 
-Stan: fundamenty (dane, języki, adresy, SEO, logika konfiguratorów) + pierwszy wygląd:
-góra strony głównej (pasek menu z logo + hero SkyTimer 1), na razie statyczna, bez klikania.
-Reszta stron to wciąż surowy HTML.
+Stan (branch `nowa-strona`): sam szkielet bez wyglądu. Są dane, języki, adresy, SEO, logika
+konfiguratorów i testy. Strony to surowy HTML bez stylów. Wygląd budujemy od nowa.
+Poprzednia wersja z wyglądem jest na branchu `main`.
 
 ## Uruchomienie
 
@@ -42,35 +42,24 @@ src/
     accessories.ts        Akcesoria / części zamienne
     catalog.ts            Kolejność pozycji w menu
     validate.ts           Sprawdzanie danych (uruchamiane w testach przy buildzie)
+    skytimer-1-spec.ts    Parametry techniczne SkyTimer 1
 
   i18n/                 TEKSTY i języki
     locales.ts            Lista włączonych języków
     dictionaries/pl.ts    Wszystkie teksty po polsku (wzór dla innych języków)
     index.ts              Pobieranie tekstów w danym języku
     routes.ts             Budowanie adresów stron w każdym języku
+    rich-text.ts          Proste wyróżnienia w tekstach słownika
 
   lib/                  LOGIKA (bez wyglądu)
     price.ts              Która cena obowiązuje (promocje) i formatowanie kwot
     configurator.ts       Widoczne kroki, czyszczenie wyborów, MOQ, wycena
     navigation.ts         Nazwy w pasku menu (produkty "wkrótce" nie wchodzą do menu)
-
-  styles/
-    tokens.css            JEDYNE miejsce z kolorami, fontem, rozmiarami, czasami animacji
-    fonts.css             Font Inter (pliki w public/fonts/inter/, hostowane u nas, bez Google)
-    global.css            Reset i style bazowe
-
-  components/
-    SiteHeader.astro      Pasek menu: logo + nazwy (na razie bez linków)
-    ProductHero.astro     Duży ekran produktu na czarnym tle (nazwa, zdanie, przyciski, render)
-
-  assets/
-    brand/logo.svg        Logo jako wektor (kolor bierze z CSS, więc działa na jasnym i ciemnym)
-    renders/              Rendery pod web, jeden folder na produkt (skytimer-1/hero.png).
-                          Astro robi z nich AVIF/WebP w kilku rozmiarach przy buildzie.
+    skytimer-timing.ts    Czasy SkyTimera z ustawień przełączników DIP
+    duration.ts           Formatowanie czasu trwania
 
   layouts/
     BaseLayout.astro      <head> każdej strony: title, opis, canonical, hreflang, Open Graph
-    PageLayout.astro      BaseLayout + pasek menu + <main> (na razie tylko strona główna)
 
   pages/                PLIKI = ADRESY STRON
     [lang]/index.astro    /pl/          strona główna
@@ -144,8 +133,9 @@ Jeśli w nowym słowniku zabraknie choćby jednej etykiety, build się nie uda i
 
 Dochodzi dopiero wtedy, gdy jest potrzebne, żeby nie trzymać nieużywanych zależności:
 
-- **wygląd reszty stron**: kafelki produktów, strony produktów, stopka,
-- **konfiguratory w przeglądarce** (Svelte): logika już jest w `src/lib/configurator.ts`,
+- **wygląd**: style, fonty, komponenty, menu, stopka (stara wersja na `main`),
+- **konfiguratory w przeglądarce** (Svelte już podpięty w `astro.config.mjs`):
+  logika jest w `src/lib/configurator.ts`,
 - **animacje** (GSAP): przy pierwszej stronie "dowiedz się więcej",
 - **formularz zamówienia** (Cloudflare Worker): wymaga domeny i adresu e-mail,
 - **dane strukturalne Product dla Google i og:image**: wymagają renderów,
@@ -155,10 +145,7 @@ Pełne uzasadnienie wyborów technicznych: dokument „decyzje techniczne” w p
 
 ## Pliki 3D i rendery
 
-`.blend`, `.f3d`, `.exr` i surowe rendery **nie trafiają do gita** (blokuje je `.gitignore`), bo są za duże.
-Do repo trafiają tylko eksporty pod web (`src/assets/`). Oryginały (np. logo PNG) leżą w `zrodla/`,
-który też jest poza gitem.
-
-Render do hero: czarne tło (#000) w górnej części kadru, produkt na środku, proporcje ok. 2.8:1
-(np. 2880×1030 px). Jeśli zmieni się kadr, popraw `subjectTop` w `src/pages/[lang]/index.astro`
-(w którym miejscu wysokości kadru zaczyna się produkt, 0-1).
+Wszystkie surowe materiały leżą w `Raw Assets/` (poza gitem, za duże). Opis układu folderów:
+`Raw Assets/README.md`. Do repo trafiają tylko eksporty pod web (`src/assets/`, `public/`).
+Eksporty używane przez starą stronę (przycięte rendery, wideo, sekwencja obrotu, logo SVG)
+są w `Raw Assets/05 Eksporty web (stara strona)/`.
