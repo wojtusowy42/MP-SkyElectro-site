@@ -1,11 +1,13 @@
 ---
 /**
  * Jeden kafelek w siatce wyróżników (wzór: kafelki "Poznaj..." na apple.com).
- * Czarna karta na ciemnoszarym tle sekcji.
+ * Biała karta na jasnym tle sekcji (#F6F5F8), ciemny tekst. Kolory z tokenów jasnych,
+ * do nadpisania zmiennymi --tile-bg, --tile-fg, --tile-fg-2 (np. dla ciemnej sekcji).
  *
- * Czytelność przede wszystkim: tytuł (biały, pogrubiony) i tekst (zwykły, szary) w osobnych
- * liniach, wyrównane do lewej, jedna stała skala w całej sekcji:
- *   tytuł 22-28 px, tekst 17-19 px, interlinia 1,5, najwyżej ok. 40 znaków w linii.
+ * Czytelność przede wszystkim: tytuł (pogrubiony) i tekst (zwykły) w osobnych liniach,
+ * wyrównane do lewej, oba w kolorze tekstu (hierarchię robi rozmiar i grubość, nie szarość),
+ * jedna stała skala w całej sekcji: tytuł 24-32 px, tekst 17-21 px, interlinia 1,45,
+ * najwyżej ok. 42 znaki w linii.
  *
  * span: szerokość w siatce 6-kolumnowej (desktop): full = cały wiersz, half = 3/6.
  * Na telefonie każdy kafelek ma pełną szerokość.
@@ -15,7 +17,7 @@
  *   split = tekst po lewej, obraz po prawej (desktop; na telefonie jak stack).
  *
  * Slot domyślny (obraz) sięga do krawędzi karty, jak zdjęcia u Apple; rendery mają
- * czarne tło (#000) jak karta, więc krawędzi obrazu nie widać.
+ * białe tło jak karta, więc krawędzi obrazu nie widać.
  * Slot "before": element NAD tytułem (np. duża liczba). Slot "after": pod tekstem (np. lista).
  */
 interface Props {
@@ -69,8 +71,8 @@ const hasVisual = Astro.slots.has('default');
     min-height: 0;
     padding: var(--pad) var(--pad) 0;
     border-radius: 1.75rem;
-    background: var(--color-bg-dark);
-    color: var(--color-text-on-dark);
+    background: var(--tile-bg, var(--color-surface));
+    color: var(--tile-fg, var(--color-text));
     isolation: isolate;
   }
 
@@ -97,9 +99,9 @@ const hasVisual = Astro.slots.has('default');
 
   .tile__title {
     max-width: 24ch;
-    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-size: clamp(1.5rem, 1.15rem + 1.1vw, 2rem);
     font-weight: 600;
-    line-height: 1.15;
+    line-height: 1.12;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
@@ -107,10 +109,10 @@ const hasVisual = Astro.slots.has('default');
   .tile__text {
     max-width: 42ch;
     margin-top: 0.75rem;
-    color: var(--color-text-body-on-dark);
-    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+    color: var(--tile-fg-2, var(--color-text));
+    font-size: clamp(1.0625rem, 0.95rem + 0.45vw, 1.3125rem);
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.45;
     letter-spacing: -0.01em;
     text-wrap: pretty;
   }

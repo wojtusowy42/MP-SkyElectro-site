@@ -2,8 +2,10 @@
 /**
  * "Poznaj SkyTimer 1": siatka wyróżników (wzór: kafelki "Poznaj..." na apple.com).
  *
- * Druga "scena" strony: ciemnoszare tło na całą szerokość (--color-surface-dark),
- * na nim czarne kafelki. Pierwsza scena (animacja) zostaje czarna.
+ * Druga "scena" strony: JASNA (decyzja 2026-11-06, czytelność): tło #F6F5F8 na całą szerokość,
+ * białe kafelki, ciemny tekst, jak na stronach Apple z dużą ilością treści. Animacja przed
+ * i "Przyjrzyj się bliżej" po zostają czarne (sceny pokazowe). data-theme="light" przełącza
+ * pasek produktu na jasny (LocalNav).
  *
  * Układ (desktop, siatka 6 kolumn), każdy kafelek z innym rodzajem obrazu:
  *   1. przełączniki: makro + 3 liczby                         pełna szerokość
@@ -14,11 +16,11 @@
  * Telefon: jedna kolumna. (Ceny i "Zamów": pasek produktu u góry.)
  *
  * Tekst kafelka: tytuł + najwyżej dwa krótkie zdania (HighlightTile).
- * Rendery: ciemne studio ze sceny animacji (Blender, F1E_SkyTimer_v0.1.blend, scena
- * SkyTimer_Anim_Zlozenie), oryginały w Raw Assets/Blender Renders/SkyTimer strona produktu/:
- *   01 przełączniki-makro (kamera Kadr_01_dip_makro),
- *   05 zlacze-front (kamera od frontu, 20° nad płytką, 135 mm; przycięte 1440 × 655),
- *   06 gora-wymiary (kamera ortograficzna z góry, ortho_scale 4.4, 1600 × 1200).
+ * Rendery: jasne studio (Blender, F1E_SkyTimer_v0.1.blend, scena SkyTimer_Studio, przezroczyste
+ * tło nałożone na biel karty), oryginały w Raw Assets/Blender Renders/SkyTimer strona produktu/:
+ *   07 przelaczniki-makro-jasne (ujęcie kamery Kadr_01_dip_makro, lampa od spodu, bez podłogi),
+ *   08 zlacze-front-jasne (od frontu, 20° nad płytką, 135 mm, z miękkim cieniem; przycięte),
+ *   09 gora-wymiary-jasne (kamera ortograficzna z góry, ortho_scale 4.4, 1600 × 1200, bez cienia).
  * Teksty: słownik (products.skytimer-1.story.highlights), wymiary i masa: dane produktu.
  */
 import { Picture } from 'astro:assets';
@@ -28,9 +30,9 @@ import HighlightTile from '../HighlightTile.astro';
 import type { Locale } from '../../../i18n/locales.ts';
 import { format, getDictionary } from '../../../i18n/index.ts';
 import { getProduct } from '../../../data/products/index.ts';
-import dipImage from '../../../assets/renders/skytimer-1/poznaj/przelaczniki-makro.png';
-import connectorImage from '../../../assets/renders/skytimer-1/poznaj/zlacze-front.png';
-import topImage from '../../../assets/renders/skytimer-1/poznaj/gora-wymiary.png';
+import dipImage from '../../../assets/renders/skytimer-1/poznaj/przelaczniki-makro-jasne.png';
+import connectorImage from '../../../assets/renders/skytimer-1/poznaj/zlacze-front-jasne.png';
+import topImage from '../../../assets/renders/skytimer-1/poznaj/gora-wymiary-jasne.png';
 
 interface Props {
   locale: Locale;
@@ -43,8 +45,6 @@ const h = dict.products[id].story.highlights;
 const product = getProduct(id);
 if (!product) throw new Error('Brak produktu skytimer-1 w danych');
 if (!product.physical) throw new Error('Brak wymiarów i masy (physical) w danych skytimer-1');
-
-const [c1, c2] = product.colors ?? [undefined, undefined];
 
 const { sizeMm, weightG, kitWeightG } = product.physical;
 const [short, long] = sizeMm;
@@ -69,11 +69,7 @@ const img = {
 } as const satisfies Partial<ComponentProps<typeof Picture>>;
 ---
 
-<section
-  class="highlights"
-  aria-labelledby="highlights-title"
-  style={c1 && c2 ? `--accent-from: ${c1}; --accent-to: ${c2}` : undefined}
->
+<section class="highlights" aria-labelledby="highlights-title" data-theme="light">
   <div class="highlights__inner">
     <h2 class="highlights__title" id="highlights-title" data-reveal>
       {h.heading}
@@ -203,10 +199,10 @@ const img = {
 </section>
 
 <style>
-  /* Druga scena: ciemnoszare tło na całą szerokość, czarne kafelki (jak u Apple). */
+  /* Druga scena: jasne tło na całą szerokość, białe kafelki (jak u Apple). */
   .highlights {
-    background: var(--color-surface-dark);
-    color: var(--color-text-on-dark);
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   .highlights__inner {
@@ -217,10 +213,10 @@ const img = {
 
   .highlights__title {
     margin-bottom: clamp(2rem, 4vw, 3.5rem);
-    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.5rem);
+    font-size: clamp(2.5rem, 1.6rem + 3vw, 4rem);
     font-weight: 600;
-    line-height: 1.07;
-    letter-spacing: -0.03em;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
   }
 
   .highlights__grid {
@@ -302,7 +298,7 @@ const img = {
   }
 
   .stats__label {
-    color: var(--color-text-body-on-dark);
+    color: var(--color-text-2);
     font-size: 1.0625rem;
     line-height: 1.4;
   }
@@ -328,8 +324,8 @@ const img = {
     margin-bottom: -0.14em;
     background: linear-gradient(
       90deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
+      var(--accent-strong-from, var(--color-text)),
+      var(--accent-strong-to, var(--color-text))
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -352,11 +348,11 @@ const img = {
 
   .points__item {
     padding-top: 1.25rem;
-    border-top: 1px solid rgb(255 255 255 / 0.16);
+    border-top: 1px solid var(--color-line);
   }
 
   .points__term {
-    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-size: clamp(1.5rem, 1.15rem + 1.1vw, 2rem);
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.02em;
@@ -364,9 +360,8 @@ const img = {
 
   .points__text {
     margin: 0.625rem 0 0;
-    color: var(--color-text-body-on-dark);
-    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-    line-height: 1.5;
+    font-size: clamp(1.0625rem, 0.95rem + 0.45vw, 1.3125rem);
+    line-height: 1.45;
     text-wrap: pretty;
   }
 
@@ -391,8 +386,8 @@ const img = {
     border-radius: 999px;
     background: linear-gradient(
       90deg,
-      var(--accent-from, var(--color-text-on-dark)),
-      var(--accent-to, var(--color-text-on-dark))
+      var(--accent-strong-from, var(--color-text)),
+      var(--accent-strong-to, var(--color-text))
     );
   }
 
@@ -409,7 +404,7 @@ const img = {
     position: relative;
     width: min(100%, 36rem);
     margin: 0 auto;
-    color: var(--color-text-2-on-dark);
+    color: var(--color-text-2);
   }
 
   .dims :global(.dims__img) {
