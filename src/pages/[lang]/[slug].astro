@@ -13,12 +13,6 @@ import PageLayout from '../../layouts/PageLayout.astro';
 import ProductStory from '../../components/product/ProductStory.astro';
 import SkyTimerHighlights from '../../components/product/skytimer/Highlights.astro';
 import SkyTimerCloserLook from '../../components/product/skytimer/CloserLook.astro';
-import SkyTimerHowItWorks from '../../components/product/skytimer/HowItWorks.astro';
-import SkyTimerCompare from '../../components/product/skytimer/Compare.astro';
-import SkyTimerSafety from '../../components/product/skytimer/Safety.astro';
-import SkyTimerSettings from '../../components/product/skytimer/Settings.astro';
-import SkyTimerDetails from '../../components/product/skytimer/Details.astro';
-import SkyTimerSpecs from '../../components/product/skytimer/Specs.astro';
 import skytimerIntroEnd from '../../assets/renders/skytimer-1/story/zlozenie-koniec.png';
 import { LOCALES } from '../../i18n/locales.ts';
 import { format, getDictionary, productTexts, serviceName } from '../../i18n/index.ts';
@@ -107,17 +101,9 @@ function priceText(price: Price): string {
     >
       {product?.id === 'skytimer-1' && (
         <>
-          {/* Kolejność scen (na przemian czarna / szara): animacja → Poznaj → Przyjrzyj →
-              Jak to działa → Bezpieczeństwo → Konfiguracja → Detale → Dane techniczne → Który.
-              "W zestawie" i "Współpracuje z" dojdą z renderami. */}
+          {/* Kolejność scen: animacja → Poznaj → Przyjrzyj się bliżej. */}
           <SkyTimerHighlights locale={locale} />
           <SkyTimerCloserLook locale={locale} />
-          <SkyTimerHowItWorks locale={locale} />
-          <SkyTimerSafety locale={locale} />
-          <SkyTimerSettings locale={locale} />
-          <SkyTimerDetails locale={locale} />
-          <SkyTimerSpecs locale={locale} />
-          <SkyTimerCompare locale={locale} />
         </>
       )}
     </ProductStory>

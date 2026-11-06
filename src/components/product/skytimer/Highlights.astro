@@ -8,7 +8,7 @@
  * Układ (desktop, siatka 6 kolumn):
  *   1. przełączniki: zdjęcie makro + 3 liczby               pełna szerokość
  *   2. złącze: duży render                                    pełna szerokość
- *   3. energia (duża liczba)  |  chip ATmega328P              1/3 + 2/3
+ *   3. energia (duża liczba)  |  odtwarzanie czasu (sygnały)  1/3 + 2/3
  *   4. zabezpieczenia         |  rozmiar                       1/2 + 1/2
  * Telefon: jedna kolumna. (Ceny i "Zamów": sekcja "Który SkyTimer" na końcu strony.)
  *
@@ -21,7 +21,6 @@ import { Picture } from 'astro:assets';
 import type { ImageOutputFormat } from 'astro';
 import type { ComponentProps } from 'astro/types';
 import HighlightTile from '../HighlightTile.astro';
-import ChipReveal from '../ChipReveal.astro';
 import type { Locale } from '../../../i18n/locales.ts';
 import { getDictionary } from '../../../i18n/index.ts';
 import { getProduct } from '../../../data/products/index.ts';
@@ -96,17 +95,20 @@ const img = {
         />
       </HighlightTile>
 
-      {/* 3. Energia | chip */}
+      {/* 3. Energia | odtwarzanie czasu dether */}
       <HighlightTile span="third" title={h.power.title} text={h.power.text} index={2}>
         <p slot="before" class="big-value">
           {h.power.value}
         </p>
       </HighlightTile>
 
-      <HighlightTile span="two-thirds" title={h.brain.title} text={h.brain.text} index={3}>
-        <div class="highlights__chip">
-          <ChipReveal name="ATmega" model="328P" c1={c1} c2={c2} />
-        </div>
+      <HighlightTile span="two-thirds" title={h.playback.title} text={h.playback.text} index={3}>
+        {/* Dwa długie i krótki sygnał = 2 min 15 s. Ozdoba: treść jest w tekście kafelka. */}
+        <p slot="before" class="signals" aria-hidden="true">
+          <span class="signals__long"></span>
+          <span class="signals__long"></span>
+          <span class="signals__short"></span>
+        </p>
       </HighlightTile>
 
       {/* 4. Zabezpieczenia | rozmiar */}
@@ -259,15 +261,37 @@ const img = {
     color: transparent;
   }
 
+  /* ---------- 3. Odtwarzanie czasu: sygnały jak w Morse'ie, w kolorach produktu ---------- */
+  .signals {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    /* Ta sama wysokość co liczba "250 mAh" obok, żeby tytuły w obu kartach stały w jednej linii. */
+    height: clamp(2.75rem, 2rem + 1.6vw, 3.5rem);
+  }
+
+  .signals span {
+    height: 0.875rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--accent-from, var(--color-text-on-dark)),
+      var(--accent-to, var(--color-text-on-dark))
+    );
+  }
+
+  .signals__long {
+    width: 4.5rem;
+  }
+
+  .signals__short {
+    width: 0.875rem;
+  }
+
   /* Wąska karta: tytuł mniejszy niż w kartach bez obrazu, żeby mieścił się w 2 liniach. */
   .highlights__grid :global(.tile--third .tile__title) {
     font-size: clamp(1.5rem, 1.3rem + 0.5vw, 1.75rem);
-  }
-
-  /* ---------- 3. Chip ---------- */
-  .highlights__chip {
-    width: min(17rem, 62%);
-    padding-block: 2.5rem 3rem;
   }
 
   @media (prefers-reduced-motion: no-preference) {

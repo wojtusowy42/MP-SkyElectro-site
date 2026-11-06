@@ -22,10 +22,6 @@ interface Props {
 const { title, intro, colors, localNav } = Astro.props;
 const style = [
   colors && `--accent-from: ${colors[0]}; --accent-to: ${colors[1]}`,
-  // Na jasnym tle jasny koniec gradientu (np. #FFB08A) ginie: w jasnych sekcjach gradient
-  // od koloru głębszego do jeszcze ciemniejszego (--accent-strong-*).
-  colors &&
-    `--accent-strong-from: ${colors[1]}; --accent-strong-to: color-mix(in oklab, ${colors[1]} 62%, #000)`,
   // Animacja otwierająca odejmuje wysokość paska produktu, żeby mieściła się na ekranie.
   localNav && '--story-local-nav: var(--local-nav-height)',
 ]
