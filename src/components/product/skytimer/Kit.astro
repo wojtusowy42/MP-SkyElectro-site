@@ -1,0 +1,149 @@
+---
+/**
+ * Rozdział "W zestawie" SkyTimer 1: duży render zestawu, lista elementów, trzy warianty płytki.
+ * Bez cen: ceny są tylko na stronie Kup.
+ * Rendery: Raw Assets/04 Rendery/SkyTimer 1/Learn more/ (01, 02), przycięte do produktu.
+ */
+import { Picture } from 'astro:assets';
+import StoryChapter from '../StoryChapter.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
+import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
+import zestaw from '../../../assets/renders/skytimer-1/story/zestaw.jpg';
+import warianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.kit;
+const pictureProps = {
+  widths: [800, 1200, 1600, 2000],
+  sizes: '(max-width: 734px) 100vw, 980px',
+  formats: ['avif', 'webp'],
+  quality: 80,
+  loading: 'lazy' as const,
+};
+---
+
+<StoryChapter id="zestaw" eyebrow={t.eyebrow} heading={t.heading} intro={t.intro}>
+  <div class="kit">
+    <Picture class="kit__img" src={zestaw} alt={t.alt} {...pictureProps} />
+
+    <h3 class="visually-hidden">{t.listLabel}</h3>
+    <ul class="kit__list" data-reveal>
+      {t.items.map((item) => (
+        <li>{format(item, { mah: SKYTIMER_1_SPEC.batteryMah })}</li>
+      ))}
+    </ul>
+
+    <div class="kit__head" data-reveal>
+      <h3 class="kit__heading">{t.variantsHeading}</h3>
+      <p class="kit__sub">{t.variantsIntro}</p>
+    </div>
+    <Picture class="kit__img" src={warianty} alt={t.variantsAlt} {...pictureProps} />
+    <ul class="kit__variants">
+      {Object.values(t.variants).map((v) => (
+        <li data-reveal>
+          <h4 class="kit__name">{v.name}</h4>
+          <p class="kit__text">{v.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</StoryChapter>
+
+<style>
+  .kit {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .kit :global(.kit__img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .kit__list {
+    columns: 2;
+    column-gap: clamp(1.5rem, 4vw, 3rem);
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding: 0;
+    color: var(--color-text-body-on-dark);
+    font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
+    list-style: none;
+  }
+
+  .kit__list li {
+    padding-block: 0.75rem;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+    break-inside: avoid;
+  }
+
+  .kit__head {
+    margin-top: clamp(5rem, 10vw, 8rem);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    text-align: center;
+  }
+
+  .kit__heading {
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .kit__sub {
+    margin-top: 0.75rem;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.3125rem);
+    font-weight: 600;
+  }
+
+  .kit__variants {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 3vw, 2.5rem);
+    margin: clamp(2rem, 4vw, 3rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .kit__name {
+    margin: 0;
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .kit__text {
+    margin-top: 0.5rem;
+    color: var(--color-text-body-on-dark);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 734px) {
+    .kit__list {
+      columns: 1;
+    }
+
+    .kit__variants {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .kit [data-reveal]:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .kit [data-reveal] {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+  }
+</style>

@@ -1,0 +1,49 @@
+/*
+ * Tokeny designu: jedyne miejsce z kolorami i fontem wspólnymi dla całej strony.
+ * Paleta: dokument "decyzje techniczne", sekcja 13 (monochrom, bez akcentu marki).
+ * Dopisujemy tylko to, czego coś na stronie faktycznie używa.
+ */
+:root {
+  /* Jasne sekcje */
+  --color-bg: #f6f5f8; /* główne tło strony */
+  --color-surface: #ffffff; /* karty; przycisk główny na czarnym po najechaniu */
+  --color-text: #1d1d1f;
+  --color-text-2: #6e6e73; /* podpisy, stara cena */
+  --color-line: #d2d2d7; /* linie, ramki niewybranych opcji */
+
+  /* Ciemne sekcje (hero, rendery) */
+  --color-bg-dark: #000000;
+  --color-surface-dark: #1c1c1e; /* pasek menu (półprzezroczysty) */
+  --color-text-on-dark: #f6f5f8;
+  --color-text-2-on-dark: #a1a1a6; /* podpisy, hasło pod nazwą w animacji */
+  --color-line-on-dark: #86868b; /* obwódka przycisku drugiego, 5.8:1 na czerni */
+  --color-text-body-on-dark: #c7c7cc; /* tekst ciągły w kafelkach: #a1a1a6 optycznie znika na czerni */
+
+  /* Wysokość górnego paska menu (SiteNav). Hero wsuwa się pod pasek, żeby przez
+     półprzezroczysty pasek było widać czerń hero, a nie jasne tło strony. */
+  --nav-h: 2.75rem; /* 44 px */
+  --local-nav-height: 3.25rem; /* pasek produktu na stronach "Dowiedz się więcej" */
+
+  /* Układ */
+  --content-max: 61.25rem; /* 980 px */
+  --content-wide: 75rem; /* 1200 px: strona Kup */
+  --gutter: clamp(1rem, 4vw, 1.375rem);
+  --radius-pill: 980px;
+
+  /* Ruch: wejścia (napis po animacji złożenia). */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --duration-press: 160ms;
+  --duration-ui: 240ms;
+
+  /* Inter (fonts.css); systemowe tylko jako zapas, zanim Inter się wczyta. */
+  --font-sans:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+}
+
+/* Próg paska menu jak na apple.com: poniżej 834 px sam logotyp i ikona menu. */
+@media (max-width: 833px) {
+  :root {
+    --nav-h: 3rem; /* 48 px */
+  }
+}

@@ -3,8 +3,10 @@
 Katalog produktów MP SkyElectro (elektronika i osprzęt do modeli szybowców, m.in. F1E).
 Bez płatności: przeglądanie, konfiguratory i zamówienie mailem.
 
-Stan (branch `nowa-strona`): sam szkielet bez wyglądu. Są dane, języki, adresy, SEO, logika
-konfiguratorów i testy. Strony to surowy HTML bez stylów. Wygląd budujemy od nowa.
+Stan (branch `nowa-strona`): szkielet (dane, języki, adresy, SEO, logika konfiguratorów, testy),
+hero SkyTimer 1 na stronie głównej, pełna strona SkyTimer 1 (`/pl/skytimer-1/`) i strona Kup
+z konfiguratorem i cenami (`/pl/<produkt>/kup/`). Ceny produktów są tylko na stronach Kup.
+Reszta stron to na razie surowy HTML.
 Poprzednia wersja z wyglądem jest na branchu `main`.
 
 ## Uruchomienie
@@ -61,9 +63,16 @@ src/
   layouts/
     BaseLayout.astro      <head> każdej strony: title, opis, canonical, hreflang, Open Graph
 
+  styles/               global.css (reset), tokens.css (kolory, font), fonts.css (Inter)
+  components/home/      SkyTimerHero.astro: hero strony głównej
+  components/product/   Strona "Dowiedz się więcej": rozdziały, galeria, obrót 360°, skytimer/ = sekcje
+  components/configurator/  Konfigurator (Svelte) i galeria strony Kup
+  assets/renders/       Eksporty renderów pod web (Astro robi z nich AVIF/WebP)
+
   pages/                PLIKI = ADRESY STRON
     [lang]/index.astro    /pl/          strona główna
-    [lang]/[slug].astro   /pl/<slug>/   produkty, akcesoria, usługi, kontakt
+    [lang]/[slug].astro   /pl/<slug>/   produkty ("Dowiedz się więcej"), akcesoria, usługi, kontakt
+    [lang]/[slug]/[configurator].astro  /pl/<produkt>/kup/  konfigurator, ceny, zamówienie mailem
     robots.txt.ts         /robots.txt
 ```
 
@@ -133,7 +142,7 @@ Jeśli w nowym słowniku zabraknie choćby jednej etykiety, build się nie uda i
 
 Dochodzi dopiero wtedy, gdy jest potrzebne, żeby nie trzymać nieużywanych zależności:
 
-- **wygląd**: style, fonty, komponenty, menu, stopka (stara wersja na `main`),
+- **wygląd** poza hero: menu, stopka, strony produktów (stara wersja na `main`),
 - **konfiguratory w przeglądarce** (Svelte już podpięty w `astro.config.mjs`):
   logika jest w `src/lib/configurator.ts`,
 - **animacje** (GSAP): przy pierwszej stronie "dowiedz się więcej",
@@ -147,5 +156,10 @@ Pełne uzasadnienie wyborów technicznych: dokument „decyzje techniczne” w p
 
 Wszystkie surowe materiały leżą w `Raw Assets/` (poza gitem, za duże). Opis układu folderów:
 `Raw Assets/README.md`. Do repo trafiają tylko eksporty pod web (`src/assets/`, `public/`).
+Baner hero: `Raw Assets/04 Rendery/SkyTimer 1/Hero/`. Render płytki na przezroczystym tle
+(`SkyTimer 1 hero D3.png`, scena `SkyTimer_Hero` w `F1E_SkyTimer_v0.1.blend`, ustawienia w tekście
+`kadr_hero.py` w tym pliku) skleja z poświatą skrypt `sklej_baner.py` (Python + numpy + pillow)
+w `SkyTimer 1 hero baner.png`. Na stronę idzie ten baner jako `src/assets/renders/skytimer-1/hero.jpg`.
+
 Eksporty używane przez starą stronę (przycięte rendery, wideo, sekwencja obrotu, logo SVG)
 są w `Raw Assets/05 Eksporty web (stara strona)/`.

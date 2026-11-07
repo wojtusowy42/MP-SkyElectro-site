@@ -3,14 +3,29 @@
  * Wszystkie podstrony w danym języku: /pl/<slug>/
  * (produkty, akcesoria, usługi, kontakt). Adresy biorą się ze słownika języka.
  *
- * TYMCZASOWO: surowy podgląd danych (kroki konfiguratora, ceny, MOQ), bez wyglądu.
- * Docelowo każdy rodzaj strony dostanie własny komponent.
+ * SkyTimer 1 ma pełną stronę "Dowiedz się więcej" (ProductStory): ciemną, w rozdziałach.
+ * Ceny i konfigurator produktu są WYŁĄCZNIE na stronie Kup ([configurator].astro).
+ * Reszta TYMCZASOWO: surowy HTML bez wyglądu.
  */
 import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import ProductStory from '../../components/product/ProductStory.astro';
+import StoryCta from '../../components/product/StoryCta.astro';
+import SkyTimerHighlights from '../../components/product/skytimer/Highlights.astro';
+import SkyTimerCloserLook from '../../components/product/skytimer/CloserLook.astro';
+import SkyTimerTiming from '../../components/product/skytimer/Timing.astro';
+import SkyTimerSafety from '../../components/product/skytimer/Safety.astro';
+import SkyTimerPower from '../../components/product/skytimer/Power.astro';
+import SkyTimerConnections from '../../components/product/skytimer/Connections.astro';
+import SkyTimerModules from '../../components/product/skytimer/Modules.astro';
+import SkyTimerKit from '../../components/product/skytimer/Kit.astro';
+import SkyTimerSpecs from '../../components/product/skytimer/Specs.astro';
+import skytimerIntroEnd from '../../assets/renders/skytimer-1/story/zlozenie-koniec.png';
+import skytimerCtaImage from '../../assets/renders/skytimer-1/story/plytka-zlacze.jpg';
 import { LOCALES } from '../../i18n/locales.ts';
 import { format, getDictionary, productTexts, serviceName } from '../../i18n/index.ts';
-import { alternatesFor, homePath, slugFor } from '../../i18n/routes.ts';
+import { alternatesFor, configuratorPath, homePath, pathFor, slugFor } from '../../i18n/routes.ts';
 import { CATALOG } from '../../data/catalog.ts';
 import { getProduct } from '../../data/products/index.ts';
 import { SERVICES } from '../../data/services.ts';
@@ -34,6 +49,9 @@ const today = new Date(); // dzień buildu
 const product = entry.kind === 'product' ? getProduct(entry.id) : undefined;
 const texts = entry.kind === 'product' ? productTexts(dict, entry.id) : undefined;
 const title = texts ? texts.name : entry.kind === 'page' ? dict.pages[entry.id].name : '';
+const isSkyTimer = product?.id === 'skytimer-1';
+const story = dict.products['skytimer-1'].story;
+const buyPath = configuratorPath(locale, 'skytimer-1');
 
 /** Cena jako tekst: '300,00 zł (Cena regularna 350,00 zł; Najniższa cena z 30 dni ...)' */
 function priceText(price: Price): string {
@@ -53,84 +71,124 @@ function priceText(price: Price): string {
 }
 ---
 
-<BaseLayout
-  locale={locale}
-  title={title}
-  description={dict.site.description}
-  alternates={alternatesFor(entry)}
->
-  <p>
-    <a href={homePath(locale)}>{dict.pages.home.title}</a>
-  </p>
-  <h1>{title}</h1>
+{isSkyTimer && (
+  <BaseLayout
+    locale={locale}
+    title={title}
+    description={dict.site.description}
+    alternates={alternatesFor(entry)}
+    theme="dark"
+  >
+    <SiteNav locale={locale} sticky={false} />
+    <main>
+      <ProductStory
+        title={title}
+        localNav={{
+          label: story.localNavLabel,
+          links: [
+            { label: story.localLinks.design, href: '#konstrukcja' },
+            { label: story.localLinks.timing, href: '#czasy' },
+            { label: story.localLinks.safety, href: '#bezpieczenstwo' },
+            { label: story.localLinks.kit, href: '#zestaw' },
+            { label: story.localLinks.specs, href: '#dane' },
+          ],
+          orderHref: buyPath,
+          orderLabel: dict.common.buy,
+        }}
+        intro={{
+          video: `${import.meta.env.BASE_URL}video/skytimer-1/zlozenie`,
+          poster: skytimerIntroEnd,
+          tagline: story.tagline,
+          description: story.introDescription,
+        }}
+      >
+        <SkyTimerHighlights locale={locale} />
+        <SkyTimerCloserLook locale={locale} />
+        <SkyTimerTiming locale={locale} />
+        <SkyTimerSafety locale={locale} />
+        <SkyTimerPower locale={locale} />
+        <SkyTimerConnections locale={locale} />
+        <SkyTimerModules locale={locale} />
+        <SkyTimerKit locale={locale} />
+        <SkyTimerSpecs locale={locale} />
+        <StoryCta
+          heading={story.cta.heading}
+          text={story.cta.text}
+          image={skytimerCtaImage}
+          alt={story.cta.alt}
+          primaryLabel={dict.common.buy}
+          primaryHref={buyPath}
+          secondaryLabel={dict.pages.contact.name}
+          secondaryHref={pathFor(locale, { kind: 'page', id: 'contact' })}
+        />
+      </ProductStory>
+    </main>
+  </BaseLayout>
+)}
 
-  {/* ---------- Produkt ---------- */}
-  {product?.status === 'coming-soon' && <p>{dict.common.comingSoon}</p>}
+{!isSkyTimer && (
+  <BaseLayout
+    locale={locale}
+    title={title}
+    description={dict.site.description}
+    alternates={alternatesFor(entry)}
+  >
+    <p>
+      <a href={homePath(locale)}>{dict.pages.home.title}</a>
+    </p>
+    <h1>{title}</h1>
 
-  {product?.configurator && texts && (
-    <>
-      {product.configurator.basePrice && (
-        <p>
-          {priceText(product.configurator.basePrice)} {dict.common.perPiece}
-        </p>
-      )}
-      <ol>
-        {product.configurator.steps.map((step) => (
-          <li>
-            {texts.steps?.[step.id]?.label}
-            <ul>
-              {step.options.map((option) => (
-                <li>
-                  {texts.steps?.[step.id]?.options[option.id]}
-                  {option.price && `: ${priceText(option.price)}`}
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ol>
-      {product.configurator.quantity.min > 1 && (
-        <p>{format(dict.common.minOrder, { n: product.configurator.quantity.min })}</p>
-      )}
-      {texts.mountingNote && <p>{texts.mountingNote}</p>}
-    </>
-  )}
+    {/* ---------- Produkt ---------- */}
+    {product?.status === 'coming-soon' && <p>{dict.common.comingSoon}</p>}
 
-  {/* ---------- Akcesoria ---------- */}
-  {entry.kind === 'page' &&
-    entry.id === 'accessories' &&
-    (ACCESSORIES.length === 0 ? (
-      <p>{dict.pages.accessories.empty}</p>
-    ) : (
+    {product?.configurator && (
+      <p>
+        <a href={configuratorPath(locale, product.id)}>{dict.common.buy}</a>
+      </p>
+    )}
+
+    {/* ---------- Akcesoria ---------- */}
+    {entry.kind === 'page' &&
+      entry.id === 'accessories' &&
+      (ACCESSORIES.length === 0 ? (
+        <p>{dict.pages.accessories.empty}</p>
+      ) : (
+        <ul>
+          {ACCESSORIES.map((a) => (
+            <li>
+              {dict.accessories.items[a.id]}: {priceText(a.price)}
+            </li>
+          ))}
+        </ul>
+      ))}
+
+    {/* ---------- Usługi ---------- */}
+    {entry.kind === 'page' && entry.id === 'services' && (
       <ul>
-        {ACCESSORIES.map((a) => (
+        {SERVICES.map((s) => (
           <li>
-            {dict.accessories.items[a.id]}: {priceText(a.price)}
+            {serviceName(dict, s.id)}
+            {s.status === 'coming-soon' && <> ({dict.common.comingSoon})</>}
           </li>
         ))}
       </ul>
-    ))}
+    )}
 
-  {/* ---------- Usługi ---------- */}
-  {entry.kind === 'page' && entry.id === 'services' && (
-    <ul>
-      {SERVICES.map((s) => (
-        <li>
-          {serviceName(dict, s.id)}
-          {s.status === 'coming-soon' && <> ({dict.common.comingSoon})</>}
-        </li>
+    {/* ---------- Kontakt ---------- */}
+    {entry.kind === 'page' &&
+      entry.id === 'contact' &&
+      (SITE.orderEmail ? (
+        <p>
+          <a href={`mailto:${SITE.orderEmail}`}>{SITE.orderEmail}</a>
+        </p>
+      ) : (
+        <p>{dict.pages.contact.noEmail}</p>
       ))}
-    </ul>
-  )}
-
-  {/* ---------- Kontakt ---------- */}
-  {entry.kind === 'page' &&
-    entry.id === 'contact' &&
-    (SITE.orderEmail ? (
+    {entry.kind === 'page' && entry.id === 'contact' && (
       <p>
-        <a href={`mailto:${SITE.orderEmail}`}>{SITE.orderEmail}</a>
+        {dict.pages.contact.phone}:{' '}
+        <a href={`tel:${SITE.phone.replaceAll(' ', '')}`}>{SITE.phone}</a>
       </p>
-    ) : (
-      <p>{dict.pages.contact.noEmail}</p>
-    ))}
-</BaseLayout>
+    )}
+  </BaseLayout>
+)}

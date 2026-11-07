@@ -5,9 +5,14 @@ import svelte from '@astrojs/svelte';
 import { SITE } from './src/config/site.ts';
 import { LOCALES, DEFAULT_LOCALE, HTML_LANG } from './src/i18n/locales.ts';
 
+const BASE = process.env.BASE_PATH || '/';
+
 export default defineConfig({
   // Adres docelowy: potrzebny do linków kanonicznych i sitemapy.
   site: SITE.url,
+
+  // Podścieżka, pod którą jest strona (np. GitHub Pages: /MP-SkyElectro-site/). Pusta lokalnie.
+  base: BASE,
 
   // Każdy adres kończy się ukośnikiem: /pl/stateczniki/ (jedna wersja adresu = lepsze SEO).
   trailingSlash: 'always',
@@ -15,7 +20,7 @@ export default defineConfig({
   // Strona główna "/" przekierowuje na język domyślny.
   // Decyzja otwarta (może być strona wyboru języka), zmiana tylko tutaj.
   redirects: {
-    '/': `/${DEFAULT_LOCALE}/`,
+    '/': `${BASE.replace(/\/$/, '')}/${DEFAULT_LOCALE}/`,
   },
 
   integrations: [

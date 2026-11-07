@@ -7,7 +7,7 @@ import { LOCALES, type Locale } from './locales.ts';
 import { getDictionary, productTexts } from './index.ts';
 
 export function homePath(locale: Locale): string {
-  return `/${locale}/`;
+  return `${import.meta.env.BASE_URL}${locale}/`;
 }
 
 /** Slug pozycji katalogu w danym języku. */
@@ -18,7 +18,7 @@ export function slugFor(locale: Locale, entry: CatalogEntry): string {
 
 /** /pl/stateczniki/ */
 export function pathFor(locale: Locale, entry: CatalogEntry): string {
-  return `/${locale}/${slugFor(locale, entry)}/`;
+  return `${import.meta.env.BASE_URL}${locale}/${slugFor(locale, entry)}/`;
 }
 
 /** Ta sama strona we wszystkich językach (do hreflang i przełącznika języka). */

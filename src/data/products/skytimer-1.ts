@@ -35,17 +35,23 @@ export const skytimer1: Product = {
         options: [{ id: 'v1' }, { id: 'v2' }, { id: 'v3' }],
       },
       {
-        // Tylko dla zestawu. Na razie znany jeden kolor (z renderu), reszta: todo.
+        // Tylko dla zestawu: kolor części drukowanych. Filamenty z "Specs.pdf"; PETG Matte Gray
+        // i Basic Gray to jedna pozycja (podobne, właściciel dopasowuje w produkcji).
+        // Próbki przybliżone: dobrane z nazw filamentów, nie z próbników.
         id: 'color',
         showIf: { stepId: 'type', optionIds: ['kit'] },
-        options: [{ id: 'red', swatch: '#d4141f' }],
+        options: [
+          { id: 'blue', swatch: '#a9c0d3' },
+          { id: 'white', swatch: '#f2f1ec' },
+          { id: 'gray', swatch: '#8d9093' },
+          { id: 'orange', swatch: '#f07d2c' },
+          { id: 'black', swatch: '#1f1f21' },
+        ],
       },
     ],
     quantity: { min: 1 },
   },
   todo: [
-    'Czym różnią się warianty płytki 1/2/3 i czy mają różne ceny',
-    'Lista kolorów (krok "Kolor" dla zestawu; na razie tylko czerwony z renderu) i czy kolor zmienia cenę',
     'Daty przeceny świątecznej (od/do)',
     'Dokładna masa zestawu (teraz szacunek 25 g, na stronie "około")',
   ],

@@ -1,0 +1,235 @@
+---
+/**
+ * Strona Kup produktu: /pl/<produkt>/kup/  (wzór: strona "Kup" na apple.com)
+ * JEDYNE miejsce z cenami i konfiguratorem produktu; "Dowiedz się więcej" ich nie pokazuje.
+ * Generowany dla każdego produktu, który ma konfigurator w danych (src/data/products/).
+ *
+ * Układ: nagłówek (nazwa, dostępność, cena "od"), pod spodem duża szara karta po lewej
+ * z galerią renderów (przyklejona przy przewijaniu) i kroki konfiguratora po prawej.
+ * Białe tło strony.
+ *
+ * Rendery: src/assets/renders/<produkt>/, lista w GALLERIES poniżej.
+ * Galeria jest ta sama dla każdego wyboru.
+ */
+import type { GetStaticPaths, ImageMetadata } from 'astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import Configurator from '../../../components/configurator/Configurator.svelte';
+import Gallery from '../../../components/configurator/Gallery.astro';
+import { LOCALES } from '../../../i18n/locales.ts';
+import { format, getDictionary, productTexts } from '../../../i18n/index.ts';
+import { configuratorAlternates } from '../../../i18n/routes.ts';
+import { PRODUCTS } from '../../../data/products/index.ts';
+import { SITE } from '../../../config/site.ts';
+import { currentPrice, formatPrice, toDateKey } from '../../../lib/price.ts';
+import stZestaw from '../../../assets/renders/skytimer-1/story/zestaw.jpg';
+import stWarianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
+import stPcb from '../../../assets/renders/skytimer-1/konfigurator/pcb.png';
+import stPcbTop from '../../../assets/renders/skytimer-1/konfigurator/pcb-top.png';
+import stPcbBack from '../../../assets/renders/skytimer-1/konfigurator/pcb-back.png';
+import stPcbDetail from '../../../assets/renders/skytimer-1/konfigurator/pcb-detail-dip.png';
+
+/**
+ * Zdjęcia w karcie, w kolejności. key = klucz opisu w słowniku (products.<id>.images).
+ * Produkt bez wpisu ma pustą kartę.
+ */
+const GALLERIES: Record<string, { key: string; src: ImageMetadata; dark?: boolean }[]> = {
+  'skytimer-1': [
+    { key: 'zestaw', src: stZestaw, dark: true },
+    { key: 'warianty', src: stWarianty, dark: true },
+    { key: 'pcb', src: stPcb },
+    { key: 'pcb-top', src: stPcbTop },
+    { key: 'pcb-back', src: stPcbBack },
+    { key: 'pcb-detail-dip', src: stPcbDetail },
+  ],
+};
+
+/**
+ * Parametry adresu wybierające opcję przy starcie (nazwa parametru → id kroku).
+ * Można linkować np. do /pl/skytimer-1/kup/?wersja=kit.
+ */
+const URL_PARAMS: Record<string, Record<string, string>> = {
+  'skytimer-1': { wersja: 'type' },
+};
+
+export const getStaticPaths = (() =>
+  LOCALES.flatMap((lang) => {
+    const dict = getDictionary(lang);
+    return PRODUCTS.filter((p) => p.configurator).map((product) => ({
+      params: {
+        lang,
+        slug: productTexts(dict, product.id).slug,
+        configurator: dict.pages.configurator.slug,
+      },
+      props: { locale: lang, product },
+    }));
+  })) satisfies GetStaticPaths;
+
+const { locale, product } = Astro.props;
+const dict = getDictionary(locale);
+const texts = productTexts(dict, product.id);
+const definition = product.configurator!;
+const labels = dict.pages.configurator;
+const today = new Date(); // dzień buildu
+
+const title = format(labels.title, { product: texts.name });
+const heading = format(labels.heading, { product: texts.name });
+
+// Cena "od": najtańsza znana opcja pierwszego kroku (+ cena bazowa).
+const base = definition.basePrice ? currentPrice(definition.basePrice, today) : 0;
+const firstStepPrices = (definition.steps[0]?.options ?? [])
+  .map((o) => (o.price ? currentPrice(o.price, today) : 0))
+  .filter((p): p is number => p !== null);
+const gallery = (GALLERIES[product.id] ?? []).map((img) => ({
+  src: img.src,
+  alt: texts.images?.[img.key] ?? texts.name,
+  ...(img.dark ? { dark: true } : {}),
+}));
+
+const fromPrice =
+  base !== null && firstStepPrices.length > 0 ? base + Math.min(...firstStepPrices) : null;
+---
+
+<BaseLayout
+  locale={locale}
+  title={title}
+  description={dict.site.description}
+  alternates={configuratorAlternates(product.id)}
+>
+  <SiteNav locale={locale} />
+  <main class="buy">
+    <header class="buy__head">
+      <h1 class="buy__title">{heading}</h1>
+      <p class="buy__meta">
+        {product.status === 'available' ? dict.common.availableNow : dict.common.comingSoon}
+      </p>
+      {fromPrice !== null && fromPrice > 0 && (
+        <p class="buy__meta">
+          {format(labels.priceFrom, { price: formatPrice(fromPrice, locale) })}
+        </p>
+      )}
+    </header>
+
+    <div class="buy__grid">
+      <div class="buy__media">
+        <div class="buy__card">
+          {gallery.length > 0 && (
+            <Gallery
+              images={gallery}
+              labels={{
+                prev: labels.galleryPrev,
+                next: labels.galleryNext,
+                dot: labels.galleryDot,
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      <div class="buy__steps">
+        <Configurator
+          client:load
+          definition={definition}
+          texts={{
+            slug: texts.slug,
+            name: texts.name,
+            ...(texts.steps ? { steps: texts.steps } : {}),
+          }}
+          locale={locale}
+          orderEmail={SITE.orderEmail}
+          hints={labels.optionHints[product.id] ?? {}}
+          today={toDateKey(today)}
+          urlParams={URL_PARAMS[product.id] ?? {}}
+          labels={{
+            summary: labels.summary,
+            summaryHint: labels.summaryHint,
+            quantity: labels.quantity,
+            decrease: labels.decrease,
+            increase: labels.increase,
+            total: labels.total,
+            chooseFirst: labels.chooseFirst,
+            selectedOption: labels.selectedOption,
+            perPiece: dict.common.perPiece,
+            priceOnRequest: dict.common.priceOnRequest,
+            lowestPrice30Days: dict.common.lowestPrice30Days,
+            minOrder: dict.common.minOrder,
+            orderButton: labels.orderButton,
+            orderNote: labels.orderNote,
+            orderSubject: labels.orderSubject,
+            orderIntro: labels.orderIntro,
+          }}
+        />
+        {texts.mountingNote && <p class="buy__note">{texts.mountingNote}</p>}
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  /* Na tej stronie tło jest białe, żeby szara karta (#F6F5F8) się odcinała, jak u Apple. */
+  :global(body) {
+    background: var(--color-surface);
+  }
+
+  .buy {
+    max-width: calc(var(--content-wide) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter) 8rem;
+  }
+
+  /* ---------- Nagłówek ---------- */
+  .buy__title {
+    font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.025em;
+  }
+
+  .buy__meta {
+    font-size: 1.1875rem;
+    line-height: 1.4;
+  }
+
+  .buy__title + .buy__meta {
+    margin-top: 1.5rem;
+  }
+
+  .buy__note {
+    margin-top: 2rem;
+    color: var(--color-text-2);
+    font-size: 0.875rem;
+  }
+
+  /* ---------- Karta + kroki ---------- */
+  .buy__grid {
+    display: grid;
+    gap: 3rem;
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .buy__card {
+    overflow: hidden;
+    border-radius: 1.75rem;
+    background: var(--color-bg);
+    aspect-ratio: 1 / 1;
+  }
+
+  @media (min-width: 900px) {
+    .buy__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+
+    /* Karta zostaje na ekranie, kiedy przewijasz kroki. */
+    .buy__media {
+      position: sticky;
+      top: 1.5rem;
+    }
+
+    .buy__card {
+      aspect-ratio: auto;
+      height: clamp(26rem, calc(100dvh - 3rem), 48rem);
+    }
+  }
+</style>
