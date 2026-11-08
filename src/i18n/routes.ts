@@ -41,3 +41,8 @@ export function configuratorAlternates(productId: string): Record<Locale, string
     string
   >;
 }
+
+/** Torba: /pl/torba/ */
+export function bagPath(locale: Locale): string {
+  return `${homePath(locale)}${getDictionary(locale).pages.bag.slug}/`;
+}

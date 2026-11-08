@@ -84,6 +84,12 @@ const rows = [
       </div>
     ))}
   </dl>
+  <p class="manual" data-reveal>
+    <a href={`${import.meta.env.BASE_URL}docs/skytimer-1-podrecznik.pdf`} download>
+      {t.manual}
+    </a>
+    <span>{format(t.manualMeta, { size: '2' })}</span>
+  </p>
 </StoryChapter>
 
 <style>
@@ -107,6 +113,23 @@ const rows = [
 
   dd {
     margin: 0;
+  }
+
+  .manual {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin: 2.5rem auto 0;
+    padding-inline: var(--gutter);
+  }
+
+  .manual a {
+    color: var(--color-text-on-dark);
+    font-weight: 600;
+    text-underline-offset: 0.2em;
+  }
+
+  .manual span {
+    margin-left: 0.5rem;
+    color: var(--color-text-2-on-dark);
   }
 
   @media (max-width: 734px) {

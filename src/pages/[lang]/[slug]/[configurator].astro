@@ -8,8 +8,9 @@
  * z galerią renderów (przyklejona przy przewijaniu) i kroki konfiguratora po prawej.
  * Białe tło strony.
  *
- * Rendery: src/assets/renders/<produkt>/, lista w GALLERIES poniżej.
- * Galeria jest ta sama dla każdego wyboru.
+ * Rendery: src/assets/renders/<produkt>/, lista w GALLERIES poniżej. Wszystkie na białym tle.
+ * Zdjęcia w wersjach (kup/<nazwa>-<id opcji>[-<id opcji>].jpg, np. wariant-v1-blue.jpg)
+ * przełączają się razem z wyborami w konfiguratorze.
  */
 import type { GetStaticPaths, ImageMetadata } from 'astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -20,29 +21,66 @@ import { LOCALES } from '../../../i18n/locales.ts';
 import { format, getDictionary, productTexts } from '../../../i18n/index.ts';
 import { configuratorAlternates } from '../../../i18n/routes.ts';
 import { PRODUCTS } from '../../../data/products/index.ts';
-import { SITE } from '../../../config/site.ts';
+import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
+import { bagPath } from '../../../i18n/routes.ts';
+import { Picture } from 'astro:assets';
 import { currentPrice, formatPrice, toDateKey } from '../../../lib/price.ts';
-import stZestaw from '../../../assets/renders/skytimer-1/story/zestaw.jpg';
-import stWarianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
 import stPcb from '../../../assets/renders/skytimer-1/konfigurator/pcb.png';
 import stPcbTop from '../../../assets/renders/skytimer-1/konfigurator/pcb-top.png';
 import stPcbBack from '../../../assets/renders/skytimer-1/konfigurator/pcb-back.png';
 import stPcbDetail from '../../../assets/renders/skytimer-1/konfigurator/pcb-detail-dip.png';
 
+/** Rendery w wersjach: ścieżka → zdjęcie. Nazwa pliku = klucz opisu + id opcji, które pokazuje. */
+const VERSIONS = import.meta.glob<ImageMetadata>('../../../assets/renders/*/kup/*.jpg', {
+  eager: true,
+  import: 'default',
+});
+
 /**
  * Zdjęcia w karcie, w kolejności. key = klucz opisu w słowniku (products.<id>.images).
+ * Zamiast src slajd może mieć versions: nazwy plików z kup/ (np. warianty-*, wariant-*);
+ * widać tę wersję, która najlepiej pasuje do wyborów. show = opcje, po których wybraniu
+ * galeria przewija do slajdu (kolor nie przewija: zostajesz na oglądanym zdjęciu).
  * Produkt bez wpisu ma pustą kartę.
  */
-const GALLERIES: Record<string, { key: string; src: ImageMetadata; dark?: boolean }[]> = {
+/**
+ * showAt: id kroku konfiguratora (albo 'summary'); galeria przewija do slajdu, gdy klient zjedzie
+ * do tego kroku. Dzięki temu po wyborze widać jego efekt, a następny slajd przychodzi z przewijaniem.
+ */
+type Slide = ({ key: string; src: ImageMetadata } | { versions: string[] }) & {
+  show?: string[];
+  showAt?: string;
+};
+const GALLERIES: Record<string, Slide[]> = {
   'skytimer-1': [
-    { key: 'zestaw', src: stZestaw, dark: true },
-    { key: 'warianty', src: stWarianty, dark: true },
-    { key: 'pcb', src: stPcb },
+    // na start sam timer (płytka); zestaw i warianty po wyborze przewijają się same
+    { key: 'pcb', src: stPcb, show: ['pcb'] },
+    // po wyborze śrub galeria zostaje na śrubkach; cały zestaw dopiero przy podsumowaniu
+    { versions: ['zestaw'], show: ['kit'], showAt: 'summary' },
+    // przed wyborem wariantu wszystkie trzy, po wyborze tylko wybrany
+    { versions: ['warianty', 'wariant'], show: ['v1', 'v2', 'v3'] },
+    // śrubki, gdy klient zjedzie do kroku "Śruby" (wybór koloru zostawia galerię na miejscu)
+    { versions: ['element-sruby'], showAt: 'screws' },
     { key: 'pcb-top', src: stPcbTop },
     { key: 'pcb-back', src: stPcbBack },
     { key: 'pcb-detail-dip', src: stPcbDetail },
   ],
 };
+
+/** Kafelki zestawu SkyTimer 1, w kolejności story.kit.items (Raw Assets: rendery_kup.py, k01-k11). */
+const KIT_TILES = [
+  'timer',
+  'akumulator',
+  'modul-zasilania',
+  'ladowarka',
+  'buzzer',
+  'led',
+  'mechanizm',
+  'przycisk',
+  'sruby',
+  'szablony',
+  'podrecznik',
+];
 
 /**
  * Parametry adresu wybierające opcję przy starcie (nazwa parametru → id kroku).
@@ -80,11 +118,112 @@ const base = definition.basePrice ? currentPrice(definition.basePrice, today) : 
 const firstStepPrices = (definition.steps[0]?.options ?? [])
   .map((o) => (o.price ? currentPrice(o.price, today) : 0))
   .filter((p): p is number => p !== null);
-const gallery = (GALLERIES[product.id] ?? []).map((img) => ({
-  src: img.src,
-  alt: texts.images?.[img.key] ?? texts.name,
-  ...(img.dark ? { dark: true } : {}),
-}));
+// Opcja → krok i pozycja (do opisów i kolejności wersji).
+const optionStep = new Map(
+  definition.steps.flatMap((step, si) =>
+    step.options.map((o, oi) => [o.id, { step: step.id, order: si * 100 + oi }] as const),
+  ),
+);
+/**
+ * Wersje zdjęcia z kup/: pliki <key>.jpg (jedna wersja, pasuje zawsze) i <key>-<opcja>[-<opcja>].jpg,
+ * po kolei: klucze, potem kolejność opcji w konfiguratorze. Plik z nieznaną opcją jest pomijany.
+ */
+function versionPictures(keys: string[], altFor: (key: string) => string) {
+  const pictures = keys.flatMap((key, ki) =>
+    Object.entries(VERSIONS).flatMap(([path, src]) => {
+      const name = path
+        .split('/')
+        .at(-1)!
+        .replace(/\.jpg$/, '');
+      if (!path.includes(`/${product.id}/kup/`)) return [];
+      if (name !== key && !name.startsWith(`${key}-`)) return [];
+      const options = name === key ? [] : name.slice(key.length + 1).split('-');
+      const steps = options.map((o) => optionStep.get(o));
+      if (steps.some((st) => !st)) return [];
+      const names = options.map((o, i) => texts.steps?.[steps[i]!.step]?.options[o] ?? o);
+      const alt = altFor(key);
+      return [
+        {
+          src,
+          alt: names.length > 0 && alt ? `${alt} (${names.join(', ')})` : alt,
+          match: options.map((o, i) => `${steps[i]!.step}=${o}`).join(' '),
+          // shortcut: do 3 opcji w nazwie (1000^3 < 1e6 * klucz), więcej = zmienić sortowanie
+          order: ki * 1e9 + steps.reduce((sum, st) => sum * 1000 + st!.order, 0),
+        },
+      ];
+    }),
+  );
+  return pictures.sort((a, b) => a.order - b.order).map(({ order: _, ...p }) => p);
+}
+
+const gallery = (GALLERIES[product.id] ?? []).map((slide) => {
+  const show = {
+    ...(slide.show ? { show: slide.show } : {}),
+    ...(slide.showAt ? { showAt: slide.showAt } : {}),
+  };
+  if ('src' in slide) {
+    return {
+      pictures: [{ src: slide.src, alt: texts.images?.[slide.key] ?? texts.name }],
+      ...show,
+    };
+  }
+  return {
+    pictures: versionPictures(slide.versions, (k) => texts.images?.[k] ?? texts.name),
+    ...show,
+  };
+});
+
+// "Co jest w zestawie": te same pozycje co na stronie produktu, zdjęcia kup/element-<nazwa>[-kolor].
+const kitTexts = product.id === 'skytimer-1' ? dict.products['skytimer-1'].story.kit : null;
+const optionName = (stepId: string, optionId: string) =>
+  texts.steps?.[stepId]?.options[optionId] ?? optionId;
+
+/**
+ * Podpis w wersjach: każde połączenie wyborów z podanych kroków (także niewybrane) dostaje swój tekst,
+ * a showVersions pokazuje ten pasujący. Pierwszy (bez wyborów) = podpis ogólny.
+ */
+function labelVersions(stepIds: string[], text: (names: Record<string, string>) => string) {
+  let combos: Record<string, string>[] = [{}];
+  for (const id of stepIds) {
+    const step = definition.steps.find((s) => s.id === id);
+    combos = combos.flatMap((c) => [
+      c,
+      ...(step?.options ?? []).map((o) => ({ ...c, [id]: o.id })),
+    ]);
+  }
+  return combos.map((c) => ({
+    match: Object.entries(c)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(' '),
+    text: text(Object.fromEntries(Object.entries(c).map(([k, v]) => [k, optionName(k, v)]))),
+  }));
+}
+
+/** Podpisy zależne od wyborów: timer (wariant, kolor) i śruby (wykończenie). Reszta stała. */
+const CHOSEN_LABELS: Record<string, (general: string) => { match: string; text: string }[]> = {
+  timer: (general) =>
+    labelVersions(['variant', 'color'], (n) =>
+      !n.variant && !n.color
+        ? general
+        : [labels.kitTimer, n.variant, n.color && format(labels.kitTimerColor, { color: n.color })]
+            .filter(Boolean)
+            .join(', '),
+    ),
+  sruby: (general) =>
+    labelVersions(['screws'], (n) =>
+      n.screws ? format(labels.kitScrews, { screws: n.screws.toLocaleLowerCase(locale) }) : general,
+    ),
+};
+
+const kitTiles = kitTexts
+  ? KIT_TILES.map((name, i) => {
+      const general = format(kitTexts.items[i]!, { mah: SKYTIMER_1_SPEC.batteryMah });
+      return {
+        labels: CHOSEN_LABELS[name]?.(general) ?? [{ match: '', text: general }],
+        pictures: versionPictures([`element-${name}`], () => ''), // podpis pod zdjęciem wystarcza
+      };
+    }).filter((t) => t.pictures.length > 0)
+  : [];
 
 const fromPrice =
   base !== null && firstStepPrices.length > 0 ? base + Math.min(...firstStepPrices) : null;
@@ -129,6 +268,8 @@ const fromPrice =
       <div class="buy__steps">
         <Configurator
           client:load
+          productId={product.id}
+          bagHref={bagPath(locale)}
           definition={definition}
           texts={{
             slug: texts.slug,
@@ -136,7 +277,6 @@ const fromPrice =
             ...(texts.steps ? { steps: texts.steps } : {}),
           }}
           locale={locale}
-          orderEmail={SITE.orderEmail}
           hints={labels.optionHints[product.id] ?? {}}
           today={toDateKey(today)}
           urlParams={URL_PARAMS[product.id] ?? {}}
@@ -153,20 +293,78 @@ const fromPrice =
             priceOnRequest: dict.common.priceOnRequest,
             lowestPrice30Days: dict.common.lowestPrice30Days,
             minOrder: dict.common.minOrder,
-            orderButton: labels.orderButton,
-            orderNote: labels.orderNote,
-            orderSubject: labels.orderSubject,
-            orderIntro: labels.orderIntro,
+            addToBag: labels.addToBag,
+            addedToBag: labels.addedToBag,
+            viewBag: labels.viewBag,
           }}
         />
         {texts.mountingNote && <p class="buy__note">{texts.mountingNote}</p>}
       </div>
     </div>
+
+    {kitTiles.length > 0 && (
+      <section class="kit" aria-labelledby="kit-heading">
+        <h2 class="kit__heading" id="kit-heading">
+          {labels.kitHeading}
+        </h2>
+        <p class="kit__intro">{labels.kitIntro}</p>
+        <ul class="kit__grid">
+          {kitTiles.map((tile) => (
+            <li class="kit__tile">
+              <div data-versions>
+                {tile.pictures.map((picture, n) => (
+                  <div class="kit__picture" data-match={picture.match} hidden={n > 0}>
+                    <Picture
+                      class="kit__img"
+                      src={picture.src}
+                      alt={picture.alt}
+                      widths={[300, 500, 800]}
+                      sizes="(max-width: 734px) 45vw, 280px"
+                      formats={['avif', 'webp']}
+                      quality={80}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p class="kit__name" data-versions>
+                {tile.labels.map((label, n) => (
+                  <span data-match={label.match} hidden={n > 0}>
+                    {label.text}
+                  </span>
+                ))}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="delivery" aria-labelledby="delivery-heading">
+      <h2 class="kit__heading" id="delivery-heading">{labels.delivery.heading}</h2>
+      <dl class="delivery__list">
+        {labels.delivery.items.map((item) => (
+          <div>
+            <dt>{item.title}</dt>
+            <dd>{item.text}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   </main>
+
+  <script>
+    import { showVersions } from '../../../lib/versions.ts';
+
+    // Wersje zdjęć (kolor, wariant) w galerii i kafelkach zestawu idą za wyborami w konfiguratorze.
+    window.addEventListener('configurator:change', (e) =>
+      showVersions((e as CustomEvent<Record<string, string>>).detail),
+    );
+  </script>
 </BaseLayout>
 
 <style>
-  /* Na tej stronie tło jest białe, żeby szara karta (#F6F5F8) się odcinała, jak u Apple. */
+  /* Białe tło strony i karty: rendery są na bieli, więc zdjęcia nie mają widocznych krawędzi. */
   :global(body) {
     background: var(--color-surface);
   }
@@ -194,6 +392,104 @@ const fromPrice =
     margin-top: 1.5rem;
   }
 
+  /* ---------- Co jest w zestawie ---------- */
+  .kit {
+    margin-top: clamp(6rem, 12vw, 10rem);
+    padding-top: clamp(3rem, 6vw, 5rem);
+    border-top: 1px solid var(--color-line);
+    text-align: center;
+  }
+
+  .kit__heading {
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .kit__intro {
+    max-width: 36rem;
+    margin: 0.75rem auto 0;
+    color: var(--color-text-2);
+    font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.25rem);
+    text-wrap: pretty;
+  }
+
+  .kit__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Biały kafelek z cienką ramką: rendery są na bieli, ramka oddziela pozycje. */
+  .kit__tile {
+    padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(0.75rem, 1.5vw, 1.25rem)
+      clamp(1.25rem, 2vw, 1.75rem);
+    border-radius: 1.25rem;
+    background: var(--color-surface);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+  }
+
+  .kit__picture[hidden],
+  .kit__name [hidden] {
+    display: none;
+  }
+
+  .kit :global(.kit__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: contain;
+  }
+
+  .kit__name {
+    margin-top: 0.75rem;
+    font-size: clamp(0.9375rem, 0.85rem + 0.3vw, 1.0625rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  @media (max-width: 734px) {
+    .kit__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ---------- Dostawa i zwroty ---------- */
+  .delivery {
+    margin-top: clamp(5rem, 10vw, 8rem);
+    padding-top: clamp(3rem, 6vw, 5rem);
+    border-top: 1px solid var(--color-line);
+    text-align: center;
+  }
+
+  .delivery__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 2rem clamp(1.5rem, 4vw, 3rem);
+    margin: clamp(2rem, 4vw, 3rem) 0 0;
+    text-align: left;
+  }
+
+  .delivery__list dt {
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .delivery__list dd {
+    margin: 0.5rem 0 0;
+    color: var(--color-text-2);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
   .buy__note {
     margin-top: 2rem;
     color: var(--color-text-2);
@@ -210,7 +506,7 @@ const fromPrice =
   .buy__card {
     overflow: hidden;
     border-radius: 1.75rem;
-    background: var(--color-bg);
+    background: var(--color-surface);
     aspect-ratio: 1 / 1;
   }
 

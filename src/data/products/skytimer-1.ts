@@ -48,6 +48,13 @@ export const skytimer1: Product = {
           { id: 'black', swatch: '#1f1f21' },
         ],
       },
+      {
+        // Tylko dla zestawu: komplet śrub (Specs.pdf). Czernione = śruby M2 czarne, wkręty 2,2x9,5 zawsze cynk.
+        // Bez dopłaty (w Specs brak ceny). Id inne niż kolory: nazwy plików zdjęć łączą id opcji.
+        id: 'screws',
+        showIf: { stepId: 'type', optionIds: ['kit'] },
+        options: [{ id: 'zinc' }, { id: 'blackened' }],
+      },
     ],
     quantity: { min: 1 },
   },

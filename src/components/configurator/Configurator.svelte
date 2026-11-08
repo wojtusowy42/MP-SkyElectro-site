@@ -23,6 +23,7 @@
     type Selection,
   } from '../../lib/configurator.ts';
   import { activePromo, currentPrice, formatPrice } from '../../lib/price.ts';
+  import { addLine, readBag, writeBag } from '../../lib/bag.ts';
 
   interface Labels {
     summary: string;
@@ -37,19 +38,20 @@
     priceOnRequest: string;
     lowestPrice30Days: string;
     minOrder: string;
-    orderButton: string;
-    orderNote: string;
-    orderSubject: string;
-    orderIntro: string;
+    addToBag: string;
+    addedToBag: string;
+    viewBag: string;
   }
 
   interface Props {
+    /** Id produktu (do torby). */
+    productId: string;
+    /** Adres strony torby. */
+    bagHref: string;
     definition: ConfiguratorDefinition;
     texts: ProductTexts;
     labels: Labels;
     locale: Locale;
-    /** Adres zamówień. null = bez przycisku zamówienia. */
-    orderEmail: string | null;
     /** Krótkie opisy pod nazwą opcji: krok → opcja. */
     hints?: Record<string, Record<string, string>>;
     /** Dzień buildu 'RRRR-MM-DD': ceny i promocje liczą się tak samo jak na reszcie strony. */
@@ -62,11 +64,12 @@
   }
 
   const {
+    productId,
+    bagHref,
     definition,
     texts,
     labels,
     locale,
-    orderEmail,
     hints = {},
     today,
     urlParams = {},
@@ -99,6 +102,10 @@
   let quantity = $state(definition.quantity.min);
 
   const clean = $derived(cleanSelection(definition, selection));
+  // Galeria (Gallery.astro) słucha wyborów: pokazuje zdjęcia w wybranym kolorze.
+  $effect(() => {
+    window.dispatchEvent(new CustomEvent('configurator:change', { detail: { ...clean } }));
+  });
   const steps = $derived(visibleSteps(definition, clean));
   const complete = $derived(isComplete(definition, clean));
   const result = $derived(quote(definition, clean, quantity, date));
@@ -145,20 +152,16 @@
     };
   }
 
-  /** Gotowa wiadomość z zamówieniem: wybory, ilość, kwota. Płatności nie ma, zamówienie idzie mailem. */
-  const orderHref = $derived.by(() => {
-    if (!orderEmail) return null;
-    const lines = [
-      labels.orderIntro,
-      '',
-      texts.name,
-      ...steps.map((s) => `${stepName(s.id)}: ${optionName(s.id, clean[s.id])}`),
-      `${labels.quantity}: ${quantity}`,
-      `${labels.total}: ${result.total === null ? labels.priceOnRequest : fmt(result.total)}`,
-    ];
-    const subject = fill(labels.orderSubject, { product: texts.name });
-    return `mailto:${orderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\r\n'))}`;
+  // "Dodano do torby" znika, gdy klient zmieni wybory albo ilość (to byłaby już inna pozycja).
+  let added = $state(false);
+  $effect(() => {
+    void [clean, quantity];
+    added = false;
   });
+  function addToBag() {
+    writeBag(addLine(readBag(), { productId, selection: { ...clean }, quantity }));
+    added = true;
+  }
 
   /** Najniższa cena z 30 dni (Omnibus) dla wybranych opcji w promocji. */
   const lowest30 = $derived.by(() => {
@@ -177,6 +180,7 @@
     {@const locked = isLocked(index)}
     <fieldset
       class="step"
+      data-step={step.id}
       disabled={locked}
       aria-describedby={locked ? `${step.id}-locked` : undefined}
     >
@@ -246,7 +250,7 @@
 
   <!-- Podsumowanie: dopiero gdy wszystko wybrane -->
   {#if complete}
-    <section class="summary" aria-live="polite">
+    <section class="summary" aria-live="polite" data-step="summary">
       <h2 class="step__title">
         <strong>{labels.summary}</strong>
         <span>{labels.summaryHint}</span>
@@ -304,10 +308,12 @@
       {#if result.hasPromo && lowest30}
         <p class="summary__note">{fill(labels.lowestPrice30Days, { price: lowest30 })}</p>
       {/if}
-      {#if orderHref}
-        <a class="order" href={orderHref}>{labels.orderButton}</a>
-        <p class="summary__note">{labels.orderNote}</p>
-      {/if}
+      <button type="button" class="order" onclick={addToBag}>{labels.addToBag}</button>
+      <p class="added" role="status">
+        {#if added}
+          {labels.addedToBag} <a href={bagHref}>{labels.viewBag}</a>
+        {/if}
+      </p>
     </section>
   {/if}
 </div>
@@ -565,13 +571,35 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
     min-height: 3.25rem;
     margin-top: 1.5rem;
+    border: 0;
     border-radius: var(--radius-pill);
     background: var(--color-text);
     color: var(--color-surface);
+    font: inherit;
     font-weight: 600;
     text-decoration: none;
+    cursor: pointer;
+  }
+
+  .order:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 3px;
+  }
+
+  /* Potwierdzenie pod przyciskiem; puste miejsce zarezerwowane, żeby nic nie skakało. */
+  .added {
+    min-height: 1.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    text-align: center;
+  }
+
+  .added a {
+    color: var(--color-text);
+    font-weight: 600;
   }
 
   /* ---------- Ruch ---------- */

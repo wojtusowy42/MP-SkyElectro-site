@@ -1,0 +1,96 @@
+---
+/**
+ * Torba: /pl/torba/ (slug ze słownika: pages.bag.slug). Bez płatności: zamówienie mailem.
+ * Treść rysuje Bag.svelte z localStorage, więc strona statyczna ma tylko szkielet.
+ * Obok [slug].astro: Astro bierze ścieżkę z tego pliku, którego getStaticPaths ją zwraca.
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Bag from '../../components/configurator/Bag.svelte';
+import { LOCALES } from '../../i18n/locales.ts';
+import { getDictionary, productTexts } from '../../i18n/index.ts';
+import { bagPath, configuratorPath, homePath } from '../../i18n/routes.ts';
+import { PRODUCTS } from '../../data/products/index.ts';
+import { SITE } from '../../config/site.ts';
+import { toDateKey } from '../../lib/price.ts';
+
+export const getStaticPaths = (() =>
+  LOCALES.map((lang) => ({
+    params: { lang, bag: getDictionary(lang).pages.bag.slug },
+    props: { locale: lang },
+  }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.props;
+const dict = getDictionary(locale);
+const t = dict.pages.bag;
+const c = dict.pages.configurator;
+
+// Tylko produkty z konfiguratorem (tylko je da się włożyć do torby).
+const products = Object.fromEntries(
+  PRODUCTS.filter((p) => p.configurator).map((p) => {
+    const texts = productTexts(dict, p.id);
+    return [
+      p.id,
+      {
+        definition: p.configurator!,
+        texts: {
+          slug: texts.slug,
+          name: texts.name,
+          ...(texts.steps ? { steps: texts.steps } : {}),
+        },
+        href: configuratorPath(locale, p.id),
+      },
+    ];
+  }),
+);
+---
+
+<BaseLayout
+  locale={locale}
+  title={t.title}
+  description={dict.site.description}
+  alternates={
+    Object.fromEntries(LOCALES.map((l) => [l, bagPath(l)])) as Record<typeof locale, string>
+  }
+>
+  <SiteNav locale={locale} />
+  <main class="bag-page">
+    <Bag
+      client:load
+      products={products}
+      locale={locale}
+      orderEmail={SITE.orderEmail}
+      homeHref={homePath(locale)}
+      today={toDateKey(new Date())}
+      labels={{
+        heading: t.heading,
+        empty: t.empty,
+        continue: t.continue,
+        remove: t.remove,
+        edit: t.edit,
+        total: t.total,
+        quantity: c.quantity,
+        decrease: c.decrease,
+        increase: c.increase,
+        perPiece: dict.common.perPiece,
+        priceOnRequest: dict.common.priceOnRequest,
+        orderButton: t.orderButton,
+        orderNote: t.orderNote,
+        orderSubject: t.orderSubject,
+        orderIntro: t.orderIntro,
+      }}
+    />
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body) {
+    background: var(--color-surface);
+  }
+
+  .bag-page {
+    min-height: 60vh;
+    padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter) 8rem;
+  }
+</style>

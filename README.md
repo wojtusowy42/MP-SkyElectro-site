@@ -59,6 +59,8 @@ src/
     navigation.ts         Nazwy w pasku menu (produkty "wkrótce" nie wchodzą do menu)
     skytimer-timing.ts    Czasy SkyTimera z ustawień przełączników DIP
     duration.ts           Formatowanie czasu trwania
+    bag.ts                Torba (localStorage): dokładanie pozycji, odczyt, zapis
+    versions.ts           Strona Kup: która wersja zdjęcia (kolor, wariant) pasuje do wyborów
 
   layouts/
     BaseLayout.astro      <head> każdej strony: title, opis, canonical, hreflang, Open Graph
@@ -66,13 +68,14 @@ src/
   styles/               global.css (reset), tokens.css (kolory, font), fonts.css (Inter)
   components/home/      SkyTimerHero.astro: hero strony głównej
   components/product/   Strona "Dowiedz się więcej": rozdziały, galeria, obrót 360°, skytimer/ = sekcje
-  components/configurator/  Konfigurator (Svelte) i galeria strony Kup
+  components/configurator/  Konfigurator i torba (Svelte), galeria strony Kup
   assets/renders/       Eksporty renderów pod web (Astro robi z nich AVIF/WebP)
 
   pages/                PLIKI = ADRESY STRON
     [lang]/index.astro    /pl/          strona główna
     [lang]/[slug].astro   /pl/<slug>/   produkty ("Dowiedz się więcej"), akcesoria, usługi, kontakt
-    [lang]/[slug]/[configurator].astro  /pl/<produkt>/kup/  konfigurator, ceny, zamówienie mailem
+    [lang]/[slug]/[configurator].astro  /pl/<produkt>/kup/  konfigurator, ceny, "Co jest w zestawie"
+    [lang]/[bag].astro    /pl/torba/    torba: pozycje, suma, zamówienie mailem (bez płatności)
     robots.txt.ts         /robots.txt
 ```
 

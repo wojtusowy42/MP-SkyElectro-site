@@ -29,6 +29,8 @@ export const pl = {
   // Górny pasek menu (pozycje: src/lib/navigation.ts, krótkie nazwy: navName).
   nav: {
     label: 'Menu główne',
+    bag: 'Torba',
+    bagCount: 'Torba, liczba produktów: {n}',
   },
 
   pages: {
@@ -56,11 +58,35 @@ export const pl = {
       galleryPrev: 'Poprzednie zdjęcie',
       galleryNext: 'Następne zdjęcie',
       galleryDot: 'Zdjęcie {n} z {total}',
-      // Zamówienie mailem (bez płatności na stronie).
-      orderButton: 'Zamów mailem',
-      orderNote: 'Otworzy się Twoja poczta z gotową wiadomością. Odpiszemy z potwierdzeniem.', // roboczy
-      orderSubject: 'Zamówienie: {product}',
-      orderIntro: 'Dzień dobry, chcę zamówić:',
+      addToBag: 'Włóż do torby',
+      addedToBag: 'Dodano do torby.',
+      viewBag: 'Zobacz torbę',
+      // Sekcja pod konfiguratorem (zdjęcia: src/assets/renders/skytimer-1/kup/element-*).
+      kitHeading: 'Co jest w\u00a0zestawie.',
+      // Podpisy kafelków po wyborze (zamiast ogólnych "wybranego wariantu", "cynk lub czernione").
+      kitTimer: 'Timer SkyTimer\u00a01',
+      kitTimerColor: 'kolor {color}',
+      kitScrews: 'Komplet śrub M2 ({screws}) i\u00a0wkrętów',
+      kitIntro:
+        'Wszystko, czego potrzebujesz do jednej wieżyczki. Części drukowane w\u00a0wybranym kolorze.',
+      // Na dole strony Kup. Roboczy: do sprawdzenia z regulaminem sklepu (koszt i czas wysyłki nieustalone).
+      delivery: {
+        heading: 'Dostawa i zwroty.',
+        items: [
+          {
+            title: 'Wysyłka',
+            text: 'Koszt i termin wysyłki potwierdzimy w odpowiedzi na zamówienie. Płacisz dopiero po potwierdzeniu.',
+          },
+          {
+            title: 'Zwrot w 14 dni',
+            text: 'Możesz odstąpić od umowy w ciągu 14 dni od otrzymania paczki, bez podawania przyczyny.',
+          },
+          {
+            title: 'Reklamacje',
+            text: 'Odpowiadamy za zgodność produktu z umową przez 2 lata od dostawy. Napisz do nas, a pomożemy.',
+          },
+        ],
+      },
       // Krótkie opisy pod nazwą opcji: produkt → krok → opcja.
       optionHints: {
         'skytimer-1': {
@@ -69,8 +95,28 @@ export const pl = {
             v2: 'Dłuższa, z\u00a0wbudowanym przyciskiem startu.',
             v3: 'Włącznik i\u00a0port pod przełącznikami, przycisk startu osobno.',
           },
+          screws: {
+            zinc: 'Srebrne, zwykła stal ocynkowana.',
+            blackened: 'Czarne śruby M2. Wkręty 2,2\u00a0×\u00a09,5 zawsze ocynkowane.',
+          },
         },
       } as Record<string, Record<string, Record<string, string>>>,
+    },
+    // Torba: /pl/torba/ (bez płatności: z torby wychodzi zamówienie mailem).
+    bag: {
+      slug: 'torba',
+      title: 'Torba',
+      heading: 'Twoja torba.',
+      empty: 'Twoja torba jest pusta.',
+      continue: 'Kontynuuj zakupy',
+      remove: 'Usuń',
+      edit: 'Zmień',
+      total: 'Razem',
+      orderButton: 'Zamów mailem',
+      orderNote:
+        'Otworzy się Twoja poczta z gotową wiadomością. Odpiszemy z potwierdzeniem i danymi do płatności.', // roboczy
+      orderSubject: 'Zamówienie MP SkyElectro',
+      orderIntro: 'Dzień dobry, chcę zamówić:',
     },
     accessories: {
       slug: 'akcesoria',
@@ -100,6 +146,8 @@ export const pl = {
         zestaw:
           'Zestaw SkyTimer 1: płytka wariantu 2 z szablonem, moduły LED i buzzera, ładowarka, akumulator, mechanizm puszczania linek i szablon serwa',
         warianty: 'Trzy warianty płytki SkyTimer 1 obok siebie',
+        'element-sruby': 'Komplet śrub M2 i\u00a0wkrętów',
+        wariant: 'SkyTimer 1 w obudowie, widok z przodu',
         pcb: 'Płytka SkyTimer 1 z przodu, z rzędem dziesięciu przełączników DIP',
         'pcb-top': 'Płytka SkyTimer 1 widziana z góry',
         'pcb-back': 'Tył płytki SkyTimer 1 ze złączem i elektroniką',
@@ -145,7 +193,7 @@ export const pl = {
               total: '= {time}',
             },
             size: {
-              text: '*{weight}\u00a0g.* Płytka {short}\u00a0×\u00a0{long}\u00a0mm do ciasnej wieży F1E.',
+              text: '*{weight}\u00a0g.* Płytka {short}\u00a0×\u00a0{long}\u00a0mm do ciasnej wieżyczki F1E.',
               alt: 'Płytka SkyTimer 1 widziana z góry',
             },
           },
@@ -245,7 +293,8 @@ export const pl = {
           alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
           // {pins} = lista numerów pinów z danych.
           pins: 'Piny {pins}',
-          legend: 'Każdy kwadrat to pin złącza 2\u00a0×\u00a07: górny rząd 1\u20117, dolny 8\u201114. Białe piny należą do danej funkcji.',
+          legend:
+            'Każdy kwadrat to pin złącza 2\u00a0×\u00a07: górny rząd 1\u20117, dolny 8\u201114. Białe piny należą do danej funkcji.',
           items: {
             power: 'Zasilanie',
             servo: 'Serwo',
@@ -309,8 +358,10 @@ export const pl = {
           variantsHeading: 'Trzy warianty płytki.',
           variantsIntro: 'Wybierasz układ, który pasuje do Twojej wieżyczki.',
           inCaseHeading: 'Płytka w\u00a0obudowie.',
-          inCaseText: 'W\u00a0środku ta sama płytka timera, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
-          inCaseAlt: 'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
+          inCaseText:
+            'W\u00a0środku ta sama płytka timera, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
+          inCaseAlt:
+            'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
           variantsAlt:
             'Trzy warianty płytki: wariant 1 z włącznikiem obok przełączników, wydłużony wariant 2 z przyciskiem startu i wariant 3 z włącznikiem pod przełącznikami',
           variants: {
@@ -358,6 +409,8 @@ export const pl = {
             servo: { label: 'Serwo', value: 'Konfigurowalny kierunek i\u00a0wychylenie' },
             mcu: { label: 'Mikrokontroler', value: 'ATmega328P' },
           },
+          manual: 'Pobierz podręcznik użytkownika',
+          manualMeta: 'PDF, {size} MB',
         },
         // Zakończenie strony. Bez cen: ceny są tylko na stronie Kup.
         cta: {
@@ -433,19 +486,25 @@ export const pl = {
           heading: 'Kolor.',
           label: 'Wybierz kolor części drukowanych.',
           options: {
-            blue: 'Mglisty błękit',
-            white: 'Biały',
-            gray: 'Szary',
-            orange: 'Pomarańczowy',
-            black: 'Czarny',
+            // Nazwy od właściciela (2026-11-08), pierwsza z dwóch propozycji; druga w komentarzu.
+            blue: 'Poranna Mgła', // PETG Basic Misty Blue; alt. Błękit Zefiru
+            white: 'Gwiezdny Blask', // PETG Matte White; alt. Polarna Biel
+            gray: 'Księżyc', // PETG Matte Gray (+ Basic Gray: Grafit / Srebro); alt. Łupek
+            orange: 'Kosmiczny Pomarańcz', // PETG Basic Pomarańczowy; alt. Słoneczny
+            black: 'Północ', // PETG Basic Black; alt. Obsydian
           },
+        },
+        screws: {
+          heading: 'Śruby.',
+          label: 'Wybierz wykończenie śrub.',
+          options: { zinc: 'Cynk', blackened: 'Czernione' },
         },
       },
     },
     wieze: {
       slug: 'wieze-drukowane',
-      name: 'Wieże drukowane',
-      navName: 'Wieże', // roboczy
+      name: 'Wieżyczki drukowane',
+      navName: 'Wieżyczki', // roboczy; "wieżyczka" jak w podręczniku
       steps: {
         type: {
           label: 'Wieżyczka pusta czy z timerem SkyTimer 1',

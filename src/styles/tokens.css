@@ -13,6 +13,7 @@
 
   /* Ciemne sekcje (hero, rendery) */
   --color-bg-dark: #000000;
+  --color-bg-tile: #1d1d1f; /* kafelki na czarnych stronach produktu */
   --color-surface-dark: #1c1c1e; /* pasek menu (półprzezroczysty) */
   --color-text-on-dark: #f6f5f8;
   --color-text-2-on-dark: #a1a1a6; /* podpisy, hasło pod nazwą w animacji */

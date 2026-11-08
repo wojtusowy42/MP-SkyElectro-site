@@ -4,14 +4,25 @@
  * Zdjęcia przewijają się w bok (palcem albo strzałkami), pod spodem kropki.
  *
  * Działa bez JavaScriptu (przewijanie z przyciąganiem, scroll-snap).
- * Mały skrypt na dole tylko obsługuje strzałki i podświetla aktywną kropkę.
+ * Mały skrypt na dole obsługuje strzałki, podświetla aktywną kropkę i słucha konfiguratora
+ * (zdarzenie 'configurator:change'): przewija do slajdu świeżo wybranej opcji. Wersje zdjęć
+ * w slajdach (data-versions, kolor, wariant) podmienia showVersions z src/lib/versions.ts. Rendery są na białym tle, jak karta.
  */
 import type { ImageMetadata } from 'astro';
 import { Picture } from 'astro:assets';
 
 interface Props {
-  /** dark: render na czerni, pokazany w całości na czarnym slajdzie. */
-  images: { src: ImageMetadata; alt: string; dark?: boolean }[];
+  /**
+   * Slajd = jedno zdjęcie albo kilka wersji (widać jedną). match: co wersja pokazuje,
+   * 'krok=opcja' po spacji, np. 'variant=v1 color=blue'. Bez wyborów widać pierwszą.
+   * show: id opcji, po których wybraniu galeria przewija do tego slajdu;
+   * showAt: id kroku konfiguratora albo 'summary' ([data-step]); przewija do slajdu, gdy ten krok wjedzie na ekran.
+   */
+  images: {
+    pictures: { src: ImageMetadata; alt: string; match?: string }[];
+    show?: string[];
+    showAt?: string;
+  }[];
   labels: { prev: string; next: string; dot: string };
 }
 
@@ -23,17 +34,27 @@ const dotLabel = (n: number) =>
 <div class="gallery" data-gallery>
   <div class="gallery__track" data-track tabindex="0">
     {images.map((image, i) => (
-      <div class:list={['gallery__slide', { 'gallery__slide--dark': image.dark }]} data-slide>
-        <Picture
-          class="gallery__image"
-          src={image.src}
-          alt={image.alt}
-          formats={['avif', 'webp']}
-          widths={[800, 1200, 1600, 2000]}
-          sizes="(max-width: 899px) 100vw, 800px"
-          loading={i === 0 ? 'eager' : 'lazy'}
-          fetchpriority={i === 0 ? 'high' : 'auto'}
-        />
+      <div
+        class="gallery__slide"
+        data-slide
+        data-versions
+        data-show={image.show?.join(' ')}
+        data-show-at={image.showAt}
+      >
+        {image.pictures.map((picture, n) => (
+          <div class="gallery__picture" data-match={picture.match} hidden={n > 0}>
+            <Picture
+              class="gallery__image"
+              src={picture.src}
+              alt={picture.alt}
+              formats={['avif', 'webp']}
+              widths={[800, 1200, 1600, 2000]}
+              sizes="(max-width: 899px) 100vw, 800px"
+              loading={i === 0 && n === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 && n === 0 ? 'high' : 'auto'}
+            />
+          </div>
+        ))}
       </div>
     ))}
   </div>
@@ -89,6 +110,50 @@ const dotLabel = (n: number) =>
       if (e.key === 'ArrowLeft') go(current() - 1);
       if (e.key === 'ArrowRight') go(current() + 1);
     });
+
+    // Konfigurator: wersje zdjęć podmienia showVersions (src/lib/versions.ts, wywoływane przez stronę).
+    // Tutaj tylko przewijanie: świeżo wybrana opcja przewija do swojego slajdu (kolor nie przewija).
+    const slides = [...gallery.querySelectorAll<HTMLElement>('[data-slide]')];
+    let previous: string[] = [];
+    window.addEventListener('configurator:change', (e) => {
+      const selection = (e as CustomEvent<Record<string, string>>).detail;
+      const values = Object.values(selection);
+      const changed = values.filter((v) => !previous.includes(v));
+      previous = values;
+      const target = slides.findIndex((s) =>
+        changed.some((v) => s.dataset.show?.split(' ').includes(v)),
+      );
+      if (target !== -1) go(target);
+    });
+
+    // Kroki i podsumowanie ([data-step]) pojawiają się i znikają razem z wyborami (Svelte), więc po każdej
+    // zmianie dopinamy obserwację nowych. Próg: górna krawędź powyżej 55% wysokości ekranu ("zjechałeś
+    // trochę niżej"); przy łagodniejszym progu podsumowanie mogło trafić w strefę od razu po kliknięciu.
+    const at = new Map(
+      slides.flatMap((s, i) => (s.dataset.showAt ? [[s.dataset.showAt, i] as const] : [])),
+    );
+    if (at.size > 0) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            const i = at.get((e.target as HTMLElement).dataset.step ?? '');
+            if (e.isIntersecting && i !== undefined) go(i);
+          }
+        },
+        { rootMargin: '0px 0px -45% 0px' },
+      );
+      const watched = new Set<Element>();
+      window.addEventListener('configurator:change', () =>
+        requestAnimationFrame(() => {
+          for (const el of document.querySelectorAll<HTMLElement>('[data-step]')) {
+            if (at.has(el.dataset.step ?? '') && !watched.has(el)) {
+              io.observe(el);
+              watched.add(el);
+            }
+          }
+        }),
+      );
+    }
   }
 </script>
 
@@ -121,22 +186,20 @@ const dotLabel = (n: number) =>
     scroll-snap-align: center;
   }
 
-  .gallery__slide--dark {
-    background: var(--color-bg-dark);
-  }
-
-  .gallery__slide.gallery__slide--dark :global(.gallery__image) {
-    object-fit: contain;
-  }
-
+  .gallery__picture,
   .gallery__slide :global(picture) {
     height: 100%;
   }
 
+  .gallery__picture[hidden] {
+    display: none;
+  }
+
+  /* Rendery na białym tle w białej karcie: całe, bez przycinania. */
   .gallery__slide :global(.gallery__image) {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
   }
 
   /* ---------- Strzałki i kropki (jak u Apple) ---------- */
