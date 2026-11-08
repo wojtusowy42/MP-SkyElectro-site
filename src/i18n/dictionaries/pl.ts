@@ -229,12 +229,6 @@ export const pl = {
             total: 'Z\u00a0bonusem',
             bonus: '{bonus} doliczone automatycznie',
             noBonus: 'Poniżej 2\u00a0min bez bonusu',
-            playback: 'Po włączeniu usłyszysz',
-            noPlayback: 'Bez odtwarzania: wszystkie przełączniki 5\u201110 na OFF to 10\u00a0s.',
-            // Opis sygnałów dla czytnika ekranu.
-            signals: 'Sygnały: {long} × długi, {short} × krótki',
-            legend: 'Długi = 1\u00a0min · Krótki = 15\u00a0s',
-            config: 'Wszystkie na ON: po włączeniu timer wejdzie w\u00a0tryb konfiguracji.',
           },
         },
         // Rozdział "Bezpieczeństwo" (rozdz. 9, 11, 14, 17).
@@ -272,17 +266,12 @@ export const pl = {
             'Moduł LED',
             'Mechanizm puszczania linek',
             'Przycisk startu',
-            'Komplet śrub M2 i wkrętów (cynk lub czernione)',
+            'Śruby i\u00a0wkręty M2',
             'Szablony montażowe',
             'Podręcznik użytkownika',
           ],
           variantsHeading: 'Trzy warianty płytki.',
           variantsIntro: 'Wybierasz układ, który pasuje do Twojej wieżyczki.',
-          inCaseHeading: 'Płytka w\u00a0obudowie.',
-          inCaseText:
-            'W\u00a0środku ta sama płytka timera, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
-          inCaseAlt:
-            'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
           variantsAlt:
             'Trzy warianty płytki: wariant 1 z włącznikiem obok przełączników, wydłużony wariant 2 z przyciskiem startu i wariant 3 z włącznikiem pod przełącznikami',
           variants: {
