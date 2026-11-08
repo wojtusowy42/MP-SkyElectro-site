@@ -1,0 +1,141 @@
+---
+/**
+ * Rozdział "Montaż" SkyTimer 1: trzy warianty płytki, potem płytka w obudowie.
+ * Odpowiada na pytanie kupującego: czy zmieszczę go w swojej wieżyczce.
+ * Rendery: Raw Assets/04 Rendery/SkyTimer 1/Learn more (v3)/ (10, 11).
+ */
+import { Picture } from 'astro:assets';
+import StoryChapter from '../StoryChapter.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { getDictionary } from '../../../i18n/index.ts';
+import warianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
+import wObudowie from '../../../assets/renders/skytimer-1/story/plytka-w-obudowie.jpg';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.mounting;
+const pictureProps = {
+  widths: [800, 1200, 1600],
+  formats: ['avif', 'webp'],
+  quality: 80,
+  loading: 'lazy' as const,
+};
+---
+
+<StoryChapter id="montaz" eyebrow={t.eyebrow} heading={t.heading} intro={t.intro}>
+  <div class="mount">
+    <div class="mount__narrow">
+      <Picture class="mount__img" src={warianty} alt={t.variantsAlt} {...pictureProps} sizes="(max-width: 734px) 100vw, 760px" />
+      <ul class="mount__variants">
+        {Object.values(t.variants).map((v) => (
+          <li data-reveal>
+            <h3 class="mount__name">{v.name}</h3>
+            <p class="mount__text">{v.text}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <section class="mount__block">
+      <div class="mount__head" data-reveal>
+        <h3 class="mount__heading">{t.inCaseHeading}</h3>
+        <p class="mount__sub">{t.inCaseText}</p>
+      </div>
+      <Picture class="mount__img mount__img--case" src={wObudowie} alt={t.inCaseAlt} {...pictureProps} sizes="(max-width: 734px) 100vw, 640px" />
+    </section>
+  </div>
+</StoryChapter>
+
+<style>
+  .mount {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .mount :global(.mount__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .mount__narrow {
+    max-width: 760px;
+    margin-inline: auto;
+  }
+
+  .mount :global(.mount__img--case) {
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  .mount__block {
+    margin-top: clamp(6rem, 12vw, 10rem);
+  }
+
+  .mount__head {
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    text-align: center;
+  }
+
+  .mount__heading {
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .mount__sub {
+    max-width: 36rem;
+    margin: 0.75rem auto 0;
+    text-wrap: pretty;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.3125rem);
+    font-weight: 600;
+  }
+
+  .mount__variants {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 3vw, 2rem);
+    margin: clamp(1.25rem, 3vw, 2rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mount__name {
+    margin: 0;
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .mount__text {
+    margin-top: 0.375rem;
+    color: var(--color-text-body-on-dark);
+    font-size: 1.0625rem;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 734px) {
+    .mount__variants {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .mount [data-reveal]:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .mount [data-reveal] {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+  }
+</style>

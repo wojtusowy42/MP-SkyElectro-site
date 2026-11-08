@@ -203,14 +203,14 @@ export const pl = {
           eyebrow: 'Konstrukcja',
           // Rozdz. 1.
           intro:
-            'SkyTimer 1 to *elektroniczny timer do szybowców F1E*. Steruje flopem i\u00a0detherem z\u00a0wysoką precyzją, a\u00a0mieści się na płytce *{short}\u00a0×\u00a0{long}\u00a0mm* o\u00a0masie *{weight}\u00a0g*.',
+            'SkyTimer 1 to *elektroniczny timer do szybowców F1E*. Steruje flopem i\u00a0detherem, a\u00a0mieści się na płytce {short}\u00a0×\u00a0{long}\u00a0mm o\u00a0masie {weight}\u00a0g.',
         },
         // Rozdział "Ustawianie czasów" (rozdz. 12-15) z symulatorem przełączników.
         timing: {
           eyebrow: 'Ustawianie czasów',
           heading: 'Dziesięć przełączników. Zero kabli.',
           intro:
-            'Przełączniki *1\u20114 ustawiają czas flop*, a\u00a0*5\u201110 czas dether*. Każdy dodaje swoją wartość, więc czas to po prostu suma. Spróbuj sam.',
+            'Przełączniki 1\u20114 ustawiają czas flop, a\u00a05\u201110 czas dether. *Czas to po prostu suma.* Spróbuj sam.',
           sim: {
             label: 'Symulator przełączników SkyTimer 1',
             switchesLabel: 'Przełączniki czasów',
@@ -242,7 +242,7 @@ export const pl = {
           eyebrow: 'Bezpieczeństwo',
           heading: 'Pilnuje lotu od włączenia do lądowania.',
           intro:
-            'Zanim wypuścisz model, timer *zagra ustawiony czas dether* i\u00a0*zgłosi zmienione ustawienia*. W\u00a0powietrzu *RDT* ściągnie model na sygnał radiowy, a\u00a0*AFA* uruchomi lot, gdy model poleci bez wciśniętego przycisku startu.',
+            'Zanim wypuścisz model, timer zagra ustawiony czas i\u00a0zgłosi zmienione ustawienia. *W\u00a0powietrzu pilnują go RDT i\u00a0AFA.*',
           items: {
             playback: {
               title: 'Odtwarzanie czasu.',
@@ -263,128 +263,67 @@ export const pl = {
             },
           },
         },
-        // Rozdział "Zasilanie" (rozdz. 4, 5, 16).
-        power: {
-          eyebrow: 'Zasilanie',
-          heading: 'Zasilanie w\u00a0zestawie.',
-          alt: 'Akumulator Li\u2011Pol i\u00a0ładowarka USB\u2011C ze złączami',
-          intro:
-            'Zestaw ma *akumulator Li\u2011Pol 1S*, moduł zasilania i\u00a0*ładowarkę USB\u2011C*. Po lądowaniu timer *sam coraz rzadziej miga i\u00a0piszczy*, żeby oszczędzać energię.',
-          stats: {
-            battery: {
-              label: 'Akumulator',
-              value: '{n}\u00a0mAh',
-              caption: 'Li\u2011Pol 1S w\u00a0zestawie',
-            },
-            charger: {
-              label: 'Ładowanie',
-              value: 'USB\u2011C',
-              caption: 'Czerwona dioda ładuje, zielona: gotowe',
-            },
-            saving: { label: 'Godzinę po dether', caption: 'Rzadziej miga LED' },
-          },
-        },
-        // Rozdział "Podłączenia" (rozdz. 3, 6-8).
-        connections: {
-          eyebrow: 'Podłączenia',
-          heading: 'Wszystko w\u00a0jednym złączu.',
-          intro:
-            'Dwurzędowe *złącze 2\u00a0×\u00a07* zbiera wszystkie przewody. *Moduły buzzera i\u00a0LED* zaprojektowano do szybkiej wymiany, a\u00a0*mechanizm puszczania linek* obsługuje obie linki: flop i\u00a0dether.',
-          alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
-          // {pins} = lista numerów pinów z danych.
-          pins: 'Piny {pins}',
-          legend:
-            'Każdy kwadrat to pin złącza 2\u00a0×\u00a07: górny rząd 1\u20117, dolny 8\u201114. Białe piny należą do danej funkcji.',
-          items: {
-            power: 'Zasilanie',
-            servo: 'Serwo',
-            start: 'Przycisk startu',
-            buzzer: 'Buzzer',
-            led: 'LED',
-            rdt: 'RDT',
-          },
-        },
-        // Rozdział "Moduły" (rozdz. 6-8, 21-25 podręcznika).
-        modules: {
-          eyebrow: 'Moduły',
-          heading: 'Każdy element na swoim miejscu.',
-          intro:
-            'Timer to nie tylko płytka. *Buzzer, LED i\u00a0mechanizm puszczania linek* są gotowe do montażu w\u00a0wieżyczce, a\u00a0*szablony* pokazują, gdzie wyciąć komory.',
-          items: {
-            signals: {
-              title: 'Buzzer i\u00a0LED.',
-              text: 'Moduły do szybkiej wymiany. Buzzer wysuwasz z\u00a0bazy, a\u00a0dioda wystaje 5\u00a0mm ponad obrys wieżyczki.',
-              alt: 'Moduł buzzera i\u00a0moduł LED ze skręconymi przewodami',
-            },
-            release: {
-              title: 'Mechanizm puszczania linek.',
-              text: 'Obsługuje dwie linki, flop i\u00a0dether. Montowany na górze wieżyczki.',
-              alt: 'Mechanizm puszczania linek z\u00a0serwem',
-            },
-            button: {
-              title: 'Przycisk startu.',
-              text: 'Wymiary 12\u00a0×\u00a012\u00a0mm. W\u00a0wariancie 2 wsuwa się w\u00a0płytkę, w\u00a0wariantach 1\u00a0i\u00a03 ma własne mocowanie.',
-              alt: 'Przycisk startu z\u00a0dwoma skręconymi przewodami',
-            },
-            templates: {
-              title: 'Szablony montażowe.',
-              text: 'Przykładasz, zaznaczasz markerem komorę i\u00a0otwory, wycinasz. Osobny szablon na każdy wariant płytki i\u00a0na serwo.',
-              alt: 'Szablony komór dla wariantów płytki 1, 2 i\u00a03 oraz szablon serwa',
-            },
-          },
-        },
-        // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-23).
-        kit: {
-          eyebrow: 'W\u00a0zestawie',
-          heading: 'Wszystko do jednej wieżyczki.',
-          intro:
-            'Zestaw to *komplet do zamontowania i\u00a0latania*: timer, zasilanie, sygnalizacja, mechanizm, śruby, szablony i\u00a0podręcznik. Sama płytka też jest dostępna.',
-          alt: 'Elementy zestawu SkyTimer 1 rozłożone obok siebie na czarnym tle',
-          listLabel: 'Co jest w\u00a0zestawie.',
-          // {mah} z danych.
-          items: [
-            'Timer SkyTimer\u00a01 na płytce wybranego wariantu',
-            'Akumulator Li\u2011Pol 1S {mah}\u00a0mAh',
-            'Moduł zasilania',
-            'Ładowarka USB\u2011C',
-            'Moduł buzzera',
-            'Moduł LED',
-            'Mechanizm puszczania linek',
-            'Przycisk startu',
-            'Komplet śrub M2 i wkrętów (cynk lub czernione)',
-            'Szablony montażowe',
-            'Podręcznik użytkownika',
-          ],
-          variantsHeading: 'Trzy warianty płytki.',
-          variantsIntro: 'Wybierasz układ, który pasuje do Twojej wieżyczki.',
-          inCaseHeading: 'Płytka w\u00a0obudowie.',
-          inCaseText:
-            'W\u00a0środku ta sama płytka timera, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
-          inCaseAlt:
-            'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
+        // Rozdział "Montaż" (rozdz. 2, 18-23): czy zmieszczę go w swojej wieżyczce.
+        mounting: {
+          eyebrow: 'Montaż',
+          heading: 'Pasuje do Twojej wieżyczki.',
+          intro: 'Trzy warianty płytki, w\u00a0każdym *ten sam timer*. Wybierasz układ, który pasuje do Twojej wieżyczki.',
           variantsAlt:
             'Trzy warianty płytki: wariant 1 z włącznikiem obok przełączników, wydłużony wariant 2 z przyciskiem startu i wariant 3 z włącznikiem pod przełącznikami',
           variants: {
             v1: {
               name: 'Wariant 1',
-              text: 'Włącznik i\u00a0port ładowania obok przełączników. Przycisk startu w\u00a0osobnym mocowaniu.',
+              text: 'Włącznik i\u00a0port ładowania obok przełączników. Przycisk startu osobno.',
             },
             v2: {
               name: 'Wariant 2',
-              text: 'Dłuższa płytka z\u00a0przyciskiem startu wbudowanym u\u00a0góry. Włącznik i\u00a0port pod przełącznikami.',
+              text: 'Dłuższa płytka z\u00a0przyciskiem startu u\u00a0góry. Włącznik i\u00a0port pod przełącznikami.',
             },
             v3: {
               name: 'Wariant 3',
-              text: 'Włącznik i\u00a0port ładowania pod przełącznikami. Przycisk startu w\u00a0osobnym mocowaniu.',
+              text: 'Włącznik i\u00a0port ładowania pod przełącznikami. Przycisk startu osobno.',
             },
           },
+          inCaseHeading: 'Płytka w\u00a0obudowie.',
+          inCaseText:
+            'W\u00a0środku ta sama płytka, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
+          inCaseAlt:
+            'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
+        },
+        // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-25): nazwa i jedno krótkie zdanie (note).
+        // Nazwy (name) pokazuje też strona Kup (kafelki zestawu), notes tylko ta strona.
+        // Kolejność = zdjęcia 01-11 w assets/renders/skytimer-1/story/zestaw-elementy/.
+        kit: {
+          eyebrow: 'W\u00a0zestawie',
+          heading: 'Wszystko do jednej wieżyczki.',
+          intro: 'Komplet do zamontowania i\u00a0latania. *Sama płytka też jest dostępna.*',
+          // {mah} z danych.
+          items: [
+            { name: 'Timer SkyTimer\u00a01 na płytce wybranego wariantu', note: '' },
+            { name: 'Akumulator Li\u2011Pol 1S {mah}\u00a0mAh', note: '' },
+            { name: 'Moduł zasilania', note: '' },
+            { name: 'Ładowarka USB\u2011C', note: 'Czerwona dioda ładuje, zielona: gotowe' },
+            { name: 'Moduł buzzera', note: 'Wysuwasz go z\u00a0bazy do wymiany' },
+            { name: 'Moduł LED', note: 'Wystaje 5\u00a0mm ponad wieżyczkę' },
+            { name: 'Mechanizm puszczania linek', note: 'Dwie linki: flop i\u00a0dether' },
+            { name: 'Przycisk startu', note: '12\u00a0×\u00a012\u00a0mm' },
+            { name: 'Komplet śrub M2 i\u00a0wkrętów', note: 'Cynk lub czernione' },
+            { name: 'Szablony montażowe', note: 'Na każdy wariant i\u00a0na serwo' },
+            { name: 'Podręcznik użytkownika', note: 'Także do pobrania jako PDF' },
+          ],
         },
         // Rozdział "Dane techniczne". Wartości liczone z danych, stałe fakty z podręcznika V3.
         specs: {
           eyebrow: 'Dane techniczne',
           heading: 'Wszystko w\u00a0liczbach.',
+          groups: {
+            size: 'Wymiary i\u00a0masa',
+            timing: 'Czasy',
+            power: 'Zasilanie',
+            safety: 'Bezpieczeństwo',
+            electronics: 'Elektronika',
+          },
           rows: {
-            use: { label: 'Przeznaczenie', value: 'Modele szybowców F1E' },
             size: { label: 'Wymiary płytki timera', value: '{short}\u00a0×\u00a0{long}\u00a0mm' },
             weight: { label: 'Masa płytki timera', value: '{weight}\u00a0g' },
             kitWeight: { label: 'Masa zestawu', value: 'około {weight}\u00a0g' },
@@ -396,6 +335,7 @@ export const pl = {
             },
             battery: { label: 'Akumulator', value: 'Li\u2011Pol 1S, {mah}\u00a0mAh' },
             charging: { label: 'Ładowanie', value: 'USB\u2011C, tylko przy wyłączonym timerze' },
+            saving: { label: 'Oszczędzanie energii', value: 'Godzinę po dether LED miga {n}× rzadziej' },
             connector: { label: 'Złącze', value: 'Dwurzędowe 2\u00a0×\u00a07' },
             rdt: {
               label: 'RDT',
@@ -423,6 +363,7 @@ export const pl = {
           design: 'Konstrukcja',
           timing: 'Czasy',
           safety: 'Bezpieczeństwo',
+          mounting: 'Montaż',
           kit: 'Zestaw',
           specs: 'Dane techniczne',
         },

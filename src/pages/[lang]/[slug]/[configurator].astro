@@ -223,7 +223,7 @@ const CHOSEN_LABELS: Record<string, (general: string) => { match: string; text: 
 
 const kitTiles = kitTexts
   ? KIT_TILES.map((name, i) => {
-      const general = format(kitTexts.items[i]!, { mah: SKYTIMER_1_SPEC.batteryMah });
+      const general = format(kitTexts.items[i]!.name, { mah: SKYTIMER_1_SPEC.batteryMah });
       return {
         labels: CHOSEN_LABELS[name]?.(general) ?? [{ match: '', text: general }],
         pictures: versionPictures([`element-${name}`], () => ''), // podpis pod zdjęciem wystarcza

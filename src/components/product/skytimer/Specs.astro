@@ -1,6 +1,6 @@
 ---
 /**
- * Rozdział "Dane techniczne" SkyTimer 1: zwykłe wiersze etykieta - wartość.
+ * Rozdział "Dane techniczne" SkyTimer 1: grupy (Wymiary, Czasy, Zasilanie...) z wierszami etykieta - wartość.
  * Zakresy czasów liczone z danych (src/data/skytimer-1-spec.ts), żeby nie rozjechały się
  * z symulatorem. Bez cen: ceny są tylko na stronie Kup.
  */
@@ -32,15 +32,14 @@ const [, midBonus, highBonus] = T.detherBonus;
 const flopStep = Math.min(...T.flop.switches);
 const detherStep = Math.min(...T.dether.switches);
 
-const rows = [
-  r.use,
-  { label: r.size.label, value: format(r.size.value, { short, long }) },
-  { label: r.weight.label, value: format(r.weight.value, { weight: physical.weightG }) },
-  {
+const row = {
+  size: { label: r.size.label, value: format(r.size.value, { short, long }) },
+  weight: { label: r.weight.label, value: format(r.weight.value, { weight: physical.weightG }) },
+  kitWeight: {
     label: r.kitWeight.label,
     value: format(r.kitWeight.value, { weight: physical.kitWeightG ?? '' }),
   },
-  {
+  flop: {
     label: r.flop.label,
     value: format(r.flop.value, {
       min: dur(flopStep + T.flop.offset, true),
@@ -48,7 +47,7 @@ const rows = [
       step: dur(flopStep, true),
     }),
   },
-  {
+  dether: {
     label: r.dether.label,
     value: format(r.dether.value, {
       off: dur(T.dether.whenAllOff),
@@ -57,33 +56,45 @@ const rows = [
       step: dur(detherStep),
     }),
   },
-  {
+  bonus: {
     label: r.bonus.label,
     value: format(r.bonus.value, { mid: plus(midBonus!.bonus), high: plus(highBonus!.bonus) }),
   },
-  { label: r.battery.label, value: format(r.battery.value, { mah: S.batteryMah }) },
-  r.charging,
-  r.connector,
-  r.rdt,
-  {
+  battery: { label: r.battery.label, value: format(r.battery.value, { mah: S.batteryMah }) },
+  saving: { label: r.saving.label, value: format(r.saving.value, { n: S.ledSlowdownAfterHour }) },
+  afa: {
     label: r.afa.label,
     value: format(r.afa.value, { after: dur(S.afa.afterMs), warning: dur(S.afa.warningMs) }),
   },
-  r.buzzer,
-  r.servo,
-  r.mcu,
+};
+
+// Grupy jak w danych technicznych na apple.com: tytuł po lewej, wartości po prawej.
+const g = t.groups;
+const groups = [
+  { title: g.size, rows: [row.size, row.weight, row.kitWeight] },
+  { title: g.timing, rows: [row.flop, row.dether, row.bonus] },
+  { title: g.power, rows: [row.battery, r.charging, row.saving] },
+  { title: g.safety, rows: [r.rdt, row.afa, r.buzzer] },
+  { title: g.electronics, rows: [r.mcu, r.connector, r.servo] },
 ];
 ---
 
 <StoryChapter id="dane" eyebrow={t.eyebrow} heading={t.heading}>
-  <dl class="specs" data-reveal>
-    {rows.map((row) => (
-      <div class="specs__row">
-        <dt>{row.label}</dt>
-        <dd>{row.value}</dd>
-      </div>
+  <div class="specs">
+    {groups.map((group) => (
+      <section class="specs__group" data-reveal>
+        <h3 class="specs__title">{group.title}</h3>
+        <dl class="specs__list">
+          {group.rows.map((item) => (
+            <div>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
     ))}
-  </dl>
+  </div>
   <p class="manual" data-reveal>
     <a href={`${import.meta.env.BASE_URL}docs/skytimer-1-podrecznik.pdf`} download>
       {t.manual}
@@ -99,20 +110,36 @@ const rows = [
     padding-inline: var(--gutter);
   }
 
-  .specs__row {
+  .specs__group {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    gap: 0.25rem 1.5rem;
-    padding-block: 1rem;
+    gap: 1rem 1.5rem;
+    padding-block: clamp(1.75rem, 3vw, 2.5rem);
     border-top: 1px solid rgb(255 255 255 / 0.14);
+  }
+
+  .specs__title {
+    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .specs__list {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
   }
 
   dt {
     color: var(--color-text-2-on-dark);
+    font-size: 0.9375rem;
   }
 
   dd {
-    margin: 0;
+    margin: 0.125rem 0 0;
+    font-size: 1.1875rem;
+    line-height: 1.4;
   }
 
   .manual {
@@ -133,18 +160,18 @@ const rows = [
   }
 
   @media (max-width: 734px) {
-    .specs__row {
+    .specs__group {
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    :global(.reveal-js) .specs:not(:global(.is-in)) {
+    :global(.reveal-js) .specs__group:not(:global(.is-in)) {
       opacity: 0;
       transform: translateY(1.5rem);
     }
 
-    .specs {
+    .specs__group {
       transition:
         opacity 700ms var(--ease-out),
         transform 700ms var(--ease-out);
