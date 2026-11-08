@@ -3,8 +3,11 @@
 Katalog produktów MP SkyElectro (elektronika i osprzęt do modeli szybowców, m.in. F1E).
 Bez płatności: przeglądanie, konfiguratory i zamówienie mailem.
 
-Stan: **same fundamenty**. Dane, języki, adresy, SEO, logika konfiguratorów.
-Wyglądu nie ma wcale: strony to surowy HTML, który tylko pokazuje, że dane działają.
+Stan (branch `nowa-strona`): szkielet (dane, języki, adresy, SEO, logika konfiguratorów, testy),
+hero SkyTimer 1 na stronie głównej, pełna strona SkyTimer 1 (`/pl/skytimer-1/`) i strona Kup
+z konfiguratorem i cenami (`/pl/<produkt>/kup/`). Ceny produktów są tylko na stronach Kup.
+Reszta stron to na razie surowy HTML.
+Poprzednia wersja z wyglądem jest na branchu `main`.
 
 ## Uruchomienie
 
@@ -41,23 +44,38 @@ src/
     accessories.ts        Akcesoria / części zamienne
     catalog.ts            Kolejność pozycji w menu
     validate.ts           Sprawdzanie danych (uruchamiane w testach przy buildzie)
+    skytimer-1-spec.ts    Parametry techniczne SkyTimer 1
 
   i18n/                 TEKSTY i języki
     locales.ts            Lista włączonych języków
     dictionaries/pl.ts    Wszystkie teksty po polsku (wzór dla innych języków)
     index.ts              Pobieranie tekstów w danym języku
     routes.ts             Budowanie adresów stron w każdym języku
+    rich-text.ts          Proste wyróżnienia w tekstach słownika
 
-  lib/                  LOGIKA (bez wyglądu, testowana)
+  lib/                  LOGIKA (bez wyglądu)
     price.ts              Która cena obowiązuje (promocje) i formatowanie kwot
     configurator.ts       Widoczne kroki, czyszczenie wyborów, MOQ, wycena
+    navigation.ts         Nazwy w pasku menu (produkty "wkrótce" nie wchodzą do menu)
+    skytimer-timing.ts    Czasy SkyTimera z ustawień przełączników DIP
+    duration.ts           Formatowanie czasu trwania
+    bag.ts                Torba (localStorage): dokładanie pozycji, odczyt, zapis
+    versions.ts           Strona Kup: która wersja zdjęcia (kolor, wariant) pasuje do wyborów
 
   layouts/
     BaseLayout.astro      <head> każdej strony: title, opis, canonical, hreflang, Open Graph
 
+  styles/               global.css (reset), tokens.css (kolory, font), fonts.css (Inter)
+  components/home/      SkyTimerHero.astro: hero strony głównej
+  components/product/   Strona "Dowiedz się więcej": rozdziały, galeria, obrót 360°, skytimer/ = sekcje
+  components/configurator/  Konfigurator i torba (Svelte), galeria strony Kup
+  assets/renders/       Eksporty renderów pod web (Astro robi z nich AVIF/WebP)
+
   pages/                PLIKI = ADRESY STRON
     [lang]/index.astro    /pl/          strona główna
-    [lang]/[slug].astro   /pl/<slug>/   produkty, akcesoria, usługi, kontakt
+    [lang]/[slug].astro   /pl/<slug>/   produkty ("Dowiedz się więcej"), akcesoria, usługi, kontakt
+    [lang]/[slug]/[configurator].astro  /pl/<produkt>/kup/  konfigurator, ceny, "Co jest w zestawie"
+    [lang]/[bag].astro    /pl/torba/    torba: pozycje, suma, zamówienie mailem (bez płatności)
     robots.txt.ts         /robots.txt
 ```
 
@@ -127,8 +145,9 @@ Jeśli w nowym słowniku zabraknie choćby jednej etykiety, build się nie uda i
 
 Dochodzi dopiero wtedy, gdy jest potrzebne, żeby nie trzymać nieużywanych zależności:
 
-- **wygląd**: style, fonty, tokeny designu,
-- **konfiguratory w przeglądarce** (Svelte): logika już jest w `src/lib/configurator.ts`,
+- **wygląd** poza hero: menu, stopka, strony produktów (stara wersja na `main`),
+- **konfiguratory w przeglądarce** (Svelte już podpięty w `astro.config.mjs`):
+  logika jest w `src/lib/configurator.ts`,
 - **animacje** (GSAP): przy pierwszej stronie "dowiedz się więcej",
 - **formularz zamówienia** (Cloudflare Worker): wymaga domeny i adresu e-mail,
 - **dane strukturalne Product dla Google i og:image**: wymagają renderów,
@@ -138,5 +157,12 @@ Pełne uzasadnienie wyborów technicznych: dokument „decyzje techniczne” w p
 
 ## Pliki 3D i rendery
 
-`.blend`, `.f3d`, `.exr` i surowe rendery **nie trafiają do gita** (blokuje je `.gitignore`), bo są za duże.
-Do repo trafiają tylko eksporty pod web (później: `src/assets/`). Źródła trzymaj poza repo.
+Wszystkie surowe materiały leżą w `Raw Assets/` (poza gitem, za duże). Opis układu folderów:
+`Raw Assets/README.md`. Do repo trafiają tylko eksporty pod web (`src/assets/`, `public/`).
+Baner hero: `Raw Assets/04 Rendery/SkyTimer 1/Hero/`. Render płytki na przezroczystym tle
+(`SkyTimer 1 hero D3.png`, scena `SkyTimer_Hero` w `F1E_SkyTimer_v0.1.blend`, ustawienia w tekście
+`kadr_hero.py` w tym pliku) skleja z poświatą skrypt `sklej_baner.py` (Python + numpy + pillow)
+w `SkyTimer 1 hero baner.png`. Na stronę idzie ten baner jako `src/assets/renders/skytimer-1/hero.jpg`.
+
+Eksporty używane przez starą stronę (przycięte rendery, wideo, sekwencja obrotu, logo SVG)
+są w `Raw Assets/05 Eksporty web (stara strona)/`.

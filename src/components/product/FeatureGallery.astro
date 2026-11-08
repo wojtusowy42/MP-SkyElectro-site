@@ -1,0 +1,408 @@
+---
+/**
+ * "Co go wyróżnia." (wzór: galeria wyróżników na stronie MacBooka Pro z PROLED XDR, apple.com).
+ * Poziomy rząd dużych kart; następna karta wystaje zza krawędzi i zaprasza do przesunięcia.
+ *
+ * Przewijanie natywne (scroll-snap): palec, gładzik i Shift + kółko działają bez JS.
+ * JS tylko do przycisków: kropki (skok do karty) i strzałki (poprzednia / następna).
+ * BEZ autoodtwarzania (Apple przewija samo): zasada strony "bez pętli", a karta z tekstem,
+ * która ucieka spod oczu, jest nieczytelna.
+ *
+ * Karta: tekst u góry (biała fraza + szare dopowiedzenie, jak u Apple), pod nim obraz w całej
+ * pozostałej wysokości karty. Tło karty czarne jak tło renderów, więc render "na czarnym"
+ * nie ma widocznych krawędzi. Obraz z renderu (image) albo własna grafika: slot o nazwie = id karty.
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { format } from '../../i18n/index.ts';
+import { richText } from '../../i18n/rich-text.ts';
+
+export interface GalleryItem {
+  id: string;
+  /** Tekst karty z wyróżnieniem *...* (pierwsza fraza biała). */
+  text: string;
+  image?: ImageMetadata | undefined;
+  alt?: string | undefined;
+  /**
+   * contain (domyślnie): cały render, na czarnym tle bez krawędzi.
+   * cover: zdjęcie wypełnia dół karty (makro na całą klatkę); wtedy górna krawędź znika w czerni.
+   */
+  fit?: 'contain' | 'cover' | undefined;
+}
+
+interface Props {
+  heading: string;
+  items: GalleryItem[];
+  prevLabel: string;
+  nextLabel: string;
+  /** Etykieta kropki: {n}, {total}. */
+  dotLabel: string;
+}
+
+const { heading, items, prevLabel, nextLabel, dotLabel } = Astro.props;
+---
+
+<section class="gallery" aria-labelledby="gallery-title" data-gallery>
+  <h2 class="gallery__title" id="gallery-title" data-reveal>
+    {heading}
+  </h2>
+
+  <ul class="gallery__track" data-track>
+    {items.map((item, i) => (
+      <li
+        class="gallery__card"
+        aria-label={format(dotLabel, { n: i + 1, total: items.length })}
+        data-card
+      >
+        <p class="gallery__text" set:html={richText(item.text)} />
+        <div class:list={['gallery__visual', item.fit === 'cover' && 'gallery__visual--cover']}>
+          {item.image ? (
+            <Picture
+              class="gallery__img"
+              src={item.image}
+              alt={item.alt ?? ''}
+              widths={[700, 1100, 1600, 2200]}
+              sizes="(max-width: 734px) 88vw, 1056px"
+              formats={['avif', 'webp']}
+              quality={78}
+              loading="lazy"
+            />
+          ) : (
+            <slot name={item.id} />
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  <div class="gallery__controls">
+    <div class="gallery__dots" role="group" aria-label={heading}>
+      {items.map((_, i) => (
+        <button
+          class="gallery__dot"
+          type="button"
+          aria-label={format(dotLabel, { n: i + 1, total: items.length })}
+          aria-current={i === 0 ? 'true' : undefined}
+          data-dot={i}
+        />
+      ))}
+    </div>
+    <div class="gallery__arrows">
+      <button class="gallery__arrow" type="button" aria-label={prevLabel} data-prev disabled>
+        <svg viewBox="0 0 36 36" aria-hidden="true">
+          <path d="M20.5 11.5 14 18l6.5 6.5" />
+        </svg>
+      </button>
+      <button class="gallery__arrow" type="button" aria-label={nextLabel} data-next>
+        <svg viewBox="0 0 36 36" aria-hidden="true">
+          <path d="M15.5 11.5 22 18l-6.5 6.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-gallery]')) {
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-card]')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-dot]')];
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const smooth = matchMedia('(prefers-reduced-motion: no-preference)');
+
+    let current = 0;
+
+    // Karta "bieżąca" = najbliższa lewej krawędzi przewijania (scroll-padding).
+    const nearest = () => {
+      const pad = parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0;
+      const x = track.scrollLeft + pad;
+      let best = 0;
+      cards.forEach((c, i) => {
+        if (Math.abs(c.offsetLeft - x) < Math.abs((cards[best]?.offsetLeft ?? 0) - x)) best = i;
+      });
+      // Na końcu toru ostatnia karta może nie dojechać do lewej krawędzi.
+      if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 2) best = cards.length - 1;
+      return best;
+    };
+
+    const render = () => {
+      dots.forEach((d, i) =>
+        i === current ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current'),
+      );
+      prev.disabled = current === 0;
+      next.disabled = current === cards.length - 1;
+    };
+
+    const go = (i: number) => {
+      const card = cards[Math.max(0, Math.min(cards.length - 1, i))];
+      if (!card) return;
+      const pad = parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0;
+      track.scrollTo({ left: card.offsetLeft - pad, behavior: smooth.matches ? 'smooth' : 'auto' });
+    };
+
+    let raf = 0;
+    track.addEventListener(
+      'scroll',
+      () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          const n = nearest();
+          if (n !== current) {
+            current = n;
+            render();
+          }
+        });
+      },
+      { passive: true },
+    );
+
+    dots.forEach((d, i) => d.addEventListener('click', () => go(i)));
+    prev.addEventListener('click', () => go(current - 1));
+    next.addEventListener('click', () => go(current + 1));
+    render();
+  }
+</script>
+
+<style>
+  .gallery {
+    padding-top: clamp(5rem, 10vw, 8rem);
+    background: var(--color-bg-dark);
+    color: var(--color-text-on-dark);
+    /* Lewa krawędź treści: pierwsza karta i nagłówek stoją w kolumnie strony. */
+    --edge: max(var(--gutter), calc((100% - var(--content-wide)) / 2));
+  }
+
+  .gallery__title {
+    padding-inline: var(--edge);
+    margin-bottom: clamp(1.75rem, 3.5vw, 3rem);
+    font-size: clamp(2.5rem, 1.6rem + 3vw, 4rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+  }
+
+  .gallery__track {
+    /* offsetLeft kart liczony od toru (skrypt przewija do karty). */
+    position: relative;
+    display: flex;
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    margin: 0;
+    padding: 0 var(--edge);
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--edge);
+    scrollbar-width: none;
+  }
+
+  .gallery__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gallery__card {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 min(88vw, 66rem);
+    height: clamp(31rem, 20rem + 26vw, 42rem);
+    overflow: hidden;
+    /* Czarna karta na czarnej stronie: kształt rysuje cienka obwódka (jak u Apple). */
+    border-radius: 1.75rem;
+    background: var(--color-bg-dark);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+    scroll-snap-align: start;
+  }
+
+  .gallery__text {
+    flex: none;
+    max-width: 27rem;
+    padding: clamp(1.75rem, 1rem + 2.4vw, 3.25rem);
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.3125rem, 1.05rem + 0.9vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-wrap: pretty;
+  }
+
+  .gallery__text :global(strong) {
+    color: var(--color-text-on-dark);
+    font-weight: inherit;
+  }
+
+  /* Obraz w całej wysokości pod tekstem. Obwódka karty zostaje nad obrazem (margines 1 px). */
+  .gallery__visual {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    margin: 0 1px 1px;
+    overflow: hidden;
+    border-radius: 0 0 calc(1.75rem - 1px) calc(1.75rem - 1px);
+  }
+
+  .gallery__visual :global(picture) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .gallery__visual :global(.gallery__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+
+  .gallery__visual--cover :global(.gallery__img) {
+    object-fit: cover;
+    object-position: center;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%);
+    mask-image: linear-gradient(180deg, transparent, #000 40%);
+  }
+
+  /* ---------- Przyciski ---------- */
+  .gallery__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem var(--edge) 0;
+  }
+
+  .gallery__dots {
+    display: flex;
+    gap: 0.25rem;
+    height: 3.5rem;
+    align-items: center;
+    padding-inline: 1.125rem;
+    border-radius: var(--radius-pill);
+    background: rgb(66 66 69 / 0.72);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+
+  /* Kropka: duży obszar kliknięcia (24 px), widoczne 8 px; bieżąca to wydłużona pigułka. */
+  .gallery__dot {
+    position: relative;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .gallery__dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: rgb(255 255 255 / 0.42);
+    transform: translate(-50%, -50%);
+  }
+
+  .gallery__dot[aria-current='true'] {
+    width: 3.25rem;
+  }
+
+  .gallery__dot[aria-current='true']::before {
+    width: 2.75rem;
+    background: var(--color-text-on-dark);
+  }
+
+  .gallery__arrows {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .gallery__arrow {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(66 66 69 / 0.72);
+    color: var(--color-text-on-dark);
+    cursor: pointer;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+
+  .gallery__arrow svg {
+    width: 2.25rem;
+    height: 2.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .gallery__arrow:disabled {
+    color: rgb(255 255 255 / 0.36);
+    cursor: default;
+  }
+
+  @media (max-width: 734px) {
+    .gallery__card {
+      height: 32rem;
+    }
+
+    .gallery__dots,
+    .gallery__arrow {
+      height: 3rem;
+    }
+
+    .gallery__arrow {
+      width: 3rem;
+    }
+
+    /* Na telefonie strzałki zbędne: przesuwa się palcem. */
+    .gallery__arrows {
+      display: none;
+    }
+  }
+
+  @media (hover: hover) {
+    .gallery__arrow:not(:disabled):hover {
+      background: rgb(84 84 88 / 0.8);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .gallery__title:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .gallery__title {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+
+    .gallery__dot,
+    .gallery__dot::before {
+      transition:
+        width 400ms var(--ease-out),
+        background-color 400ms var(--ease-out);
+    }
+
+    .gallery__arrow {
+      transition:
+        background-color var(--duration-ui) var(--ease-out),
+        color var(--duration-ui) var(--ease-out),
+        transform var(--duration-press) var(--ease-out);
+    }
+
+    .gallery__arrow:not(:disabled):active {
+      transform: scale(0.94);
+    }
+  }
+</style>

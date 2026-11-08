@@ -1,0 +1,218 @@
+---
+/**
+ * Górny pasek menu (wzór: globalny pasek apple.com): ciemny, półprzezroczysty, przyklejony u góry.
+ * Na stronach z paskiem produktu (LocalNav) nie jest przyklejony: odjeżdża, a zostaje pasek produktu.
+ *
+ * Pozycje, kolejność i nazwy: src/lib/navigation.ts (produkty "wkrótce" nie wchodzą do menu).
+ * Telefon i wąski tablet (≤ 833 px, próg apple.com): logo + ikona menu (na razie atrapa).
+ * Ikona torby zawsze widoczna; liczbę produktów dopisuje skrypt z localStorage (src/lib/bag.ts).
+ */
+import { getDictionary } from '../i18n/index.ts';
+import { navItems } from '../lib/navigation.ts';
+import { bagPath, homePath } from '../i18n/routes.ts';
+import type { Locale } from '../i18n/locales.ts';
+import { SITE } from '../config/site.ts';
+import logo from '../assets/brand/logo.svg?raw';
+
+interface Props {
+  locale: Locale;
+  sticky?: boolean;
+}
+
+const { locale, sticky = true } = Astro.props;
+const dict = getDictionary(locale);
+const items = navItems(locale);
+---
+
+<header class:list={['nav', { 'nav--static': !sticky }]}>
+  <nav class="nav__inner" aria-label={dict.nav.label}>
+    {/* wektor z currentColor: kolor z CSS; nazwa dla czytników ekranu w aria-label */}
+    <a class="nav__logo" href={homePath(locale)} aria-label={SITE.name} set:html={logo} />
+    <ul class="nav__list" role="list">
+      {items.map((item) => (
+        <li class="nav__item">
+          <a href={item.href}>{item.label}</a>
+        </li>
+      ))}
+    </ul>
+    <a
+      class="nav__bag"
+      href={bagPath(locale)}
+      aria-label={dict.nav.bag}
+      data-bag
+      data-label={dict.nav.bagCount}
+    >
+      {/* torba jak na apple.com: korpus i uchwyt, 1 px kreski */}
+      <svg viewBox="0 0 14 16" width="14" height="16" aria-hidden="true">
+        <path
+          d="M1.5 5.5h11v9h-11z M4.5 5.5V4a2.5 2.5 0 0 1 5 0v1.5"
+          fill="none"
+          stroke="currentColor"
+        />
+      </svg>
+      <span class="nav__bag-count" data-bag-count hidden></span>
+    </a>
+    <span class="nav__menu" aria-hidden="true"></span>
+  </nav>
+</header>
+
+<script>
+  import { BAG_EVENT, bagCount, readBag } from '../lib/bag.ts';
+
+  const show = () => {
+    const n = bagCount(readBag());
+    for (const link of document.querySelectorAll<HTMLElement>('[data-bag]')) {
+      const badge = link.querySelector<HTMLElement>('[data-bag-count]');
+      if (!badge) continue;
+      badge.hidden = n === 0;
+      badge.textContent = String(n);
+      if (n > 0) link.setAttribute('aria-label', link.dataset.label!.replace('{n}', String(n)));
+    }
+  };
+  show();
+  window.addEventListener(BAG_EVENT, show);
+  window.addEventListener('storage', show);
+  // powrót "wstecz" pokazuje stronę z pamięci przeglądarki (bfcache): licznik byłby nieaktualny
+  window.addEventListener('pageshow', show);
+</script>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: var(--nav-h);
+    background: color-mix(in srgb, var(--color-surface-dark) 80%, transparent);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    color: color-mix(in srgb, var(--color-text-on-dark) 80%, transparent);
+    font-size: 0.75rem; /* 12 px */
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .nav--static {
+    position: static;
+  }
+
+  .nav a {
+    text-decoration: none;
+  }
+
+  .nav__item a:hover {
+    color: var(--color-text-on-dark);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: 64rem; /* 1024 px */
+    height: 100%;
+    margin-inline: auto;
+    padding-inline: 1.375rem; /* 22 px */
+  }
+
+  .nav__logo {
+    flex: none;
+    display: flex;
+    align-items: center;
+    color: var(--color-text-on-dark);
+  }
+
+  .nav__logo :global(svg) {
+    display: block;
+    height: 1.25rem; /* 20 px */
+    width: auto;
+  }
+
+  .nav__list {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    max-width: 50rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav__item {
+    white-space: nowrap;
+  }
+
+  .nav__bag {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem; /* cel dotyku 44 px */
+    height: 100%;
+    margin-right: -0.875rem;
+    color: var(--color-text-on-dark);
+  }
+
+  .nav__bag-count {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 1rem;
+    height: 1rem;
+    padding-inline: 0.25rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-text-on-dark);
+    color: var(--color-surface-dark);
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-align: center;
+    translate: 10% 0;
+  }
+
+  .nav__bag-count[hidden] {
+    display: none;
+  }
+
+  /* Ikona menu: dwie kreski 18 × 1 px (jak na apple.com). */
+  .nav__menu {
+    display: none;
+    position: relative;
+    width: 1.125rem;
+    height: 0.4375rem;
+  }
+
+  .nav__menu::before,
+  .nav__menu::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--color-text-on-dark);
+  }
+
+  .nav__menu::before {
+    top: 0;
+  }
+
+  .nav__menu::after {
+    bottom: 0;
+  }
+
+  @media (max-width: 833px) {
+    .nav__list {
+      display: none;
+    }
+
+    .nav__menu {
+      display: block;
+    }
+
+    /* bez listy: torba przy prawej, obok ikony menu */
+    .nav__bag {
+      margin-left: auto;
+      margin-right: -1rem;
+    }
+  }
+</style>

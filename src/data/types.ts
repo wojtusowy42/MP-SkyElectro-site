@@ -29,6 +29,8 @@ export interface ConfiguratorOption {
   id: string;
   /** Jeśli wybór tej opcji kosztuje, cena (za sztukę) dodaje się do sumy. */
   price?: Price;
+  /** Kolor próbki w konfiguratorze (np. '#d4141f'), dla kroków z wyborem koloru. */
+  swatch?: string;
 }
 
 export interface ConfiguratorStep {
@@ -54,6 +56,20 @@ export interface Product {
   id: string;
   status: ProductStatus;
   configurator?: ConfiguratorDefinition;
+  /**
+   * Kolory produktu wzięte z renderu (od, do), np. do gradientu hasła w hero.
+   * To jedyne miejsce, gdzie na stronie pojawia się kolor spoza monochromatycznej palety.
+   */
+  colors?: readonly [string, string];
+  /** Wymiary i masa (np. do kafelka "rozmiar" na stronie produktu). */
+  physical?: {
+    /** Wymiary płytki w mm: [krótszy bok, dłuższy bok]. */
+    sizeMm: readonly [number, number];
+    /** Masa samego produktu w gramach. */
+    weightG: number;
+    /** Masa całego zestawu w gramach (jeśli produkt ma wersję "zestaw"). */
+    kitWeightG?: number;
+  };
   /**
    * Brakujące informacje. Build wypisuje je jako ostrzeżenia,
    * żeby nic nie zginęło. Usuń wpis, gdy dane są uzupełnione.

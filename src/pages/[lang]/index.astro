@@ -1,27 +1,22 @@
 ---
 /**
  * Strona główna w danym języku: /pl/
- * TYMCZASOWO: surowa lista pozycji katalogu, żeby było widać, że dane i adresy działają.
+ * Na razie pasek menu i hero SkyTimer 1. h1 (nazwa firmy) jest dla czytników ekranu i Google,
+ * nazwa produktu w hero to h2.
  */
 import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import SkyTimerHero from '../../components/home/SkyTimerHero.astro';
 import { LOCALES, type Locale } from '../../i18n/locales.ts';
 import { getDictionary, productTexts } from '../../i18n/index.ts';
-import { alternatesFor, pathFor } from '../../i18n/routes.ts';
-import { CATALOG } from '../../data/catalog.ts';
-import { getProduct } from '../../data/products/index.ts';
+import { alternatesFor, configuratorPath, pathFor } from '../../i18n/routes.ts';
 
 export const getStaticPaths = (() =>
   LOCALES.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
 
 const locale = Astro.params.lang as Locale;
 const dict = getDictionary(locale);
-
-const items = CATALOG.map((entry) => ({
-  href: pathFor(locale, entry),
-  name: entry.kind === 'product' ? productTexts(dict, entry.id).name : dict.pages[entry.id].name,
-  comingSoon: entry.kind === 'product' && getProduct(entry.id)?.status === 'coming-soon',
-}));
 ---
 
 <BaseLayout
@@ -30,13 +25,17 @@ const items = CATALOG.map((entry) => ({
   description={dict.site.description}
   alternates={alternatesFor('home')}
 >
-  <h1>{dict.pages.home.title}</h1>
-  <ul>
-    {items.map((item) => (
-      <li>
-        <a href={item.href}>{item.name}</a>
-        {item.comingSoon && <> ({dict.common.comingSoon})</>}
-      </li>
-    ))}
-  </ul>
+  <SiteNav locale={locale} />
+  <main>
+    <h1 class="visually-hidden">{dict.pages.home.title}</h1>
+    <SkyTimerHero
+      title={productTexts(dict, 'skytimer-1').name}
+      tagline={dict.pages.home.hero.tagline}
+      primaryLabel={dict.common.learnMore}
+      primaryHref={pathFor(locale, { kind: 'product', id: 'skytimer-1' })}
+      secondaryLabel={dict.common.buy}
+      secondaryHref={configuratorPath(locale, 'skytimer-1')}
+      imageAlt={dict.pages.home.hero.imageAlt}
+    />
+  </main>
 </BaseLayout>
