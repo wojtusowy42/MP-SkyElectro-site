@@ -16,6 +16,25 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Płynne przejścia: przewijanie do kotwic (#rozdział) i przenikanie między podstronami.
+   Natywne cross-document view transitions — bez JS, skrypty stron działają jak dotąd;
+   przeglądarki bez wsparcia po prostu przeładowują stronę jak wcześniej. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--duration-ui);
+    animation-timing-function: var(--ease-out);
+  }
+}
+
 body {
   margin: 0;
   background: var(--color-bg);

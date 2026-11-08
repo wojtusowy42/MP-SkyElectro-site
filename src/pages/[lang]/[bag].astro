@@ -31,9 +31,10 @@ const c = dict.pages.configurator;
 /**
  * Miniatury pozycji: zdjęcia z wersjami jak na stronie Kup (match = 'krok=opcja ...'),
  * Bag.svelte wybiera to, które pasuje do wyborów (pickVersion).
- * Zestaw: kup/zestaw-<wariant>-<kolor>[-<śruby>].jpg; sama płytka: render płytki.
+ * Zestaw: kup/miniatura-<wariant>-<kolor>.jpg (timer w obudowie, przycięty: cały zestaw w małym
+ * kwadracie był nieczytelny); sama płytka: render płytki.
  */
-const KITS = import.meta.glob<ImageMetadata>('../../assets/renders/*/kup/zestaw-*.jpg', {
+const KITS = import.meta.glob<ImageMetadata>('../../assets/renders/*/kup/miniatura-*.jpg', {
   eager: true,
   import: 'default',
 });
@@ -52,7 +53,7 @@ async function thumbs(product: (typeof PRODUCTS)[number]) {
   });
   return Promise.all(
     [...(PLAIN[product.id] ?? []), ...kits].map(async ({ src, match }) => ({
-      src: (await getImage({ src, width: 192, format: 'webp' })).src,
+      src: (await getImage({ src, width: 240, format: 'webp' })).src,
       match,
     })),
   );

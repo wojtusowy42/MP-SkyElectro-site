@@ -22,6 +22,8 @@ interface Props {
     pictures: { src: ImageMetadata; alt: string; match?: string }[];
     show?: string[];
     showAt?: string;
+    /** Zdjęcie przycięte do całej karty (object-fit: cover) zamiast całego w środku. */
+    fill?: boolean;
   }[];
   labels: { prev: string; next: string; dot: string };
 }
@@ -35,7 +37,7 @@ const dotLabel = (n: number) =>
   <div class="gallery__track" data-track tabindex="0">
     {images.map((image, i) => (
       <div
-        class="gallery__slide"
+        class:list={['gallery__slide', { 'gallery__slide--fill': image.fill }]}
         data-slide
         data-versions
         data-show={image.show?.join(' ')}
@@ -195,11 +197,16 @@ const dotLabel = (n: number) =>
     display: none;
   }
 
-  /* Rendery na białym tle w białej karcie: całe, bez przycinania. */
+  /* Rendery całe, bez przycinania; multiply: białe tło renderu przyjmuje szary kolor karty. */
   .gallery__slide :global(.gallery__image) {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
+  .gallery__slide--fill :global(.gallery__image) {
+    object-fit: cover;
   }
 
   /* ---------- Strzałki i kropki (jak u Apple) ---------- */
@@ -220,7 +227,7 @@ const dotLabel = (n: number) =>
     padding: 0;
     border: 0;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--color-text) 10%, var(--color-bg));
+    background: color-mix(in srgb, var(--color-text) 10%, var(--color-surface));
     color: var(--color-text);
     cursor: pointer;
   }
@@ -255,7 +262,7 @@ const dotLabel = (n: number) =>
     gap: 0.75rem;
     padding: 0.875rem 1.25rem;
     border-radius: 980px;
-    background: color-mix(in srgb, var(--color-text) 10%, var(--color-bg));
+    background: color-mix(in srgb, var(--color-text) 10%, var(--color-surface));
   }
 
   .gallery__dot {
@@ -290,7 +297,7 @@ const dotLabel = (n: number) =>
 
   @media (hover: hover) {
     .gallery__arrow:not(:disabled):hover {
-      background: color-mix(in srgb, var(--color-text) 16%, var(--color-bg));
+      background: color-mix(in srgb, var(--color-text) 16%, var(--color-surface));
     }
   }
 </style>

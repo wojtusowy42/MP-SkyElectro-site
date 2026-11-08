@@ -315,6 +315,10 @@
         {/if}
       </p>
     </section>
+  {:else if clean[definition.steps[0]!.id] !== undefined}
+    <!-- Miejsce na podsumowanie, zanim się pojawi: karta z galerią stoi do miejsca, gdzie będzie cena
+         (bez tego koniec kolumny wypadał wcześniej i karta odjeżdżała przy niedokończonych wyborach). -->
+    <div class="summary-space" aria-hidden="true"></div>
   {/if}
 </div>
 
@@ -323,6 +327,11 @@
     display: grid;
     /* Duże odstępy: na ekranie jest zawsze jeden krok naraz. */
     gap: clamp(4.5rem, 14vh, 9rem);
+  }
+
+  /* shortcut: stała wysokość na oko (podsumowanie SkyTimera ~30rem); inny produkt z dłuższym = zmierzyć */
+  .summary-space {
+    height: 30rem;
   }
 
   /* ---------- Krok ---------- */

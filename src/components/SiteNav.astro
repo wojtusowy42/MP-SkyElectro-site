@@ -12,6 +12,7 @@ import { navItems } from '../lib/navigation.ts';
 import { bagPath, homePath } from '../i18n/routes.ts';
 import type { Locale } from '../i18n/locales.ts';
 import { SITE } from '../config/site.ts';
+import logo from '../assets/brand/logo.svg?raw';
 
 interface Props {
   locale: Locale;
@@ -25,9 +26,8 @@ const items = navItems(locale);
 
 <header class:list={['nav', { 'nav--static': !sticky }]}>
   <nav class="nav__inner" aria-label={dict.nav.label}>
-    <a class="nav__logo" href={homePath(locale)}>
-      {SITE.name}
-    </a>
+    {/* wektor z currentColor: kolor z CSS; nazwa dla czytników ekranu w aria-label */}
+    <a class="nav__logo" href={homePath(locale)} aria-label={SITE.name} set:html={logo} />
     <ul class="nav__list" role="list">
       {items.map((item) => (
         <li class="nav__item">
@@ -72,6 +72,8 @@ const items = navItems(locale);
   show();
   window.addEventListener(BAG_EVENT, show);
   window.addEventListener('storage', show);
+  // powrót "wstecz" pokazuje stronę z pamięci przeglądarki (bfcache): licznik byłby nieaktualny
+  window.addEventListener('pageshow', show);
 </script>
 
 <style>
@@ -114,10 +116,15 @@ const items = navItems(locale);
 
   .nav__logo {
     flex: none;
+    display: flex;
+    align-items: center;
     color: var(--color-text-on-dark);
-    font-size: 0.875rem; /* 14 px */
-    font-weight: 600;
-    letter-spacing: -0.015em;
+  }
+
+  .nav__logo :global(svg) {
+    display: block;
+    height: 1.25rem; /* 20 px */
+    width: auto;
   }
 
   .nav__list {

@@ -50,11 +50,13 @@ const VERSIONS = import.meta.glob<ImageMetadata>('../../../assets/renders/*/kup/
 type Slide = ({ key: string; src: ImageMetadata } | { versions: string[] }) & {
   show?: string[];
   showAt?: string;
+  /** Zdjęcie wypełnia całą kartę (cień albo kadr dochodzi do brzegu pliku, więc brzeg nie może być widać). */
+  fill?: boolean;
 };
 const GALLERIES: Record<string, Slide[]> = {
   'skytimer-1': [
     // na start sam timer (płytka); zestaw i warianty po wyborze przewijają się same
-    { key: 'pcb', src: stPcb, show: ['pcb'] },
+    { key: 'pcb', src: stPcb, show: ['pcb'], fill: true },
     // po wyborze śrub galeria zostaje na śrubkach; cały zestaw dopiero przy podsumowaniu
     { versions: ['zestaw'], show: ['kit'], showAt: 'summary' },
     // przed wyborem wariantu wszystkie trzy, po wyborze tylko wybrany
@@ -62,8 +64,8 @@ const GALLERIES: Record<string, Slide[]> = {
     // śrubki, gdy klient zjedzie do kroku "Śruby" (wybór koloru zostawia galerię na miejscu)
     { versions: ['element-sruby'], showAt: 'screws' },
     { key: 'pcb-top', src: stPcbTop },
-    { key: 'pcb-back', src: stPcbBack },
-    { key: 'pcb-detail-dip', src: stPcbDetail },
+    { key: 'pcb-back', src: stPcbBack, fill: true },
+    { key: 'pcb-detail-dip', src: stPcbDetail, fill: true },
   ],
 };
 
@@ -160,6 +162,7 @@ const gallery = (GALLERIES[product.id] ?? []).map((slide) => {
   const show = {
     ...(slide.show ? { show: slide.show } : {}),
     ...(slide.showAt ? { showAt: slide.showAt } : {}),
+    ...(slide.fill ? { fill: true } : {}),
   };
   if ('src' in slide) {
     return {
@@ -364,13 +367,14 @@ const fromPrice =
 </BaseLayout>
 
 <style>
-  /* Białe tło strony i karty: rendery są na bieli, więc zdjęcia nie mają widocznych krawędzi. */
+  /* Białe tło strony, zdjęcia w szarych kartach (jak apple.com); białe tło renderów znika przez multiply. */
   :global(body) {
     background: var(--color-surface);
   }
 
+  /* szerzej niż --content-wide: galeria i kroki w proporcjach strony Kup na apple.com */
   .buy {
-    max-width: calc(var(--content-wide) + 2 * var(--gutter));
+    max-width: calc(90rem + 2 * var(--gutter));
     margin-inline: auto;
     padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter) 8rem;
   }
@@ -424,13 +428,12 @@ const fromPrice =
     list-style: none;
   }
 
-  /* Biały kafelek z cienką ramką: rendery są na bieli, ramka oddziela pozycje. */
+  /* Szary kafelek (jak apple.com); multiply na zdjęciu zdejmuje białe tło renderu. */
   .kit__tile {
     padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(0.75rem, 1.5vw, 1.25rem)
       clamp(1.25rem, 2vw, 1.75rem);
     border-radius: 1.25rem;
-    background: var(--color-surface);
-    box-shadow: inset 0 0 0 1px var(--color-line);
+    background: var(--color-bg);
   }
 
   .kit__picture[hidden],
@@ -444,6 +447,7 @@ const fromPrice =
     height: auto;
     aspect-ratio: 1;
     object-fit: contain;
+    mix-blend-mode: multiply;
   }
 
   .kit__name {
@@ -506,26 +510,27 @@ const fromPrice =
   .buy__card {
     overflow: hidden;
     border-radius: 1.75rem;
-    background: var(--color-surface);
+    background: var(--color-bg);
     aspect-ratio: 1 / 1;
   }
 
   @media (min-width: 900px) {
     .buy__grid {
-      grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
-      gap: clamp(3rem, 6vw, 6rem);
+      grid-template-columns: minmax(0, 1fr) minmax(22rem, 30rem);
+      gap: clamp(2.5rem, 4vw, 4.5rem);
       align-items: start;
     }
 
-    /* Karta zostaje na ekranie, kiedy przewijasz kroki. */
+    /* Karta stoi pod paskiem menu, kiedy przewijasz kroki; koniec kolumny kroków (cena, "Dodaj do torby")
+       kończy siatkę, więc dopiero wtedy karta odjeżdża razem ze stroną do "Co jest w zestawie". */
     .buy__media {
       position: sticky;
-      top: 1.5rem;
+      top: calc(var(--nav-h) + 3rem);
     }
 
     .buy__card {
       aspect-ratio: auto;
-      height: clamp(26rem, calc(100dvh - 3rem), 48rem);
+      height: clamp(26rem, calc(100dvh - var(--nav-h) - 4.5rem), 48rem);
     }
   }
 </style>

@@ -65,12 +65,22 @@
   onMount(() => {
     lines = readBag();
     loaded = true;
+    // Pozycje, których strona nie umie pokazać (produkt zniknął, opcje się zmieniły), usuwamy z torby,
+    // inaczej licznik w menu liczyłby coś, czego tu nie widać.
+    const shown = rows.map((r) => r.line);
+    if (shown.length !== lines.length) update(shown);
     // zmiana torby w innej karcie przeglądarki
     const sync = (e: StorageEvent) => {
       if (e.key === null || e.key.includes('bag')) lines = readBag();
     };
+    // powrót "wstecz" z bfcache: torba mogła się zmienić na innej stronie
+    const reload = () => (lines = readBag());
     window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
+    window.addEventListener('pageshow', reload);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('pageshow', reload);
+    };
   });
 
   /** Pozycje gotowe do pokazania: nazwa, wybory, cena. Nieaktualne pozycje pomijamy. */
@@ -267,7 +277,7 @@
   /* Pozycja: zdjęcie | opis | ilość | cena; na telefonie ilość i cena pod opisem. */
   .line {
     display: grid;
-    grid-template-columns: 6rem minmax(0, 1fr) auto auto;
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto auto;
     grid-template-areas: 'thumb main qty price';
     align-items: start;
     gap: 1.5rem;
@@ -278,13 +288,18 @@
   .line__thumb {
     grid-area: thumb;
     aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background: var(--color-bg);
   }
 
+  /* multiply: białe tło renderu przyjmuje szary kolor ramki */
   .line__thumb img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
+    mix-blend-mode: multiply;
   }
 
   .line__main {
@@ -413,7 +428,7 @@
 
   @media (max-width: 599px) {
     .line {
-      grid-template-columns: 4.5rem auto minmax(0, 1fr);
+      grid-template-columns: 5.5rem auto minmax(0, 1fr);
       grid-template-areas:
         'thumb main main'
         '. qty price';
