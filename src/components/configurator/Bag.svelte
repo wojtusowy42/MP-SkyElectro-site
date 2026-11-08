@@ -16,7 +16,8 @@
     visibleSteps,
   } from '../../lib/configurator.ts';
   import { formatPrice } from '../../lib/price.ts';
-  import { BAG_EVENT, readBag, writeBag, type BagLine } from '../../lib/bag.ts';
+  import { readBag, writeBag, type BagLine } from '../../lib/bag.ts';
+  import { pickVersion } from '../../lib/versions.ts';
 
   interface Labels {
     heading: string;
@@ -39,7 +40,13 @@
   interface Props {
     products: Record<
       string,
-      { definition: ConfiguratorDefinition; texts: ProductTexts; href: string }
+      {
+        definition: ConfiguratorDefinition;
+        texts: ProductTexts;
+        href: string;
+        /** Miniatury w wersjach ('krok=opcja ...'), jak zdjęcia na stronie Kup. */
+        thumbs: { src: string; match: string }[];
+      }
     >;
     labels: Labels;
     locale: Locale;
@@ -79,8 +86,16 @@
         const name = stepTexts?.heading?.replace(/\.$/, '') ?? stepTexts?.label ?? step.id;
         return { step: name, option: stepTexts?.options[selection[step.id]!] ?? '' };
       });
+      const thumb = product.thumbs[pickVersion(product.thumbs.map((t) => t.match), selection)];
       return [
-        { index, line, product, choices, price: quote(definition, selection, line.quantity, date) },
+        {
+          index,
+          line,
+          product,
+          choices,
+          thumb,
+          price: quote(definition, selection, line.quantity, date),
+        },
       ];
     }),
   );
@@ -130,6 +145,10 @@
       {#each rows as row (row.index)}
         {@const def = row.product.definition}
         <li class="line">
+          <!-- obok jest nazwa i wybory, więc zdjęcie bez opisu -->
+          <div class="line__thumb">
+            {#if row.thumb}<img src={row.thumb.src} alt="" loading="lazy" />{/if}
+          </div>
           <div class="line__main">
             <h2 class="line__name">{row.product.texts.name}</h2>
             <dl class="line__choices">
@@ -245,14 +264,39 @@
     border-top: 1px solid var(--color-line);
   }
 
-  /* Pozycja: opis | ilość | cena; na telefonie opis nad ilością i ceną. */
+  /* Pozycja: zdjęcie | opis | ilość | cena; na telefonie ilość i cena pod opisem. */
   .line {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: 6rem minmax(0, 1fr) auto auto;
+    grid-template-areas: 'thumb main qty price';
     align-items: start;
     gap: 1.5rem;
     padding-block: 2rem;
     border-bottom: 1px solid var(--color-line);
+  }
+
+  .line__thumb {
+    grid-area: thumb;
+    aspect-ratio: 1;
+  }
+
+  .line__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .line__main {
+    grid-area: main;
+  }
+
+  .stepper {
+    grid-area: qty;
+  }
+
+  .line__price {
+    grid-area: price;
   }
 
   .line__name {
@@ -369,11 +413,11 @@
 
   @media (max-width: 599px) {
     .line {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .line__main {
-      grid-column: 1 / -1;
+      grid-template-columns: 4.5rem auto minmax(0, 1fr);
+      grid-template-areas:
+        'thumb main main'
+        '. qty price';
+      gap: 1rem;
     }
   }
 </style>

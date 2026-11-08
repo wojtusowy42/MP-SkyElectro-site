@@ -4,7 +4,9 @@
  * Treść rysuje Bag.svelte z localStorage, więc strona statyczna ma tylko szkielet.
  * Obok [slug].astro: Astro bierze ścieżkę z tego pliku, którego getStaticPaths ją zwraca.
  */
-import type { GetStaticPaths } from 'astro';
+import type { GetStaticPaths, ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import stPcb from '../../assets/renders/skytimer-1/konfigurator/pcb.png';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Bag from '../../components/configurator/Bag.svelte';
@@ -26,9 +28,43 @@ const dict = getDictionary(locale);
 const t = dict.pages.bag;
 const c = dict.pages.configurator;
 
+/**
+ * Miniatury pozycji: zdjęcia z wersjami jak na stronie Kup (match = 'krok=opcja ...'),
+ * Bag.svelte wybiera to, które pasuje do wyborów (pickVersion).
+ * Zestaw: kup/zestaw-<wariant>-<kolor>[-<śruby>].jpg; sama płytka: render płytki.
+ */
+const KITS = import.meta.glob<ImageMetadata>('../../assets/renders/*/kup/zestaw-*.jpg', {
+  eager: true,
+  import: 'default',
+});
+const PLAIN: Record<string, { src: ImageMetadata; match: string }[]> = {
+  'skytimer-1': [{ src: stPcb, match: 'type=pcb' }],
+};
+async function thumbs(product: (typeof PRODUCTS)[number]) {
+  const stepOf = new Map(
+    product.configurator!.steps.flatMap((s) => s.options.map((o) => [o.id, s.id] as const)),
+  );
+  const kits = Object.entries(KITS).flatMap(([path, src]) => {
+    if (!path.includes(`/${product.id}/kup/`)) return [];
+    const options = path.split('/').at(-1)!.replace(/\.jpg$/, '').split('-').slice(1);
+    if (options.some((o) => !stepOf.has(o))) return [];
+    return [{ src, match: ['type=kit', ...options.map((o) => `${stepOf.get(o)}=${o}`)].join(' ') }];
+  });
+  return Promise.all(
+    [...(PLAIN[product.id] ?? []), ...kits].map(async ({ src, match }) => ({
+      src: (await getImage({ src, width: 192, format: 'webp' })).src,
+      match,
+    })),
+  );
+}
+
 // Tylko produkty z konfiguratorem (tylko je da się włożyć do torby).
+const configurable = PRODUCTS.filter((p) => p.configurator);
+const thumbsOf = Object.fromEntries(
+  await Promise.all(configurable.map(async (p) => [p.id, await thumbs(p)] as const)),
+);
 const products = Object.fromEntries(
-  PRODUCTS.filter((p) => p.configurator).map((p) => {
+  configurable.map((p) => {
     const texts = productTexts(dict, p.id);
     return [
       p.id,
@@ -40,6 +76,7 @@ const products = Object.fromEntries(
           ...(texts.steps ? { steps: texts.steps } : {}),
         },
         href: configuratorPath(locale, p.id),
+        thumbs: thumbsOf[p.id] ?? [],
       },
     ];
   }),

@@ -11,3 +11,19 @@ describe('wersje zdjęć', () => {
     expect(pickVersion(slide, { variant: 'v2', color: 'orange' })).toBe(3));
   it('zdjęcie bez opcji pasuje zawsze', () => expect(pickVersion([''], { color: 'blue' })).toBe(0));
 });
+
+describe('miniatury w torbie', () => {
+  const thumbs = [
+    'type=pcb',
+    'type=kit variant=v1 color=blue',
+    'type=kit variant=v2 color=blue',
+    'type=kit variant=v2 color=blue screws=blackened',
+  ];
+  it('sama płytka', () => expect(pickVersion(thumbs, { type: 'pcb' })).toBe(0));
+  it('zestaw: wariant, kolor, cynk', () =>
+    expect(pickVersion(thumbs, { type: 'kit', variant: 'v2', color: 'blue', screws: 'zinc' })).toBe(2));
+  it('zestaw: czernione', () =>
+    expect(
+      pickVersion(thumbs, { type: 'kit', variant: 'v2', color: 'blue', screws: 'blackened' }),
+    ).toBe(3));
+});

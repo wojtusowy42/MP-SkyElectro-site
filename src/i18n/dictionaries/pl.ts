@@ -144,7 +144,7 @@ export const pl = {
       // Opisy zdjęć w konfiguratorze (dla czytników ekranu i Google). Klucz = nazwa pliku.
       images: {
         zestaw:
-          'Zestaw SkyTimer 1: płytka wariantu 2 z szablonem, moduły LED i buzzera, ładowarka, akumulator, mechanizm puszczania linek i szablon serwa',
+          'Zestaw SkyTimer 1: płytka wybranego wariantu z szablonem, moduły LED i buzzera, ładowarka, akumulator, mechanizm puszczania linek i szablon serwa',
         warianty: 'Trzy warianty płytki SkyTimer 1 obok siebie',
         'element-sruby': 'Komplet śrub M2 i\u00a0wkrętów',
         wariant: 'SkyTimer 1 w obudowie, widok z przodu',
