@@ -12,8 +12,10 @@ import SiteNav from '../../components/SiteNav.astro';
 import Bag from '../../components/configurator/Bag.svelte';
 import { LOCALES } from '../../i18n/locales.ts';
 import { getDictionary, productTexts } from '../../i18n/index.ts';
-import { bagPath, configuratorPath, homePath } from '../../i18n/routes.ts';
+import { accessoryPath, bagPath, configuratorPath, homePath } from '../../i18n/routes.ts';
 import { PRODUCTS } from '../../data/products/index.ts';
+import { ACCESSORIES } from '../../data/accessories.ts';
+import { accessoryImages } from '../../lib/accessory-images.ts';
 import { SITE } from '../../config/site.ts';
 import { toDateKey } from '../../lib/price.ts';
 
@@ -82,6 +84,27 @@ const products = Object.fromEntries(
     ];
   }),
 );
+
+// Akcesoria: ten sam format (mały konfigurator), teksty kroków wspólne ze SkyTimer 1.
+const stepTexts = productTexts(dict, 'skytimer-1').steps ?? {};
+for (const a of ACCESSORIES) {
+  const texts = dict.accessories.items[a.id]!;
+  products[a.id] = {
+    definition: a.configurator,
+    texts: {
+      slug: texts.slug,
+      name: texts.name,
+      steps: Object.fromEntries(a.configurator.steps.map((s) => [s.id, stepTexts[s.id]!])),
+    },
+    href: accessoryPath(locale, { accessory: a.id }),
+    thumbs: await Promise.all(
+      accessoryImages(a).map(async ({ src, match }) => ({
+        src: (await getImage({ src, width: 240, format: 'webp' })).src,
+        match,
+      })),
+    ),
+  };
+}
 ---
 
 <BaseLayout

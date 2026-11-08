@@ -122,7 +122,17 @@ export const pl = {
       slug: 'akcesoria',
       name: 'Akcesoria / części zamienne', // nazwa do ustalenia
       navName: 'Akcesoria', // krótka nazwa w menu
-      empty: 'Brak pozycji.', // roboczy
+      // Strona /pl/akcesoria/ (wzór: "Wszystkie akcesoria" na apple.com)
+      heading: 'Akcesoria.',
+      lead: 'Części zamienne i dodatki do SkyTimer 1 i wieżyczek. Każdą część kupisz osobno.', // roboczy
+      browse: 'Przeglądaj według produktu',
+      all: 'Wszystkie akcesoria',
+      seeAll: 'Zobacz wszystkie',
+      noImage: 'Zdjęcie wkrótce',
+      // Strona akcesorium (wzór: strona produktu w sklepie apple.com)
+      overview: 'Przegląd',
+      fits: 'Pasuje do',
+      colors: 'Dostępne w {n} kolorach',
     },
     services: {
       slug: 'uslugi',
@@ -132,8 +142,16 @@ export const pl = {
     contact: {
       slug: 'kontakt',
       name: 'Kontakt',
+      heading: 'Jak możemy pomóc?',
+      lead: 'Pytania o produkty, zamówienia albo nietypowy projekt? Napisz lub zadzwoń.',
+      emailTitle: 'E-mail',
+      emailText: 'Najlepiej do zamówień i pytań technicznych.',
       noEmail: 'Adres e-mail zostanie podany wkrótce.', // roboczy
       phone: 'Telefon',
+      phoneText: 'Gdy sprawa jest pilna albo łatwiej ją omówić.',
+      manualTitle: 'Podręcznik SkyTimer 1',
+      manualText: 'Montaż, ustawienia i odpowiedzi na częste pytania.',
+      manualLink: 'Pobierz PDF',
     },
   },
 
@@ -518,8 +536,89 @@ export const pl = {
   },
 
   accessories: {
-    // Nazwy akcesoriów: klucz = id z src/data/accessories.ts
-    items: {} as Record<string, string>,
+    // Kategorie: klucz = id z ACCESSORY_CATEGORIES (src/data/accessories.ts).
+    categories: {
+      'skytimer-1': {
+        slug: 'skytimer-1',
+        name: 'SkyTimer 1',
+        heading: 'Akcesoria do SkyTimer 1.',
+      },
+      wieze: { slug: 'wiezyczki', name: 'Wieżyczki', heading: 'Akcesoria do wieżyczek.' },
+    } as Record<string, { slug: string; name: string; heading: string }>,
+    // Akcesoria: klucz = id z src/data/accessories.ts. Nazwy i ceny z arkusza "Akcesoria".
+    // overview = "Przegląd" na stronie akcesorium. Fakty z podręcznika V3 i rozdziału "W zestawie".
+    items: {
+      'plytka-drukowana': {
+        slug: 'plytka-drukowana',
+        name: 'Płytka drukowana timera',
+        overview:
+          'Drukowana płytka czołowa z tabelką czasów przy przełącznikach DIP. Osobno do każdego wariantu płytki SkyTimer 1, w kolorze pozostałych części.', // roboczy
+      },
+      'modul-zasilania': {
+        slug: 'modul-zasilania',
+        name: 'Moduł zasilania',
+        overview:
+          'Włącznik z przewodami, który łączy akumulator z timerem. Obudowa drukowana w wybranym kolorze.', // roboczy
+      },
+      akumulator: {
+        slug: 'akumulator',
+        name: 'Akumulator',
+        overview:
+          'Akumulator Li‑Pol 1S, taki sam jak w zestawie SkyTimer 1. Na zapas albo do drugiego modelu.', // roboczy
+      },
+      'przycisk-startu': {
+        slug: 'przycisk-startu',
+        name: 'Przycisk startu',
+        overview: 'Klasyczny przycisk startu 12 × 12 mm, ten sam co w zestawie.', // roboczy
+      },
+      flasher: {
+        slug: 'flasher',
+        name: 'Flasher LED',
+        overview:
+          'Moduł LED, który wystaje 5 mm ponad wieżyczkę. Po locie łatwiej znaleźć model.', // roboczy
+      },
+      buzzer: {
+        slug: 'buzzer',
+        name: 'Buzzer',
+        overview:
+          'Moduł buzzera z obudową w wybranym kolorze. Wysuwasz go z bazy, więc wymiana trwa chwilę.', // roboczy
+      },
+      'zwalniacz-linek': {
+        slug: 'zwalniacz-linek',
+        name: 'Zwalniacz linek',
+        overview:
+          'Mechanizm puszczania linek na dwie linki: flop i dether. Części drukowane w wybranym kolorze.', // roboczy
+      },
+      ladowarka: {
+        slug: 'ladowarka',
+        name: 'Ładowarka',
+        overview:
+          'Ładowarka USB‑C do akumulatora SkyTimer 1. Czerwona dioda: ładuje, zielona: gotowe.', // roboczy
+      },
+      'zestaw-srubek': {
+        slug: 'zestaw-srubek',
+        name: 'Zestaw śrubek',
+        overview:
+          'Komplet śrub M2 i wkrętów do złożenia timera. Śruby cynkowane albo czernione, wkręty 2,2 × 9,5 zawsze ocynkowane.', // roboczy
+      },
+      szablony: {
+        slug: 'szablony',
+        name: 'Szablony',
+        overview: 'Szablony montażowe na każdy wariant płytki i na serwo.', // roboczy
+      },
+      podrecznik: {
+        slug: 'podrecznik',
+        name: 'Podręcznik użytkownika (papierowy)',
+        overview:
+          'Wydrukowany podręcznik SkyTimer 1: montaż, ustawianie czasów i bezpieczeństwo. Wersja PDF jest za darmo na stronie produktu.', // roboczy
+      },
+      'zestaw-gps': {
+        slug: 'zestaw-gps',
+        name: 'Zestaw GPS do wieżyczek',
+        overview:
+          'Zestaw do montażu GPS w wieżyczce drukowanej, która ma komorę na włącznik i akumulator GPS. Szczegóły potwierdzimy przy zamówieniu.', // roboczy
+      },
+    } as Record<string, { slug: string; name: string; overview: string }>,
   },
 };
 

@@ -6,12 +6,12 @@
  */
 import { PRODUCTS } from './products/index.ts';
 import { SERVICES } from './services.ts';
-import { ACCESSORIES } from './accessories.ts';
+import { ACCESSORIES, ACCESSORY_CATEGORIES } from './accessories.ts';
 import { CATALOG } from './catalog.ts';
 import type { Price } from './types.ts';
 import { isPromoActive } from '../lib/price.ts';
 import { LOCALES } from '../i18n/locales.ts';
-import { getDictionary, type ProductTexts } from '../i18n/index.ts';
+import { getDictionary, productTexts, type ProductTexts } from '../i18n/index.ts';
 
 export interface ValidationResult {
   errors: string[];
@@ -104,7 +104,14 @@ export function validateCatalog(): ValidationResult {
     }
   }
 
-  for (const accessory of ACCESSORIES) checkPrice(`akcesorium ${accessory.id}`, accessory.price);
+  for (const accessory of ACCESSORIES) {
+    if (accessory.configurator.basePrice) {
+      checkPrice(`akcesorium ${accessory.id}`, accessory.configurator.basePrice);
+    }
+    if (ids.includes(accessory.id)) {
+      errors.push(`Akcesorium ${accessory.id} ma takie samo id jak produkt (torba by je pomyliła)`);
+    }
+  }
   for (const service of SERVICES) {
     for (const item of service.todo ?? []) warnings.push(`usługa ${service.id}: TODO ${item}`);
   }
@@ -145,11 +152,35 @@ export function validateCatalog(): ValidationResult {
         errors.push(`[${locale}] brak nazwy usługi ${service.id}`);
       }
     }
+    // Adresy pod /akcesoria/: kategorie i akcesoria nie mogą się powtarzać
+    const accessorySlugs: string[] = [];
+    for (const category of ACCESSORY_CATEGORIES) {
+      const texts = dict.accessories.categories[category];
+      if (!texts) errors.push(`[${locale}] brak tekstów kategorii akcesoriów ${category}`);
+      else accessorySlugs.push(texts.slug);
+    }
+    const stepTexts = productTexts(dict, 'skytimer-1').steps ?? {};
     for (const accessory of ACCESSORIES) {
-      if (!dict.accessories.items[accessory.id]) {
-        errors.push(`[${locale}] brak nazwy akcesorium ${accessory.id}`);
+      const texts = dict.accessories.items[accessory.id];
+      if (!texts) {
+        errors.push(`[${locale}] brak tekstów akcesorium ${accessory.id}`);
+        continue;
+      }
+      accessorySlugs.push(texts.slug);
+      for (const step of accessory.configurator.steps) {
+        for (const option of step.options) {
+          if (!stepTexts[step.id]?.options[option.id]) {
+            errors.push(`[${locale}] brak etykiety opcji ${accessory.id}.${step.id}.${option.id}`);
+          }
+        }
       }
     }
+    for (const slug of new Set(accessorySlugs)) {
+      if (accessorySlugs.filter((s) => s === slug).length > 1) {
+        errors.push(`[${locale}] zdublowany adres akcesoriów: ${slug}`);
+      }
+    }
+    slugs.push(...accessorySlugs.map((s) => `${dict.pages.accessories.slug}-${s}`)); // tylko sprawdzenie znaków
 
     for (const slug of slugs) {
       if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {

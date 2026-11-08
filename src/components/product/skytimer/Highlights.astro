@@ -5,7 +5,7 @@
  *
  * Rendery: ciemne studio (F1E_SkyTimer_v0.1.blend, scena SkyTimer_Anim_Zlozenie, tło #000),
  * oryginały w Raw Assets/Blender Renders/SkyTimer strona produktu/:
- *   01 → przelaczniki-makro (całe), 02 → zlacze-skos (przycięte do produktu z cieniem),
+ *   przelaczniki-makro i zlacze-skos: studio v4 (SkyTimer_Zestaw.blend, rendery_wyrozniki.py),
  *   04 → gora (przycięte). Karta "odtwarzanie": grafika sygnałów (bez renderu).
  */
 import FeatureGallery, { type GalleryItem } from '../FeatureGallery.astro';
@@ -16,8 +16,8 @@ import { getProduct } from '../../../data/products/index.ts';
 import { SKYTIMER_1_TIMING as T } from '../../../data/skytimer-1-spec.ts';
 import { formatDuration } from '../../../lib/duration.ts';
 import { richText } from '../../../i18n/rich-text.ts';
-import dipImage from '../../../assets/renders/skytimer-1/story/przelaczniki-makro.png';
-import connectorImage from '../../../assets/renders/skytimer-1/story/zlacze-skos.png';
+import dipImage from '../../../assets/renders/skytimer-1/story/przelaczniki-makro.jpg';
+import connectorImage from '../../../assets/renders/skytimer-1/story/zlacze-skos.jpg';
 import topImage from '../../../assets/renders/skytimer-1/story/gora.png';
 
 interface Props {

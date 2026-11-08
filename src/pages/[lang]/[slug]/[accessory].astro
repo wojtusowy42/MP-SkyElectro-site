@@ -1,0 +1,195 @@
+---
+/**
+ * Pod /pl/akcesoria/ (slug ze słownika): strony kategorii i strony akcesoriów.
+ *   /pl/akcesoria/skytimer-1/   katalog jednej kategorii (AccessoriesPage)
+ *   /pl/akcesoria/buzzer/       mały konfigurator akcesorium + "Przegląd" (wzór: produkt w sklepie apple.com)
+ * Obok [configurator].astro: Astro bierze ścieżkę z tego pliku, którego getStaticPaths ją zwraca.
+ */
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import SiteNav from '../../../components/SiteNav.astro';
+import AccessoriesPage from '../../../components/accessories/AccessoriesPage.astro';
+import AccessoryBuy from '../../../components/accessories/AccessoryBuy.svelte';
+import { LOCALES } from '../../../i18n/locales.ts';
+import { getDictionary, productTexts } from '../../../i18n/index.ts';
+import { accessoryPath, bagPath } from '../../../i18n/routes.ts';
+import { ACCESSORIES, ACCESSORY_CATEGORIES } from '../../../data/accessories.ts';
+import { accessoryImages } from '../../../lib/accessory-images.ts';
+import { toDateKey } from '../../../lib/price.ts';
+
+export const getStaticPaths = (() =>
+  LOCALES.flatMap((lang) => {
+    const dict = getDictionary(lang);
+    const slug = dict.pages.accessories.slug;
+    return [
+      ...ACCESSORY_CATEGORIES.map((category) => ({
+        params: { lang, slug, accessory: dict.accessories.categories[category]!.slug },
+        props: { locale: lang, category, accessoryId: undefined },
+      })),
+      ...ACCESSORIES.map((a) => ({
+        params: { lang, slug, accessory: dict.accessories.items[a.id]!.slug },
+        props: { locale: lang, category: undefined, accessoryId: a.id },
+      })),
+    ];
+  })) satisfies GetStaticPaths;
+
+const { locale, category, accessoryId } = Astro.props;
+const dict = getDictionary(locale);
+const t = dict.pages.accessories;
+const c = dict.pages.configurator;
+const accessory = ACCESSORIES.find((a) => a.id === accessoryId);
+const texts = accessory ? dict.accessories.items[accessory.id]! : undefined;
+const title = texts?.name ?? dict.accessories.categories[category!]!.heading.replace(/\.$/, '');
+const alternates = Object.fromEntries(
+  LOCALES.map((l) => [
+    l,
+    accessory ? accessoryPath(l, { accessory: accessory.id }) : accessoryPath(l, { category: category! }),
+  ]),
+) as Record<typeof locale, string>;
+
+const images = accessory
+  ? await Promise.all(
+      accessoryImages(accessory).map(async ({ src, match }) => {
+        const sizes = await Promise.all(
+          [640, 1000, 1400].map((width) => getImage({ src, width, format: 'webp' })),
+        );
+        return {
+          src: sizes[1]!.src,
+          srcset: sizes.map((s, i) => `${s.src} ${[640, 1000, 1400][i]}w`).join(', '),
+          match,
+        };
+      }),
+    )
+  : [];
+// Teksty kroków (kolor, wariant, śruby) są wspólne ze SkyTimer 1.
+const stepTexts = productTexts(dict, 'skytimer-1').steps ?? {};
+---
+
+<BaseLayout locale={locale} title={title} description={texts?.overview ?? dict.site.description} alternates={alternates}>
+  <SiteNav locale={locale} />
+  <main>
+    {category && <AccessoriesPage locale={locale} category={category} />}
+    {
+      accessory && texts && (
+        <div class="item">
+          <p class="item__back">
+            <a href={accessoryPath(locale, { category: accessory.category })}>
+              {dict.accessories.categories[accessory.category]!.heading.replace(/\.$/, '')}
+            </a>
+          </p>
+          <AccessoryBuy
+            client:load
+            accessoryId={accessory.id}
+            name={texts.name}
+            definition={accessory.configurator}
+            steps={Object.fromEntries(accessory.configurator.steps.map((s) => [s.id, stepTexts[s.id]!]))}
+            images={images}
+            alt={texts.name}
+            locale={locale}
+            bagHref={bagPath(locale)}
+            today={toDateKey(new Date())}
+            labels={{
+              addToBag: c.addToBag,
+              addedToBag: c.addedToBag,
+              viewBag: c.viewBag,
+              selectedOption: c.selectedOption,
+              priceOnRequest: dict.common.priceOnRequest,
+              noImage: t.noImage,
+            }}
+          />
+          <section class="overview" aria-labelledby="przeglad">
+            <h2 class="overview__heading" id="przeglad">{t.overview}</h2>
+            <p class="overview__text">{texts.overview}</p>
+            <dl class="overview__fits">
+              <dt>{t.fits}</dt>
+              <dd>
+                <a href={accessoryPath(locale, { category: accessory.category })}>
+                  {dict.accessories.categories[accessory.category]!.name}
+                </a>
+              </dd>
+            </dl>
+          </section>
+        </div>
+      )
+    }
+  </main>
+</BaseLayout>
+
+<style>
+  :global(body) {
+    background: var(--color-surface);
+  }
+
+  .item {
+    max-width: calc(var(--content-wide) + 2 * var(--gutter));
+    margin: 0 auto;
+    padding: 1.25rem var(--gutter) clamp(5rem, 10vw, 8rem);
+    color: var(--color-text);
+  }
+
+  .item__back {
+    margin-bottom: 1.25rem;
+  }
+
+  .item__back a {
+    color: var(--color-text-2);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  .item__back a::before {
+    content: '‹ ';
+  }
+
+  /* Przegląd: oddzielony linią, jak sekcja pod kupowaniem na apple.com. */
+  .overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 1rem 3rem;
+    margin-top: clamp(4rem, 8vw, 6rem);
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .overview__heading {
+    font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .overview__text {
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.3125rem);
+    line-height: 1.45;
+  }
+
+  .overview__fits {
+    grid-column: 2;
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--color-text-2);
+  }
+
+  .overview__fits dt::after {
+    content: ':';
+  }
+
+  .overview__fits dd {
+    margin: 0;
+  }
+
+  .overview__fits a {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 734px) {
+    .overview {
+      grid-template-columns: 1fr;
+    }
+
+    .overview__fits {
+      grid-column: 1;
+    }
+  }
+</style>

@@ -22,7 +22,8 @@ import { format, getDictionary, productTexts } from '../../../i18n/index.ts';
 import { configuratorAlternates } from '../../../i18n/routes.ts';
 import { PRODUCTS } from '../../../data/products/index.ts';
 import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
-import { bagPath } from '../../../i18n/routes.ts';
+import { accessoryPath, bagPath } from '../../../i18n/routes.ts';
+import { accessoryForKitItem } from '../../../data/accessories.ts';
 import { Picture } from 'astro:assets';
 import { currentPrice, formatPrice, toDateKey } from '../../../lib/price.ts';
 import stPcb from '../../../assets/renders/skytimer-1/konfigurator/pcb.png';
@@ -227,6 +228,8 @@ const kitTiles = kitTexts
       return {
         labels: CHOSEN_LABELS[name]?.(general) ?? [{ match: '', text: general }],
         pictures: versionPictures([`element-${name}`], () => ''), // podpis pod zdjęciem wystarcza
+        // część, którą można kupić osobno, prowadzi do strony akcesorium
+        href: accessoryForKitItem(name) && accessoryPath(locale, { accessory: accessoryForKitItem(name)!.id }),
       };
     }).filter((t) => t.pictures.length > 0)
   : [];
@@ -317,6 +320,7 @@ const fromPrice =
         <ul class="kit__grid">
           {kitTiles.map((tile) => (
             <li class="kit__tile">
+              <a class="kit__link" href={tile.href}>
               <div data-versions>
                 {tile.pictures.map((picture, n) => (
                   <div class="kit__picture" data-match={picture.match} hidden={n > 0}>
@@ -340,6 +344,7 @@ const fromPrice =
                   </span>
                 ))}
               </p>
+              </a>
             </li>
           ))}
         </ul>
@@ -415,6 +420,18 @@ const fromPrice =
     padding-top: clamp(3rem, 6vw, 5rem);
     border-top: 1px solid var(--color-line);
     text-align: center;
+  }
+
+  .kit__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .kit__link[href]:hover .kit__name {
+      text-decoration: underline;
+    }
   }
 
   .kit__heading {

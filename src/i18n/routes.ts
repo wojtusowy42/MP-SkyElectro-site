@@ -42,6 +42,19 @@ export function configuratorAlternates(productId: string): Record<Locale, string
   >;
 }
 
+/** Kategoria albo akcesorium: /pl/akcesoria/skytimer-1/, /pl/akcesoria/buzzer/ (slugi ze słownika). */
+export function accessoryPath(
+  locale: Locale,
+  target: { category: string } | { accessory: string },
+): string {
+  const t = getDictionary(locale).accessories;
+  const slug =
+    'category' in target
+      ? t.categories[target.category]!.slug
+      : t.items[target.accessory]!.slug;
+  return `${pathFor(locale, { kind: 'page', id: 'accessories' })}${slug}/`;
+}
+
 /** Torba: /pl/torba/ */
 export function bagPath(locale: Locale): string {
   return `${homePath(locale)}${getDictionary(locale).pages.bag.slug}/`;
