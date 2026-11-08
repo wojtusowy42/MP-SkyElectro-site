@@ -22,6 +22,8 @@ interface Props {
     pictures: { src: ImageMetadata; alt: string; match?: string }[];
     show?: string[];
     showAt?: string;
+    /** Slajd tylko dla tych wyborów ('krok=opcja' po spacji); gdy klient wybrał coś innego, znika razem z kropką. */
+    only?: string;
     /** Zdjęcie przycięte do całej karty (object-fit: cover) zamiast całego w środku. */
     fill?: boolean;
   }[];
@@ -42,6 +44,7 @@ const dotLabel = (n: number) =>
         data-versions
         data-show={image.show?.join(' ')}
         data-show-at={image.showAt}
+        data-only={image.only}
       >
         {image.pictures.map((picture, n) => (
           <div class="gallery__picture" data-match={picture.match} hidden={n > 0}>
@@ -92,21 +95,29 @@ const dotLabel = (n: number) =>
     const dots = [...gallery.querySelectorAll<HTMLButtonElement>('[data-dot]')];
     if (!track || dots.length === 0) continue;
 
-    const count = dots.length;
+    const slides = [...gallery.querySelectorAll<HTMLElement>('[data-slide]')];
+    // Widoczne slajdy: te, których warunek (data-only) pasuje do wyborów; reszta ma hidden i nie liczy się w kropkach.
+    const visible = () => slides.filter((s) => !s.hidden);
     const current = () => Math.round(track.scrollLeft / track.clientWidth);
     const go = (i: number) =>
-      track.scrollTo({ left: Math.max(0, Math.min(count - 1, i)) * track.clientWidth });
+      track.scrollTo({
+        left: Math.max(0, Math.min(visible().length - 1, i)) * track.clientWidth,
+      });
 
     const update = () => {
+      const shown = visible();
       const i = current();
-      dots.forEach((dot, n) => dot.toggleAttribute('aria-current', n === i));
+      dots.forEach((dot, n) => {
+        dot.hidden = slides[n]!.hidden;
+        dot.toggleAttribute('aria-current', shown[i] === slides[n]);
+      });
       if (prev) prev.disabled = i === 0;
-      if (next) next.disabled = i === count - 1;
+      if (next) next.disabled = i >= shown.length - 1;
     };
 
     prev?.addEventListener('click', () => go(current() - 1));
     next?.addEventListener('click', () => go(current() + 1));
-    dots.forEach((dot, n) => dot.addEventListener('click', () => go(n)));
+    dots.forEach((dot, n) => dot.addEventListener('click', () => go(visible().indexOf(slides[n]!))));
     track.addEventListener('scroll', update, { passive: true });
     track.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowLeft') go(current() - 1);
@@ -115,17 +126,27 @@ const dotLabel = (n: number) =>
 
     // Konfigurator: wersje zdjęć podmienia showVersions (src/lib/versions.ts, wywoływane przez stronę).
     // Tutaj tylko przewijanie: świeżo wybrana opcja przewija do swojego slajdu (kolor nie przewija).
-    const slides = [...gallery.querySelectorAll<HTMLElement>('[data-slide]')];
     let previous: string[] = [];
     window.addEventListener('configurator:change', (e) => {
       const selection = (e as CustomEvent<Record<string, string>>).detail;
+      for (const s of slides) {
+        s.hidden = (s.dataset.only ?? '')
+          .split(' ')
+          .filter(Boolean)
+          .some((pair) => {
+            const [step, opt] = pair.split('=') as [string, string];
+            return selection[step] !== undefined && selection[step] !== opt;
+          });
+      }
       const values = Object.values(selection);
       const changed = values.filter((v) => !previous.includes(v));
       previous = values;
-      const target = slides.findIndex((s) =>
-        changed.some((v) => s.dataset.show?.split(' ').includes(v)),
+      const target = slides.findIndex(
+        (s) => !s.hidden && changed.some((v) => s.dataset.show?.split(' ').includes(v)),
       );
-      if (target !== -1) go(target);
+      if (target !== -1) go(visible().indexOf(slides[target]!));
+      else go(current());
+      update();
     });
 
     // Kroki i podsumowanie ([data-step]) pojawiają się i znikają razem z wyborami (Svelte), więc po każdej
@@ -139,7 +160,7 @@ const dotLabel = (n: number) =>
         (entries) => {
           for (const e of entries) {
             const i = at.get((e.target as HTMLElement).dataset.step ?? '');
-            if (e.isIntersecting && i !== undefined) go(i);
+            if (e.isIntersecting && i !== undefined && !slides[i]!.hidden) go(visible().indexOf(slides[i]!));
           }
         },
         { rootMargin: '0px 0px -45% 0px' },
@@ -183,9 +204,17 @@ const dotLabel = (n: number) =>
     outline-offset: 4px;
   }
 
+  /* Wersje zdjęcia leżą jedna na drugiej; zmiana wyboru robi płynne przenikanie (opacity) zamiast cięcia. */
   .gallery__slide {
+    display: grid;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     flex: 0 0 100%;
     scroll-snap-align: center;
+  }
+
+  .gallery__slide[hidden],
+  .gallery__dot[hidden] {
+    display: none;
   }
 
   .gallery__picture,
@@ -193,8 +222,32 @@ const dotLabel = (n: number) =>
     height: 100%;
   }
 
+  /* multiply musi być na elemencie, który przenika (opacity): na samym <img> w środku warstwa opacity
+     odcina go od szarej karty i na czas przejścia widać białe tło renderu. */
+  .gallery__picture {
+    grid-area: 1 / 1;
+    mix-blend-mode: multiply;
+  }
+
   .gallery__picture[hidden] {
-    display: none;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .gallery__picture {
+      transition:
+        opacity 350ms var(--ease-out),
+        visibility 0s;
+    }
+
+    .gallery__picture[hidden] {
+      transition:
+        opacity 350ms var(--ease-out),
+        visibility 0s 350ms;
+    }
   }
 
   /* Rendery całe, bez przycinania; multiply: białe tło renderu przyjmuje szary kolor karty. */
@@ -202,7 +255,12 @@ const dotLabel = (n: number) =>
     width: 100%;
     height: 100%;
     object-fit: contain;
-    mix-blend-mode: multiply;
+  }
+
+  /* Produkt środkuje się nad paskiem strzałek i kropek, nie na całej karcie (pasek zabierał dół). */
+  .gallery__slide:not(.gallery__slide--fill) :global(.gallery__image) {
+    box-sizing: border-box;
+    padding-bottom: 4.5rem;
   }
 
   .gallery__slide--fill :global(.gallery__image) {

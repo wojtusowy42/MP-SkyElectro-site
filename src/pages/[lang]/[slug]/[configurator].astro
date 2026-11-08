@@ -50,19 +50,21 @@ const VERSIONS = import.meta.glob<ImageMetadata>('../../../assets/renders/*/kup/
 type Slide = ({ key: string; src: ImageMetadata } | { versions: string[] }) & {
   show?: string[];
   showAt?: string;
+  /** Slajd tylko przy tych wyborach ('krok=opcja'); inny wybór go chowa. */
+  only?: string;
   /** Zdjęcie wypełnia całą kartę (cień albo kadr dochodzi do brzegu pliku, więc brzeg nie może być widać). */
   fill?: boolean;
 };
 const GALLERIES: Record<string, Slide[]> = {
   'skytimer-1': [
     // na start sam timer (płytka); zestaw i warianty po wyborze przewijają się same
-    { key: 'pcb', src: stPcb, show: ['pcb'], fill: true },
+    { key: 'pcb', src: stPcb, show: ['pcb'], only: 'type=pcb', fill: true },
     // po wyborze śrub galeria zostaje na śrubkach; cały zestaw dopiero przy podsumowaniu
-    { versions: ['zestaw'], show: ['kit'], showAt: 'summary' },
+    { versions: ['zestaw'], show: ['kit'], showAt: 'summary', only: 'type=kit' },
     // przed wyborem wariantu wszystkie trzy, po wyborze tylko wybrany
-    { versions: ['warianty', 'wariant'], show: ['v1', 'v2', 'v3'] },
+    { versions: ['warianty', 'wariant'], show: ['v1', 'v2', 'v3'], only: 'type=kit' },
     // śrubki, gdy klient zjedzie do kroku "Śruby" (wybór koloru zostawia galerię na miejscu)
-    { versions: ['element-sruby'], showAt: 'screws' },
+    { versions: ['element-sruby'], showAt: 'screws', only: 'type=kit' },
     { key: 'pcb-top', src: stPcbTop },
     { key: 'pcb-back', src: stPcbBack, fill: true },
     { key: 'pcb-detail-dip', src: stPcbDetail, fill: true },
@@ -163,6 +165,7 @@ const gallery = (GALLERIES[product.id] ?? []).map((slide) => {
     ...(slide.show ? { show: slide.show } : {}),
     ...(slide.showAt ? { showAt: slide.showAt } : {}),
     ...(slide.fill ? { fill: true } : {}),
+    ...(slide.only ? { only: slide.only } : {}),
   };
   if ('src' in slide) {
     return {
@@ -363,6 +366,16 @@ const fromPrice =
     window.addEventListener('configurator:change', (e) =>
       showVersions((e as CustomEvent<Record<string, string>>).detail),
     );
+
+    // Po załadowaniu strony dociągamy w tle wszystkie ukryte wersje (kolory, warianty), żeby zmiana
+    // opcji nie czekała na pobieranie. Zmiana lazy → eager uruchamia pobranie także dla ukrytych zdjęć.
+    const preload = () =>
+      document
+        .querySelectorAll<HTMLImageElement>('main img[loading="lazy"]')
+        .forEach((img) => (img.loading = 'eager'));
+    window.addEventListener('load', () =>
+      'requestIdleCallback' in window ? requestIdleCallback(preload) : setTimeout(preload, 500),
+    );
   </script>
 </BaseLayout>
 
@@ -436,9 +449,38 @@ const fromPrice =
     background: var(--color-bg);
   }
 
-  .kit__picture[hidden],
   .kit__name [hidden] {
     display: none;
+  }
+
+  /* Wersje kafelka leżą jedna na drugiej i przenikają się przy zmianie koloru. */
+  .kit__tile [data-versions]:has(.kit__picture) {
+    display: grid;
+  }
+
+  .kit__picture {
+    grid-area: 1 / 1;
+    mix-blend-mode: multiply; /* na elemencie z opacity, nie na <img> (inaczej biel w trakcie przejścia) */
+  }
+
+  .kit__picture[hidden] {
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .kit__picture {
+      transition:
+        opacity 350ms var(--ease-out),
+        visibility 0s;
+    }
+
+    .kit__picture[hidden] {
+      transition:
+        opacity 350ms var(--ease-out),
+        visibility 0s 350ms;
+    }
   }
 
   .kit :global(.kit__img) {
@@ -447,7 +489,6 @@ const fromPrice =
     height: auto;
     aspect-ratio: 1;
     object-fit: contain;
-    mix-blend-mode: multiply;
   }
 
   .kit__name {
