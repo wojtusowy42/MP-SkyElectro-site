@@ -672,35 +672,35 @@ const config = {
   .closer__inner {
     max-width: calc(var(--content-wide) + 2 * var(--gutter));
     margin-inline: auto;
-    padding: clamp(6rem, 13vw, 11rem) var(--gutter) 0;
+    padding: clamp(5rem, 9vw, 8rem) var(--gutter) 0;
   }
 
-  /* Nagłówek jak w rozdziałach strony (StoryChapter): etykieta, wielki nagłówek, wstęp. */
+  /* Nagłówek jak w rozdziałach strony (StoryChapter): do lewej, szara etykieta, nagłówek, wstęp. */
   .closer__title {
     max-width: var(--content-max);
     margin: 0 auto clamp(2.5rem, 5vw, 4rem);
-    text-align: center;
   }
 
   .closer__eyebrow {
-    margin-bottom: 0.5rem;
-    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem);
+    margin-bottom: 0.625rem;
+    color: var(--color-text-2-on-dark);
+    font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.25rem);
     font-weight: 600;
     line-height: 1.17;
     letter-spacing: -0.01em;
   }
 
   .closer__heading {
-    font-size: clamp(2.75rem, 1.6rem + 4.6vw, 5rem);
+    font-size: clamp(2.5rem, 1.5rem + 3.6vw, 4rem);
     font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.04em;
+    line-height: 1.06;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
 
   .closer__intro {
-    max-width: 46rem;
-    margin: clamp(1.25rem, 2.5vw, 2rem) auto 0;
+    max-width: 38rem;
+    margin: clamp(1rem, 2vw, 1.5rem) 0 0;
     color: var(--color-text-2-on-dark);
     font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.3125rem);
     font-weight: 600;

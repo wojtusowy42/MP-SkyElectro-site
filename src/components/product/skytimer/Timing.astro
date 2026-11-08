@@ -188,7 +188,7 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
     </dl>
 
     {/* Co zagra timer po włączeniu */}
-    <div class="sim__playback">
+    <div class="sim__playback" data-playback hidden={!r.playback && !r.configMode}>
       <p class="sim__label">{t.sim.playback}</p>
       <div class="sim__signals">
         <div
@@ -248,6 +248,7 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
     const beeps = $('[data-beeps]');
     const noPlayback = $('[data-no-playback]');
     const configMode = $('[data-config-mode]');
+    const playback = $('[data-playback]');
 
     const update = () => {
       const r = timing(buttons.map((b) => b.getAttribute('aria-checked') === 'true'));
@@ -263,6 +264,8 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
       beeps.hidden = !r.playback || r.configMode;
       noPlayback.hidden = !!r.playback || r.configMode;
       configMode.hidden = !r.configMode;
+      // Cały blok tylko, gdy timer coś zagra (przy wszystkich na OFF tekst był mylący).
+      playback.hidden = !r.playback && !r.configMode;
       if (r.playback) {
         beeps.setAttribute('aria-label', fill(c.signals, r.playback));
         const kinds = [
@@ -454,6 +457,7 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
     line-height: 1.35;
   }
 
+  .sim__playback[hidden],
   .sim__note[hidden],
   .beeps[hidden] {
     display: none;
