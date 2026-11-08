@@ -1,6 +1,7 @@
 ---
 /**
- * Szkielet każdej strony: <html>, <head> z SEO, <body>, style globalne i font.
+ * Szkielet każdej strony: <html>, <head> z SEO, <body>.
+ * Bez żadnych stylów. Wygląd dojdzie później.
  *
  * Co trafia do <head>:
  *  - title, description          → wynik w Google
@@ -8,7 +9,6 @@
  *  - hreflang (+ x-default)      → "ta sama strona w innych językach jest tu i tu"
  *  - Open Graph                  → podgląd przy udostępnianiu (Messenger, FB, WhatsApp)
  */
-import '../styles/global.css';
 import { SITE } from '../config/site.ts';
 import { DEFAULT_LOCALE, HTML_LANG, type Locale } from '../i18n/locales.ts';
 
@@ -18,11 +18,9 @@ interface Props {
   description: string;
   /** Adres tej strony w każdym języku (z alternatesFor()). */
   alternates: Record<Locale, string>;
-  /** 'dark' = czarne tło całej strony (strony produktów jak u Apple). Domyślnie jasne. */
-  theme?: 'light' | 'dark';
 }
 
-const { locale, title, description, alternates, theme = 'light' } = Astro.props;
+const { locale, title, description, alternates } = Astro.props;
 const absolute = (path: string) => new URL(path, SITE.url).href;
 const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
 ---
@@ -33,14 +31,6 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
-    <!-- Inter (podstawowa łacina) od razu, żeby nagłówek nie przeskakiwał z fontu zapasowego. -->
-    <link
-      rel="preload"
-      href={`${import.meta.env.BASE_URL}fonts/inter/inter-latin-opsz-normal.woff2`}
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
     <meta name="description" content={description} />
     <link rel="canonical" href={absolute(alternates[locale])} />
 
@@ -59,7 +49,7 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
 
     {!SITE.indexable && <meta name="robots" content="noindex, nofollow" />}
   </head>
-  <body data-theme={theme}>
+  <body>
     <slot />
   </body>
 </html>

@@ -22,24 +22,8 @@ export function format(template: string, vars: Record<string, string | number>):
 export interface ProductTexts {
   slug: string;
   name: string;
-  /**
-   * Kroki konfiguratora. heading = krótki pogrubiony nagłówek ("Wariant."),
-   * label = pytanie po nim, szarym ("Wybierz wersję płytki.").
-   */
-  steps?: Record<string, { heading?: string; label: string; options: Record<string, string> }>;
+  steps?: Record<string, { label: string; options: Record<string, string> }>;
   mountingNote?: string;
-  /** Opisy (alt) zdjęć produktu, klucz = nazwa pliku renderu bez rozszerzenia. */
-  images?: Record<string, string>;
-  /**
-   * Teksty strony "Dowiedz się więcej". Sekcje właściwe jednemu produktowi (np. siatka
-   * wyróżników SkyTimera) komponent czyta wprost ze słownika, z pełnym typem.
-   */
-  story?: {
-    tagline?: string;
-    introDescription?: string;
-    /** Opis paska produktu (LocalNav) dla czytników ekranu. */
-    localNavLabel?: string;
-  };
 }
 
 /** Teksty produktu po jego id. Rzuca błąd, jeśli w słowniku ich brakuje (build się zatrzyma). */

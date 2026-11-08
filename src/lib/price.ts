@@ -32,16 +32,10 @@ export function currentPrice(price: Price, date: Date): Grosze | null {
   return activePromo(price, date)?.price ?? price.regular;
 }
 
-/**
- * 35000 → '350 zł', 34950 → '349,50 zł' (format zależny od języka).
- * Pełne złotówki bez ",00", jak na apple.com.
- */
+/** 35000 → '350,00 zł' (format zależny od języka). */
 export function formatPrice(amount: Grosze, locale: Locale): string {
-  const whole = amount % 100 === 0;
   return new Intl.NumberFormat(HTML_LANG[locale], {
     style: 'currency',
     currency: SITE.currency,
-    minimumFractionDigits: whole ? 0 : 2,
-    maximumFractionDigits: whole ? 0 : 2,
   }).format(amount / 100);
 }

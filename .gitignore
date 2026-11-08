@@ -19,16 +19,9 @@ desktop.ini
 .idea/
 
 # Pliki źródłowe 3D i surowe rendery NIE idą do gita (za duże).
-# Do repo trafiają tylko eksporty pod web (src/assets/, public/).
+# Do repo trafiają tylko eksporty pod web (src/assets/).
 *.blend
 *.blend1
 *.f3d
 *.f3z
 *.exr
-
-# Skille do pracy z AI (cudze pliki, nie są częścią strony)
-skills/
-
-# Surowe materiały: dokumenty, logo, modele 3D, rendery, eksporty starej strony.
-# Opis układu: Raw Assets/README.md. Strona używa tylko eksportów pod web z src/assets/ i public/.
-Raw Assets/

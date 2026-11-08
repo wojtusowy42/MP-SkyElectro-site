@@ -9,7 +9,6 @@ import { SERVICES } from './services.ts';
 import { ACCESSORIES } from './accessories.ts';
 import { CATALOG } from './catalog.ts';
 import type { Price } from './types.ts';
-import { isPromoActive } from '../lib/price.ts';
 import { LOCALES } from '../i18n/locales.ts';
 import { getDictionary, type ProductTexts } from '../i18n/index.ts';
 
@@ -22,22 +21,10 @@ export function validateCatalog(): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  const today = new Date(); // dzień buildu, tak samo jak na stronie
-
   const checkPrice = (where: string, price: Price) => {
     if (price.regular === null) warnings.push(`${where}: brak ceny`);
-    const promo = price.promo;
-    // Omnibus: trwająca przecena MUSI mieć najniższą cenę z 30 dni (strona pokazuje ją obok).
-    // Przecena zaplanowana na później: na razie tylko ostrzeżenie.
-    if (promo && promo.lowestPrice30Days === null) {
-      const msg = `${where}: przecena bez najniższej ceny z 30 dni (Omnibus, pole lowestPrice30Days)`;
-      if (isPromoActive(promo, today)) errors.push(msg);
-      else warnings.push(msg);
-    }
-    if (promo && promo.lowestPrice30Days !== null && promo.price >= promo.lowestPrice30Days) {
-      errors.push(
-        `${where}: cena promocyjna nie jest niższa od najniższej ceny z 30 dni, więc to nie jest obniżka`,
-      );
+    if (price.promo && price.promo.lowestPrice30Days === null) {
+      warnings.push(`${where}: przecena bez najniższej ceny z 30 dni (Omnibus)`);
     }
     if (price.promo && price.regular !== null && price.promo.price >= price.regular) {
       errors.push(`${where}: cena promocyjna nie jest niższa od regularnej`);
@@ -97,9 +84,6 @@ export function validateCatalog(): ValidationResult {
       }
       for (const option of step.options) {
         if (option.price) checkPrice(`${product.id}.${step.id}.${option.id}`, option.price);
-        if (option.swatch !== undefined && !/^#[0-9a-f]{6}$/i.test(option.swatch)) {
-          errors.push(`${product.id}.${step.id}.${option.id}: swatch musi być kolorem #rrggbb`);
-        }
       }
     }
   }

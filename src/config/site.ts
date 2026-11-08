@@ -14,12 +14,9 @@ export const SITE = {
 
   /**
    * Adres, na który mają przychodzić zamówienia i pytania.
-   * Z podręcznika SkyTimer 1 V3 (ostatnia strona). null = strona kontaktu pokazuje brak adresu.
+   * TODO: wpisać prawdziwy adres. Dopóki jest null, strona kontaktu pokazuje brak adresu.
    */
-  orderEmail: 'mpskyelectro@gmail.com' as string | null,
-
-  /** Telefon kontaktowy, z podręcznika SkyTimer 1 V3. */
-  phone: '+48 537 323 574',
+  orderEmail: null as string | null,
 
   /**
    * Czy Google może indeksować stronę. Do startu false: każda strona ma noindex,
