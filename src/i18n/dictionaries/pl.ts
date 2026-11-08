@@ -292,11 +292,13 @@ export const pl = {
         },
         // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-25): nazwa i jedno krótkie zdanie (note).
         // Nazwy (name) pokazuje też strona Kup (kafelki zestawu), notes tylko ta strona.
-        // Kolejność = zdjęcia 01-11 w assets/renders/skytimer-1/story/zestaw-elementy/.
+        // Kolejność = kafelki zestawu na stronie Kup (KIT_TILES w [configurator].astro).
         kit: {
           eyebrow: 'W\u00a0zestawie',
           heading: 'Wszystko do jednej wieżyczki.',
           intro: 'Komplet do zamontowania i\u00a0latania. *Sama płytka też jest dostępna.*',
+          alt: 'Elementy zestawu SkyTimer 1 rozłożone obok siebie na czarnym tle',
+          listLabel: 'Co jest w\u00a0zestawie',
           // {mah} z danych.
           items: [
             { name: 'Timer SkyTimer\u00a01 na płytce wybranego wariantu', note: '' },
