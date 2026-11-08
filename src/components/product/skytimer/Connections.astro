@@ -1,0 +1,172 @@
+---
+/**
+ * Rozdział "Podłączenia" SkyTimer 1 (wzór: rozdział "Porty i łączność" na stronie MacBooka Pro
+ * z PROLED XDR: duży render, pod nim siatka elementów z małą grafiką i podpisem).
+ *
+ * Grafika każdego elementu = mapa złącza 2 × 7 z zaznaczonymi pinami tej funkcji
+ * (zamiast ikon z biblioteki: od razu widać, gdzie co podłączyć). Numery pinów z danych
+ * (pinout, podręcznik rozdz. 3): górny rząd 1-7, dolny 8-14.
+ *
+ * Render: 05-zlacze-front (ciemne studio, kamera 20° nad płytką, 135 mm), przycięty do płytki.
+ */
+import { Picture } from 'astro:assets';
+import StoryChapter from '../StoryChapter.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { HTML_LANG } from '../../../i18n/locales.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
+import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
+import connectorImage from '../../../assets/renders/skytimer-1/story/zlacze-front.png';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.connections;
+const list = new Intl.ListFormat(HTML_LANG[locale], { type: 'conjunction' });
+
+const PINS_PER_ROW = 7;
+const items = (Object.keys(SKYTIMER_1_SPEC.pinout) as (keyof typeof SKYTIMER_1_SPEC.pinout)[]).map(
+  (id) => {
+    const pins: readonly number[] = SKYTIMER_1_SPEC.pinout[id];
+    return {
+      id,
+      name: t.items[id],
+      pins,
+      pinsText: format(t.pins, { pins: list.format(pins.map(String)) }),
+    };
+  },
+);
+---
+
+<StoryChapter id="podlaczenia" eyebrow={t.eyebrow} heading={t.heading} intro={t.intro}>
+  <div class="conn">
+    <Picture
+      class="conn__img"
+      src={connectorImage}
+      alt={t.alt}
+      widths={[800, 1200, 1554]}
+      sizes="(max-width: 734px) 100vw, 980px"
+      formats={['avif', 'webp']}
+      quality={78}
+      loading="lazy"
+    />
+
+    <p class="conn__legend">{t.legend}</p>
+    <ul class="conn__grid">
+      {items.map((item) => (
+        <li class="conn__item" data-reveal>
+          <svg class="pins" viewBox="0 0 70 20" aria-hidden="true">
+            {Array.from({ length: PINS_PER_ROW * 2 }, (_, i) => (
+              <rect
+                class:list={['pins__pin', { 'pins__pin--on': item.pins.includes(i + 1) }]}
+                x={(i % PINS_PER_ROW) * 10 + 2}
+                y={Math.floor(i / PINS_PER_ROW) * 10 + 2}
+                width="6"
+                height="6"
+                rx="1.5"
+              />
+            ))}
+          </svg>
+          <h3 class="conn__name">{item.name}</h3>
+          <p class="conn__pins">{item.pinsText}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</StoryChapter>
+
+<style>
+  .conn {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .conn :global(picture) {
+    display: block;
+  }
+
+  .conn :global(.conn__img) {
+    width: 100%;
+    height: auto;
+  }
+
+  /* bez tego mapki pinów nic nie mówią */
+  .conn__legend {
+    max-width: 36rem;
+    margin: clamp(2.5rem, 5vw, 4rem) auto 0;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    text-align: center;
+    text-wrap: pretty;
+  }
+
+  .conn__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2.5rem);
+    margin: clamp(2rem, 4vw, 3rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pins {
+    width: 7rem;
+    height: auto;
+    margin-bottom: 1rem;
+  }
+
+  .pins__pin {
+    fill: rgb(255 255 255 / 0.16);
+  }
+
+  .pins__pin--on {
+    fill: var(--color-text-on-dark);
+  }
+
+  .conn__name {
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .conn__pins {
+    margin-top: 0.25rem;
+    color: var(--color-text-2-on-dark);
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 734px) {
+    .conn__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Płytka zajmuje środek kadru: na telefonie kadr powiększony, boki (czerń) obcięte. */
+    .conn :global(.conn__img) {
+      width: 130%;
+      max-width: none;
+      margin-inline: -15%;
+    }
+
+    .conn {
+      overflow: hidden;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .conn__item:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+
+    .conn__item {
+      transition:
+        opacity 600ms var(--ease-out),
+        transform 600ms var(--ease-out);
+    }
+  }
+</style>

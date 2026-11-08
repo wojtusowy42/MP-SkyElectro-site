@@ -229,15 +229,29 @@ export const pl = {
             total: 'Z\u00a0bonusem',
             bonus: '{bonus} doliczone automatycznie',
             noBonus: 'Poniżej 2\u00a0min bez bonusu',
+            playback: 'Po włączeniu usłyszysz',
+            noPlayback: 'Bez odtwarzania: wszystkie przełączniki 5\u201110 na OFF to 10\u00a0s.',
+            // Opis sygnałów dla czytnika ekranu.
+            signals: 'Sygnały: {long} × długi, {short} × krótki',
+            legend: 'Długi = 1\u00a0min · Krótki = 15\u00a0s',
+            config: 'Wszystkie na ON: po włączeniu timer wejdzie w\u00a0tryb konfiguracji.',
           },
         },
         // Rozdział "Bezpieczeństwo" (rozdz. 9, 11, 14, 17).
         safety: {
           eyebrow: 'Bezpieczeństwo',
-          heading: 'Pilnuje lotu.',
+          heading: 'Pilnuje lotu od włączenia do lądowania.',
           intro:
-            'Gdy model jest w\u00a0powietrzu, *RDT* ściągnie go na sygnał radiowy, a\u00a0*AFA* uruchomi lot, jeśli model poleci bez wciśniętego przycisku startu.',
+            'Zanim wypuścisz model, timer *zagra ustawiony czas dether* i\u00a0*zgłosi zmienione ustawienia*. W\u00a0powietrzu *RDT* ściągnie model na sygnał radiowy, a\u00a0*AFA* uruchomi lot, gdy model poleci bez wciśniętego przycisku startu.',
           items: {
+            playback: {
+              title: 'Odtwarzanie czasu.',
+              text: 'Po włączeniu buzzer i\u00a0LED podają czas dether: długi sygnał to minuta, krótki 15\u00a0sekund.',
+            },
+            warnings: {
+              title: 'Ostrzeżenia.',
+              text: 'Sześć szybkich sygnałów: zapisane ustawienia są nieprawidłowe, więc timer wczytał fabryczne. Krótki z\u00a0długim: zmienił się czas flop.',
+            },
             rdt: {
               title: 'RDT.',
               text: 'Dether na sygnał radiowy, od razu po sekwencji startowej. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
@@ -249,12 +263,83 @@ export const pl = {
             },
           },
         },
+        // Rozdział "Zasilanie" (rozdz. 4, 5, 16).
+        power: {
+          eyebrow: 'Zasilanie',
+          heading: 'Zasilanie w\u00a0zestawie.',
+          alt: 'Akumulator Li\u2011Pol i\u00a0ładowarka USB\u2011C ze złączami',
+          intro:
+            'Zestaw ma *akumulator Li\u2011Pol 1S*, moduł zasilania i\u00a0*ładowarkę USB\u2011C*. Po lądowaniu timer *sam coraz rzadziej miga i\u00a0piszczy*, żeby oszczędzać energię.',
+          stats: {
+            battery: {
+              label: 'Akumulator',
+              value: '{n}\u00a0mAh',
+              caption: 'Li\u2011Pol 1S w\u00a0zestawie',
+            },
+            charger: {
+              label: 'Ładowanie',
+              value: 'USB\u2011C',
+              caption: 'Czerwona dioda ładuje, zielona: gotowe',
+            },
+            saving: { label: 'Godzinę po dether', caption: 'Rzadziej miga LED' },
+          },
+        },
+        // Rozdział "Podłączenia" (rozdz. 3, 6-8).
+        connections: {
+          eyebrow: 'Podłączenia',
+          heading: 'Wszystko w\u00a0jednym złączu.',
+          intro:
+            'Dwurzędowe *złącze 2\u00a0×\u00a07* zbiera wszystkie przewody. *Moduły buzzera i\u00a0LED* zaprojektowano do szybkiej wymiany, a\u00a0*mechanizm puszczania linek* obsługuje obie linki: flop i\u00a0dether.',
+          alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
+          // {pins} = lista numerów pinów z danych.
+          pins: 'Piny {pins}',
+          legend:
+            'Każdy kwadrat to pin złącza 2\u00a0×\u00a07: górny rząd 1\u20117, dolny 8\u201114. Białe piny należą do danej funkcji.',
+          items: {
+            power: 'Zasilanie',
+            servo: 'Serwo',
+            start: 'Przycisk startu',
+            buzzer: 'Buzzer',
+            led: 'LED',
+            rdt: 'RDT',
+          },
+        },
+        // Rozdział "Moduły" (rozdz. 6-8, 21-25 podręcznika).
+        modules: {
+          eyebrow: 'Moduły',
+          heading: 'Każdy element na swoim miejscu.',
+          intro:
+            'Timer to nie tylko płytka. *Buzzer, LED i\u00a0mechanizm puszczania linek* są gotowe do montażu w\u00a0wieżyczce, a\u00a0*szablony* pokazują, gdzie wyciąć komory.',
+          items: {
+            signals: {
+              title: 'Buzzer i\u00a0LED.',
+              text: 'Moduły do szybkiej wymiany. Buzzer wysuwasz z\u00a0bazy, a\u00a0dioda wystaje 5\u00a0mm ponad obrys wieżyczki.',
+              alt: 'Moduł buzzera i\u00a0moduł LED ze skręconymi przewodami',
+            },
+            release: {
+              title: 'Mechanizm puszczania linek.',
+              text: 'Obsługuje dwie linki, flop i\u00a0dether. Montowany na górze wieżyczki.',
+              alt: 'Mechanizm puszczania linek z\u00a0serwem',
+            },
+            button: {
+              title: 'Przycisk startu.',
+              text: 'Wymiary 12\u00a0×\u00a012\u00a0mm. W\u00a0wariancie 2 wsuwa się w\u00a0płytkę, w\u00a0wariantach 1\u00a0i\u00a03 ma własne mocowanie.',
+              alt: 'Przycisk startu z\u00a0dwoma skręconymi przewodami',
+            },
+            templates: {
+              title: 'Szablony montażowe.',
+              text: 'Przykładasz, zaznaczasz markerem komorę i\u00a0otwory, wycinasz. Osobny szablon na każdy wariant płytki i\u00a0na serwo.',
+              alt: 'Szablony komór dla wariantów płytki 1, 2 i\u00a03 oraz szablon serwa',
+            },
+          },
+        },
         // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-23).
         kit: {
           eyebrow: 'W\u00a0zestawie',
           heading: 'Wszystko do jednej wieżyczki.',
           intro:
-            'Zestaw to *komplet do zamontowania i\u00a0latania*. Sama płytka też jest dostępna.',
+            'Zestaw to *komplet do zamontowania i\u00a0latania*: timer, zasilanie, sygnalizacja, mechanizm, śruby, szablony i\u00a0podręcznik. Sama płytka też jest dostępna.',
+          alt: 'Elementy zestawu SkyTimer 1 rozłożone obok siebie na czarnym tle',
           listLabel: 'Co jest w\u00a0zestawie.',
           // {mah} z danych.
           items: [
@@ -266,12 +351,17 @@ export const pl = {
             'Moduł LED',
             'Mechanizm puszczania linek',
             'Przycisk startu',
-            'Śruby i\u00a0wkręty M2',
+            'Komplet śrub M2 i wkrętów (cynk lub czernione)',
             'Szablony montażowe',
             'Podręcznik użytkownika',
           ],
           variantsHeading: 'Trzy warianty płytki.',
           variantsIntro: 'Wybierasz układ, który pasuje do Twojej wieżyczki.',
+          inCaseHeading: 'Płytka w\u00a0obudowie.',
+          inCaseText:
+            'W\u00a0środku ta sama płytka timera, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
+          inCaseAlt:
+            'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
           variantsAlt:
             'Trzy warianty płytki: wariant 1 z włącznikiem obok przełączników, wydłużony wariant 2 z przyciskiem startu i wariant 3 z włącznikiem pod przełącznikami',
           variants: {
@@ -294,6 +384,7 @@ export const pl = {
           eyebrow: 'Dane techniczne',
           heading: 'Wszystko w\u00a0liczbach.',
           rows: {
+            use: { label: 'Przeznaczenie', value: 'Modele szybowców F1E' },
             size: { label: 'Wymiary płytki timera', value: '{short}\u00a0×\u00a0{long}\u00a0mm' },
             weight: { label: 'Masa płytki timera', value: '{weight}\u00a0g' },
             kitWeight: { label: 'Masa zestawu', value: 'około {weight}\u00a0g' },
@@ -305,11 +396,18 @@ export const pl = {
             },
             battery: { label: 'Akumulator', value: 'Li\u2011Pol 1S, {mah}\u00a0mAh' },
             charging: { label: 'Ładowanie', value: 'USB\u2011C, tylko przy wyłączonym timerze' },
+            connector: { label: 'Złącze', value: 'Dwurzędowe 2\u00a0×\u00a07' },
             rdt: {
               label: 'RDT',
               value: 'Aeris RDT (FF Electronics), MiniNeurone (Flying Neurons)',
             },
             afa: { label: 'AFA', value: 'Po {after}, ostrzeżenie {warning} wcześniej' },
+            buzzer: {
+              label: 'Sygnał',
+              value: '4\u00a0melodie buzzera, co 2,5\u00a0s lub 5\u00a0s',
+            },
+            servo: { label: 'Serwo', value: 'Konfigurowalny kierunek i\u00a0wychylenie' },
+            mcu: { label: 'Mikrokontroler', value: 'ATmega328P' },
           },
           manual: 'Pobierz podręcznik użytkownika',
           manualMeta: 'PDF, {size} MB',

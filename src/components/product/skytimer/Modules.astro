@@ -1,0 +1,109 @@
+---
+/**
+ * Rozdział "Moduły" SkyTimer 1: buzzer i LED, mechanizm puszczania linek, przycisk startu,
+ * szablony. Kafelki: render na czerni, tytuł, jedno-dwa zdania.
+ * Rendery: Raw Assets/04 Rendery/SkyTimer 1/Learn more (v3)/ (04-07), przycięte do produktu.
+ */
+import { Picture } from 'astro:assets';
+import StoryChapter from '../StoryChapter.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { getDictionary } from '../../../i18n/index.ts';
+import buzzerLed from '../../../assets/renders/skytimer-1/story/buzzer-led.jpg';
+import mechanizm from '../../../assets/renders/skytimer-1/story/mechanizm.jpg';
+import przycisk from '../../../assets/renders/skytimer-1/story/przycisk.jpg';
+import szablony from '../../../assets/renders/skytimer-1/story/szablony.jpg';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getDictionary(locale).products['skytimer-1'].story.modules;
+const tiles = [
+  { ...t.items.release, image: mechanizm },
+  { ...t.items.signals, image: buzzerLed },
+  { ...t.items.button, image: przycisk },
+  { ...t.items.templates, image: szablony },
+];
+---
+
+<StoryChapter id="moduly" eyebrow={t.eyebrow} heading={t.heading} intro={t.intro}>
+  <ul class="modules">
+    {tiles.map((tile) => (
+      <li class="modules__tile" data-reveal>
+        <Picture
+          class="modules__img"
+          src={tile.image}
+          alt={tile.alt}
+          widths={[600, 900, 1200]}
+          sizes="(max-width: 734px) 100vw, 480px"
+          formats={['avif', 'webp']}
+          quality={80}
+          loading="lazy"
+        />
+        <h3 class="modules__title">{tile.title}</h3>
+        <p class="modules__text">{tile.text}</p>
+      </li>
+    ))}
+  </ul>
+</StoryChapter>
+
+<style>
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    list-style: none;
+  }
+
+  .modules__tile {
+    padding: clamp(1.75rem, 1rem + 2.4vw, 3rem);
+    border-radius: 1.75rem;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); /* czarny kafelek ze zdjęciem: rendery mają czarne tło, więc mają pełny kontrast */
+  }
+
+  /* Stała wysokość obrazu: tytuły w wierszu stoją na jednej linii. */
+  .modules__tile :global(.modules__img) {
+    width: 100%;
+    height: clamp(12rem, 22vw, 18rem);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    object-fit: contain;
+  }
+
+  .modules__title {
+    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .modules__text {
+    margin-top: 0.625rem;
+    color: var(--color-text-body-on-dark);
+    font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 734px) {
+    .modules {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .modules__tile:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .modules__tile {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+  }
+</style>

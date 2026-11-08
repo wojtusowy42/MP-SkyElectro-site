@@ -33,6 +33,7 @@ const flopStep = Math.min(...T.flop.switches);
 const detherStep = Math.min(...T.dether.switches);
 
 const rows = [
+  r.use,
   { label: r.size.label, value: format(r.size.value, { short, long }) },
   { label: r.weight.label, value: format(r.weight.value, { weight: physical.weightG }) },
   {
@@ -62,11 +63,15 @@ const rows = [
   },
   { label: r.battery.label, value: format(r.battery.value, { mah: S.batteryMah }) },
   r.charging,
+  r.connector,
   r.rdt,
   {
     label: r.afa.label,
     value: format(r.afa.value, { after: dur(S.afa.afterMs), warning: dur(S.afa.warningMs) }),
   },
+  r.buzzer,
+  r.servo,
+  r.mcu,
 ];
 ---
 
