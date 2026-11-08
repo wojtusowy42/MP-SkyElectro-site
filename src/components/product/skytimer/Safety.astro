@@ -81,7 +81,7 @@ const tiles = [
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(0.75rem, 1.5vw, 1.25rem);
-    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    max-width: calc(var(--content-wide) + 2 * var(--gutter));
     margin: 0 auto;
     padding: 0 var(--gutter);
     list-style: none;
@@ -169,6 +169,34 @@ const tiles = [
     font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
     line-height: 1.5;
     text-wrap: pretty;
+  }
+
+  /* Szeroki ekran: cztery w rzędzie, mniejsze kafelki. */
+  @media (min-width: 1069px) {
+    .safety {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .safety__tile {
+      padding: 2rem 1.75rem;
+    }
+
+    .safety__art {
+      height: 3rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .safety__number {
+      font-size: 2.5rem;
+    }
+
+    .safety__title {
+      font-size: 1.375rem;
+    }
+
+    .safety__text {
+      font-size: 1.0625rem;
+    }
   }
 
   @media (max-width: 734px) {

@@ -84,9 +84,24 @@ const fill = (text: string) => format(text, { mah: SKYTIMER_1_SPEC.batteryMah })
     text-wrap: balance;
   }
 
+  /* Telefon: jeden rząd przewijany w bok (siatka 2 × 6 zajmowała 6 ekranów). */
   @media (max-width: 734px) {
     .kit__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      display: flex;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: none;
+    }
+
+    .kit__grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .kit__tile {
+      flex: 0 0 62vw;
+      scroll-snap-align: start;
     }
   }
 
