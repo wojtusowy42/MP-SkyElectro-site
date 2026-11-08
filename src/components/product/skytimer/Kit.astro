@@ -1,7 +1,7 @@
 ---
 /**
- * Rozdział "W zestawie" SkyTimer 1: płytka w obudowie, trzy warianty, potem cały zestaw
- * i siatka elementów (każdy ze swoim zdjęciem i nazwą). Bez cen: ceny są tylko na stronie Kup.
+ * Rozdział "W zestawie" SkyTimer 1: płytka w obudowie, trzy warianty, potem siatka elementów zestawu
+ * (każdy ze swoim zdjęciem i nazwą). Bez cen: ceny są tylko na stronie Kup.
  * Rendery: Raw Assets/04 Rendery/SkyTimer 1/Learn more (v3)/ (01, 02, 10, 11, Kafelek_k01-k11).
  */
 import { Picture } from 'astro:assets';
@@ -9,8 +9,6 @@ import StoryChapter from '../StoryChapter.astro';
 import type { Locale } from '../../../i18n/locales.ts';
 import { format, getDictionary } from '../../../i18n/index.ts';
 import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
-import zestaw from '../../../assets/renders/skytimer-1/story/zestaw.jpg';
-import zestawPion from '../../../assets/renders/skytimer-1/story/zestaw-pion.jpg';
 import warianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
 import wObudowie from '../../../assets/renders/skytimer-1/story/plytka-w-obudowie.jpg';
 import type { ImageMetadata } from 'astro';
@@ -73,9 +71,6 @@ const pictureProps = {
       <div class="kit__head" data-reveal>
         <h3 class="kit__heading">{t.listLabel}</h3>
       </div>
-      {/* Na telefonie ten sam zestaw w pionie: poziomy jest tam za drobny. Ukryty obraz z loading=lazy się nie pobiera. */}
-      <Picture class="kit__img kit__img--wide" src={zestaw} alt={t.alt} {...pictureProps} />
-      <Picture class="kit__img kit__img--tall" src={zestawPion} alt={t.alt} {...pictureProps} widths={[600, 900, 1200]} sizes="100vw" />
       <ul class="kit__grid">
         {t.items.map((item, i) => (
           <li class="kit__tile" data-reveal>
@@ -111,10 +106,6 @@ const pictureProps = {
     margin-top: clamp(6rem, 12vw, 10rem);
   }
 
-  .kit :global(.kit__img--tall) {
-    display: none;
-  }
-
   .kit :global(.kit__img--case) {
     display: block;
     max-width: 640px;
@@ -126,7 +117,7 @@ const pictureProps = {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(0.75rem, 1.5vw, 1.25rem);
-    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
@@ -199,14 +190,6 @@ const pictureProps = {
   }
 
   @media (max-width: 734px) {
-    .kit :global(.kit__img--wide) {
-      display: none;
-    }
-
-    .kit :global(.kit__img--tall) {
-      display: block;
-    }
-
     .kit__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }

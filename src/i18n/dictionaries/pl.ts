@@ -255,54 +255,12 @@ export const pl = {
             },
           },
         },
-        // Rozdział "Zasilanie" (rozdz. 4, 5, 16).
-        power: {
-          eyebrow: 'Zasilanie',
-          heading: 'Zasilanie w\u00a0zestawie.',
-          alt: 'Akumulator Li\u2011Pol i\u00a0ładowarka USB\u2011C ze złączami',
-          intro:
-            'Zestaw ma *akumulator Li\u2011Pol 1S*, moduł zasilania i\u00a0*ładowarkę USB\u2011C*. Po lądowaniu timer *sam coraz rzadziej miga i\u00a0piszczy*, żeby oszczędzać energię.',
-          stats: {
-            battery: {
-              label: 'Akumulator',
-              value: '{n}\u00a0mAh',
-              caption: 'Li\u2011Pol 1S w\u00a0zestawie',
-            },
-            charger: {
-              label: 'Ładowanie',
-              value: 'USB\u2011C',
-              caption: 'Czerwona dioda ładuje, zielona: gotowe',
-            },
-            saving: { label: 'Godzinę po dether', caption: 'Rzadziej miga LED' },
-          },
-        },
-        // Rozdział "Podłączenia" (rozdz. 3, 6-8).
-        connections: {
-          eyebrow: 'Podłączenia',
-          heading: 'Wszystko w\u00a0jednym złączu.',
-          intro:
-            'Dwurzędowe *złącze 2\u00a0×\u00a07* zbiera wszystkie przewody. *Moduły buzzera i\u00a0LED* zaprojektowano do szybkiej wymiany, a\u00a0*mechanizm puszczania linek* obsługuje obie linki: flop i\u00a0dether.',
-          alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
-          // {pins} = lista numerów pinów z danych.
-          pins: 'Piny {pins}',
-          legend:
-            'Każdy kwadrat to pin złącza 2\u00a0×\u00a07: górny rząd 1\u20117, dolny 8\u201114. Białe piny należą do danej funkcji.',
-          items: {
-            power: 'Zasilanie',
-            servo: 'Serwo',
-            start: 'Przycisk startu',
-            buzzer: 'Buzzer',
-            led: 'LED',
-            rdt: 'RDT',
-          },
-        },
         // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-23).
         kit: {
           eyebrow: 'W\u00a0zestawie',
           heading: 'Wszystko do jednej wieżyczki.',
           intro:
-            'Zestaw to *komplet do zamontowania i\u00a0latania*: timer, zasilanie, sygnalizacja, mechanizm, śruby, szablony i\u00a0podręcznik. Sama płytka też jest dostępna.',
-          alt: 'Elementy zestawu SkyTimer 1 rozłożone obok siebie na czarnym tle',
+            'Zestaw to *komplet do zamontowania i\u00a0latania*. Sama płytka też jest dostępna.',
           listLabel: 'Co jest w\u00a0zestawie.',
           // {mah} z danych.
           items: [
