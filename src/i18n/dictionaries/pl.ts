@@ -297,7 +297,6 @@ export const pl = {
           eyebrow: 'W\u00a0zestawie',
           heading: 'Wszystko do jednej wieżyczki.',
           intro: 'Komplet do zamontowania i\u00a0latania. *Sama płytka też jest dostępna.*',
-          alt: 'Elementy zestawu SkyTimer 1 rozłożone obok siebie na czarnym tle',
           listLabel: 'Co jest w\u00a0zestawie',
           // {mah} z danych.
           items: [
