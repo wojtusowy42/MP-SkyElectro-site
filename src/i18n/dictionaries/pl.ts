@@ -240,18 +240,10 @@ export const pl = {
         // Rozdział "Bezpieczeństwo" (rozdz. 9, 11, 14, 17).
         safety: {
           eyebrow: 'Bezpieczeństwo',
-          heading: 'Pilnuje lotu od włączenia do lądowania.',
+          heading: 'Pilnuje lotu.',
           intro:
-            'Zanim wypuścisz model, timer *zagra ustawiony czas dether* i\u00a0*zgłosi zmienione ustawienia*. W\u00a0powietrzu *RDT* ściągnie model na sygnał radiowy, a\u00a0*AFA* uruchomi lot, gdy model poleci bez wciśniętego przycisku startu.',
+            'Gdy model jest w\u00a0powietrzu, *RDT* ściągnie go na sygnał radiowy, a\u00a0*AFA* uruchomi lot, jeśli model poleci bez wciśniętego przycisku startu.',
           items: {
-            playback: {
-              title: 'Odtwarzanie czasu.',
-              text: 'Po włączeniu buzzer i\u00a0LED podają czas dether: długi sygnał to minuta, krótki 15\u00a0sekund.',
-            },
-            warnings: {
-              title: 'Ostrzeżenia.',
-              text: 'Sześć szybkich sygnałów: zapisane ustawienia są nieprawidłowe, więc timer wczytał fabryczne. Krótki z\u00a0długim: zmienił się czas flop.',
-            },
             rdt: {
               title: 'RDT.',
               text: 'Dether na sygnał radiowy, od razu po sekwencji startowej. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
@@ -302,35 +294,6 @@ export const pl = {
             buzzer: 'Buzzer',
             led: 'LED',
             rdt: 'RDT',
-          },
-        },
-        // Rozdział "Moduły" (rozdz. 6-8, 21-25 podręcznika).
-        modules: {
-          eyebrow: 'Moduły',
-          heading: 'Każdy element na swoim miejscu.',
-          intro:
-            'Timer to nie tylko płytka. *Buzzer, LED i\u00a0mechanizm puszczania linek* są gotowe do montażu w\u00a0wieżyczce, a\u00a0*szablony* pokazują, gdzie wyciąć komory.',
-          items: {
-            signals: {
-              title: 'Buzzer i\u00a0LED.',
-              text: 'Moduły do szybkiej wymiany. Buzzer wysuwasz z\u00a0bazy, a\u00a0dioda wystaje 5\u00a0mm ponad obrys wieżyczki.',
-              alt: 'Moduł buzzera i\u00a0moduł LED ze skręconymi przewodami',
-            },
-            release: {
-              title: 'Mechanizm puszczania linek.',
-              text: 'Obsługuje dwie linki, flop i\u00a0dether. Montowany na górze wieżyczki.',
-              alt: 'Mechanizm puszczania linek z\u00a0serwem',
-            },
-            button: {
-              title: 'Przycisk startu.',
-              text: 'Wymiary 12\u00a0×\u00a012\u00a0mm. W\u00a0wariancie 2 wsuwa się w\u00a0płytkę, w\u00a0wariantach 1\u00a0i\u00a03 ma własne mocowanie.',
-              alt: 'Przycisk startu z\u00a0dwoma skręconymi przewodami',
-            },
-            templates: {
-              title: 'Szablony montażowe.',
-              text: 'Przykładasz, zaznaczasz markerem komorę i\u00a0otwory, wycinasz. Osobny szablon na każdy wariant płytki i\u00a0na serwo.',
-              alt: 'Szablony komór dla wariantów płytki 1, 2 i\u00a03 oraz szablon serwa',
-            },
           },
         },
         // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-23).
@@ -384,7 +347,6 @@ export const pl = {
           eyebrow: 'Dane techniczne',
           heading: 'Wszystko w\u00a0liczbach.',
           rows: {
-            use: { label: 'Przeznaczenie', value: 'Modele szybowców F1E' },
             size: { label: 'Wymiary płytki timera', value: '{short}\u00a0×\u00a0{long}\u00a0mm' },
             weight: { label: 'Masa płytki timera', value: '{weight}\u00a0g' },
             kitWeight: { label: 'Masa zestawu', value: 'około {weight}\u00a0g' },
@@ -396,18 +358,11 @@ export const pl = {
             },
             battery: { label: 'Akumulator', value: 'Li\u2011Pol 1S, {mah}\u00a0mAh' },
             charging: { label: 'Ładowanie', value: 'USB\u2011C, tylko przy wyłączonym timerze' },
-            connector: { label: 'Złącze', value: 'Dwurzędowe 2\u00a0×\u00a07' },
             rdt: {
               label: 'RDT',
               value: 'Aeris RDT (FF Electronics), MiniNeurone (Flying Neurons)',
             },
             afa: { label: 'AFA', value: 'Po {after}, ostrzeżenie {warning} wcześniej' },
-            buzzer: {
-              label: 'Sygnał',
-              value: '4\u00a0melodie buzzera, co 2,5\u00a0s lub 5\u00a0s',
-            },
-            servo: { label: 'Serwo', value: 'Konfigurowalny kierunek i\u00a0wychylenie' },
-            mcu: { label: 'Mikrokontroler', value: 'ATmega328P' },
           },
           manual: 'Pobierz podręcznik użytkownika',
           manualMeta: 'PDF, {size} MB',

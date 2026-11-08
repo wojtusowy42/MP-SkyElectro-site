@@ -30,8 +30,6 @@ const afa = {
 };
 
 const tiles = [
-  { id: 'playback', ...t.items.playback },
-  { id: 'warnings', ...t.items.warnings },
   { id: 'rdt', ...t.items.rdt },
   { id: 'afa', title: t.items.afa.title, text: format(t.items.afa.text, afa) },
 ] as const;
@@ -42,23 +40,6 @@ const tiles = [
     {tiles.map((tile, i) => (
       <li class="safety__tile" style={`--i: ${i % 2}`} data-reveal>
         <div class={`safety__art safety__art--${tile.id}`} aria-hidden="true">
-          {tile.id === 'playback' && (
-            <>
-              <span class="sig sig--long" />
-              <span class="sig sig--long" />
-              <span class="sig sig--short" />
-            </>
-          )}
-          {tile.id === 'warnings' && (
-            <>
-              {Array.from({ length: 6 }, () => (
-                <span class="sig sig--dot" />
-              ))}
-              <span class="sig__gap" />
-              <span class="sig sig--short" />
-              <span class="sig sig--long" />
-            </>
-          )}
           {tile.id === 'rdt' && (
             <svg viewBox="0 0 120 64">
               <circle cx="60" cy="52" r="5" />
@@ -100,38 +81,6 @@ const tiles = [
     gap: 0.5rem;
     height: 4rem;
     margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
-  }
-
-  .sig {
-    height: 0.625rem;
-    border-radius: 999px;
-    background: var(--color-text-on-dark);
-  }
-
-  .sig--long {
-    width: 4rem;
-  }
-
-  .sig--short,
-  .sig--dot {
-    width: 0.625rem;
-  }
-
-  /* Sześć szybkich sygnałów: gęściej niż zwykłe. */
-  .safety__art--warnings {
-    gap: 0.3rem;
-  }
-
-  .safety__art--warnings .sig--long {
-    width: 2.5rem;
-  }
-
-  .safety__art--warnings .sig--short {
-    margin-right: 0.2rem;
-  }
-
-  .sig__gap {
-    width: 1.25rem;
   }
 
   .safety__art svg {
