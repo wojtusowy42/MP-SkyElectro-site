@@ -35,7 +35,7 @@ export const pl = {
     home: {
       title: 'MP SkyElectro',
       hero: {
-        tagline: 'Każda sekunda lotu pod kontrolą.', // roboczy
+        tagline: 'Każda sekunda lotu pod kontrolą.',
         imageAlt: 'Czerwona płytka SkyTimer 1 z rzędem przełączników DIP',
       },
     },
@@ -107,12 +107,12 @@ export const pl = {
       },
       // Strona "Dowiedz się więcej"
       story: {
-        tagline: 'Każda sekunda lotu pod kontrolą.', // roboczy
+        tagline: 'Każda sekunda lotu pod kontrolą.',
         introDescription:
           'Animacja: elementy płytki SkyTimer 1 zjeżdżają się w powietrzu i składają w gotową płytkę.',
         // Strona w układzie rozdziałów jak "MacBook Pro z wyświetlaczem PROLED XDR" na apple.com.
         // Fakty z podręcznika użytkownika V3 (numer rozdziału w komentarzu), liczby z danych
-        // (src/data/skytimer-1-spec.ts, physical w skytimer-1.ts). Nagłówki marketingowe: "roboczy".
+        // (src/data/skytimer-1-spec.ts, physical w skytimer-1.ts). Nagłówki zatwierdzone (2026-11-08).
         // *fraza* = biała fraza w szarym akapicie (richText).
         // \u00a0 = twarda spacja, \u2011 = twardy łącznik: te miejsca nie łamią się na dwie linie.
         units: {
@@ -160,7 +160,7 @@ export const pl = {
         // Rozdział "Ustawianie czasów" (rozdz. 12-15) z symulatorem przełączników.
         timing: {
           eyebrow: 'Ustawianie czasów',
-          heading: 'Dziesięć przełączników. Zero kabli.', // roboczy
+          heading: 'Dziesięć przełączników. Zero kabli.',
           intro:
             'Przełączniki *1\u20114 ustawiają czas flop*, a\u00a0*5\u201110 czas dether*. Każdy dodaje swoją wartość, więc czas to po prostu suma. Spróbuj sam.',
           sim: {
@@ -192,7 +192,7 @@ export const pl = {
         // Rozdział "Bezpieczeństwo" (rozdz. 9, 11, 14, 17).
         safety: {
           eyebrow: 'Bezpieczeństwo',
-          heading: 'Pilnuje lotu od włączenia do lądowania.', // roboczy
+          heading: 'Pilnuje lotu od włączenia do lądowania.',
           intro:
             'Zanim wypuścisz model, timer *zagra ustawiony czas dether* i\u00a0*zgłosi zmienione ustawienia*. W\u00a0powietrzu *RDT* ściągnie model na sygnał radiowy, a\u00a0*AFA* uruchomi lot, gdy model poleci bez wciśniętego przycisku startu.',
           items: {
@@ -202,7 +202,7 @@ export const pl = {
             },
             warnings: {
               title: 'Ostrzeżenia.',
-              text: 'Sześć szybkich sygnałów: ustawienia wróciły do fabrycznych. Krótki z\u00a0długim: zmienił się czas flop.',
+              text: 'Sześć szybkich sygnałów: zapisane ustawienia są nieprawidłowe, więc timer wczytał fabryczne. Krótki z\u00a0długim: zmienił się czas flop.',
             },
             rdt: {
               title: 'RDT.',
@@ -245,6 +245,7 @@ export const pl = {
           alt: 'Płytka SkyTimer 1 od przodu: kątowe złącze 2 × 7 ze złoconymi pinami',
           // {pins} = lista numerów pinów z danych.
           pins: 'Piny {pins}',
+          legend: 'Każdy kwadrat to pin złącza 2\u00a0×\u00a07: górny rząd 1\u20117, dolny 8\u201114. Białe piny należą do danej funkcji.',
           items: {
             power: 'Zasilanie',
             servo: 'Serwo',
@@ -257,7 +258,7 @@ export const pl = {
         // Rozdział "Moduły" (rozdz. 6-8, 21-25 podręcznika).
         modules: {
           eyebrow: 'Moduły',
-          heading: 'Każdy element na swoim miejscu.', // roboczy
+          heading: 'Każdy element na swoim miejscu.',
           intro:
             'Timer to nie tylko płytka. *Buzzer, LED i\u00a0mechanizm puszczania linek* są gotowe do montażu w\u00a0wieżyczce, a\u00a0*szablony* pokazują, gdzie wyciąć komory.',
           items: {
@@ -286,11 +287,11 @@ export const pl = {
         // Rozdział "W zestawie" (rozdz. 2, 4-8, 18-23).
         kit: {
           eyebrow: 'W\u00a0zestawie',
-          heading: 'Wszystko do jednej wieżyczki.', // roboczy
+          heading: 'Wszystko do jednej wieżyczki.',
           intro:
-            'Zestaw to *komplet do zamontowania i\u00a0latania*: timer, zasilanie, sygnalizacja, mechanizm, śruby i\u00a0szablony. Sama płytka też jest dostępna.',
+            'Zestaw to *komplet do zamontowania i\u00a0latania*: timer, zasilanie, sygnalizacja, mechanizm, śruby, szablony i\u00a0podręcznik. Sama płytka też jest dostępna.',
           alt: 'Elementy zestawu SkyTimer 1 rozłożone obok siebie na czarnym tle',
-          listLabel: 'Co zawiera zestaw',
+          listLabel: 'Co jest w\u00a0zestawie.',
           // {mah} z danych.
           items: [
             'Timer SkyTimer\u00a01 na płytce wybranego wariantu',
@@ -301,11 +302,15 @@ export const pl = {
             'Moduł LED',
             'Mechanizm puszczania linek',
             'Przycisk startu',
-            'Śruby montażowe M2',
+            'Komplet śrub M2 i wkrętów (cynk lub czernione)',
             'Szablony montażowe',
+            'Podręcznik użytkownika',
           ],
           variantsHeading: 'Trzy warianty płytki.',
           variantsIntro: 'Wybierasz układ, który pasuje do Twojej wieżyczki.',
+          inCaseHeading: 'Płytka w\u00a0obudowie.',
+          inCaseText: 'W\u00a0środku ta sama płytka timera, którą możesz kupić osobno. Obudowa z\u00a0druku 3D ją osłania i\u00a0mocuje w\u00a0wieżyczce.',
+          inCaseAlt: 'Spód obudowy wariantu 2 z\u00a0zamontowaną czerwoną płytką SkyTimer 1 i\u00a0modułem zasilania',
           variantsAlt:
             'Trzy warianty płytki: wariant 1 z włącznikiem obok przełączników, wydłużony wariant 2 z przyciskiem startu i wariant 3 z włącznikiem pod przełącznikami',
           variants: {
@@ -326,7 +331,7 @@ export const pl = {
         // Rozdział "Dane techniczne". Wartości liczone z danych, stałe fakty z podręcznika V3.
         specs: {
           eyebrow: 'Dane techniczne',
-          heading: 'Wszystko w\u00a0liczbach.', // roboczy
+          heading: 'Wszystko w\u00a0liczbach.',
           rows: {
             use: { label: 'Przeznaczenie', value: 'Modele szybowców F1E' },
             size: { label: 'Wymiary płytki timera', value: '{short}\u00a0×\u00a0{long}\u00a0mm' },
@@ -356,7 +361,7 @@ export const pl = {
         },
         // Zakończenie strony. Bez cen: ceny są tylko na stronie Kup.
         cta: {
-          heading: 'Gotowy do startu.', // roboczy
+          heading: 'Gotowy do startu.',
           text: 'Wybierz zestaw albo samą płytkę, wariant i\u00a0kolor.',
           alt: 'Płytka SkyTimer 1 od strony złącza',
         },

@@ -1,8 +1,8 @@
 ---
 /**
- * Rozdział "W zestawie" SkyTimer 1: duży render zestawu, lista elementów, trzy warianty płytki.
- * Bez cen: ceny są tylko na stronie Kup.
- * Rendery: Raw Assets/04 Rendery/SkyTimer 1/Learn more/ (01, 02), przycięte do produktu.
+ * Rozdział "W zestawie" SkyTimer 1: płytka w obudowie, trzy warianty, potem cały zestaw
+ * i siatka elementów (każdy ze swoim zdjęciem i nazwą). Bez cen: ceny są tylko na stronie Kup.
+ * Rendery: Raw Assets/04 Rendery/SkyTimer 1/Learn more (v3)/ (01, 02, 10, 11, Kafelek_k01-k11).
  */
 import { Picture } from 'astro:assets';
 import StoryChapter from '../StoryChapter.astro';
@@ -10,7 +10,17 @@ import type { Locale } from '../../../i18n/locales.ts';
 import { format, getDictionary } from '../../../i18n/index.ts';
 import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
 import zestaw from '../../../assets/renders/skytimer-1/story/zestaw.jpg';
+import zestawPion from '../../../assets/renders/skytimer-1/story/zestaw-pion.jpg';
 import warianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
+import wObudowie from '../../../assets/renders/skytimer-1/story/plytka-w-obudowie.jpg';
+import type { ImageMetadata } from 'astro';
+
+// Zdjęcia elementów: 01-...11-, w tej samej kolejności co t.items.
+const tileImages = Object.entries(
+  import.meta.glob<{ default: ImageMetadata }>('../../../assets/renders/skytimer-1/story/zestaw-elementy/*.jpg', { eager: true }),
+)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, m]) => m.default);
 
 interface Props {
   locale: Locale;
@@ -18,6 +28,7 @@ interface Props {
 
 const { locale } = Astro.props;
 const t = getDictionary(locale).products['skytimer-1'].story.kit;
+if (tileImages.length !== t.items.length) throw new Error(`Kit: ${tileImages.length} zdjęć elementów, ${t.items.length} pozycji`);
 const pictureProps = {
   widths: [800, 1200, 1600, 2000],
   sizes: '(max-width: 734px) 100vw, 980px',
@@ -29,28 +40,51 @@ const pictureProps = {
 
 <StoryChapter id="zestaw" eyebrow={t.eyebrow} heading={t.heading} intro={t.intro}>
   <div class="kit">
-    <Picture class="kit__img" src={zestaw} alt={t.alt} {...pictureProps} />
+    {/* 1. Jak płytka siedzi w obudowie */}
+    <section class="kit__block">
+      <div class="kit__head" data-reveal>
+        <h3 class="kit__heading">{t.inCaseHeading}</h3>
+        <p class="kit__sub">{t.inCaseText}</p>
+      </div>
+      <Picture class="kit__img kit__img--case" src={wObudowie} alt={t.inCaseAlt} {...pictureProps} sizes="(max-width: 734px) 100vw, 640px" />
+    </section>
 
-    <h3 class="visually-hidden">{t.listLabel}</h3>
-    <ul class="kit__list" data-reveal>
-      {t.items.map((item) => (
-        <li>{format(item, { mah: SKYTIMER_1_SPEC.batteryMah })}</li>
-      ))}
-    </ul>
+    {/* 2. Trzy warianty obudowy */}
+    <section class="kit__block">
+      <div class="kit__head" data-reveal>
+        <h3 class="kit__heading">{t.variantsHeading}</h3>
+        <p class="kit__sub">{t.variantsIntro}</p>
+      </div>
+      <div class="kit__narrow">
+        <Picture class="kit__img" src={warianty} alt={t.variantsAlt} {...pictureProps} sizes="(max-width: 734px) 100vw, 760px" />
+        <ul class="kit__variants">
+          {Object.values(t.variants).map((v) => (
+            <li data-reveal>
+              <h4 class="kit__name">{v.name}</h4>
+              <p class="kit__text">{v.text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
 
-    <div class="kit__head" data-reveal>
-      <h3 class="kit__heading">{t.variantsHeading}</h3>
-      <p class="kit__sub">{t.variantsIntro}</p>
-    </div>
-    <Picture class="kit__img" src={warianty} alt={t.variantsAlt} {...pictureProps} />
-    <ul class="kit__variants">
-      {Object.values(t.variants).map((v) => (
-        <li data-reveal>
-          <h4 class="kit__name">{v.name}</h4>
-          <p class="kit__text">{v.text}</p>
-        </li>
-      ))}
-    </ul>
+    {/* 3. Co jest w zestawie */}
+    <section class="kit__block">
+      <div class="kit__head" data-reveal>
+        <h3 class="kit__heading">{t.listLabel}</h3>
+      </div>
+      {/* Na telefonie ten sam zestaw w pionie: poziomy jest tam za drobny. Ukryty obraz z loading=lazy się nie pobiera. */}
+      <Picture class="kit__img kit__img--wide" src={zestaw} alt={t.alt} {...pictureProps} />
+      <Picture class="kit__img kit__img--tall" src={zestawPion} alt={t.alt} {...pictureProps} widths={[600, 900, 1200]} sizes="100vw" />
+      <ul class="kit__grid">
+        {t.items.map((item, i) => (
+          <li class="kit__tile" data-reveal>
+            <Picture class="kit__tile-img" src={tileImages[i]!} alt="" widths={[300, 500, 800]} sizes="(max-width: 734px) 45vw, 240px" formats={['avif', 'webp']} quality={80} loading="lazy" />
+            <p class="kit__tile-name">{format(item, { mah: SKYTIMER_1_SPEC.batteryMah })}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   </div>
 </StoryChapter>
 
@@ -66,24 +100,61 @@ const pictureProps = {
     height: auto;
   }
 
-  .kit__list {
-    columns: 2;
-    column-gap: clamp(1.5rem, 4vw, 3rem);
+  /* warianty mniejsze, żeby cały rząd i opisy były widać na raz */
+  .kit__narrow {
+    max-width: 760px;
+    margin-inline: auto;
+  }
+
+  /* trzy bloki z wyraźną przerwą: każdy ma swój nagłówek i jedno zdanie */
+  .kit__block + .kit__block {
+    margin-top: clamp(6rem, 12vw, 10rem);
+  }
+
+  .kit :global(.kit__img--tall) {
+    display: none;
+  }
+
+  .kit :global(.kit__img--case) {
+    display: block;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  /* elementy zestawu: zdjęcie + nazwa, żeby od razu było widać, co jest czym */
+  .kit__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
     margin: clamp(2.5rem, 5vw, 4rem) 0 0;
     padding: 0;
-    color: var(--color-text-body-on-dark);
-    font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
     list-style: none;
   }
 
-  .kit__list li {
-    padding-block: 0.75rem;
-    border-top: 1px solid rgb(255 255 255 / 0.14);
-    break-inside: avoid;
+  .kit__tile {
+    padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 1.5rem);
+    border-radius: 1.25rem;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  }
+
+  .kit__tile :global(.kit__tile-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .kit__tile-name {
+    margin-top: 0.75rem;
+    color: var(--color-text-on-dark);
+    font-size: clamp(0.9375rem, 0.85rem + 0.3vw, 1.0625rem);
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    text-wrap: balance;
   }
 
   .kit__head {
-    margin-top: clamp(5rem, 10vw, 8rem);
     margin-bottom: clamp(2rem, 4vw, 3rem);
     text-align: center;
   }
@@ -96,7 +167,9 @@ const pictureProps = {
   }
 
   .kit__sub {
-    margin-top: 0.75rem;
+    max-width: 36rem;
+    margin: 0.75rem auto 0;
+    text-wrap: pretty;
     color: var(--color-text-2-on-dark);
     font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.3125rem);
     font-weight: 600;
@@ -105,8 +178,8 @@ const pictureProps = {
   .kit__variants {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(1rem, 3vw, 2.5rem);
-    margin: clamp(2rem, 4vw, 3rem) 0 0;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin: clamp(1.25rem, 3vw, 2rem) 0 0;
     padding: 0;
     list-style: none;
   }
@@ -119,14 +192,23 @@ const pictureProps = {
   }
 
   .kit__text {
-    margin-top: 0.5rem;
+    margin-top: 0.375rem;
     color: var(--color-text-body-on-dark);
+    font-size: 1.0625rem;
     text-wrap: pretty;
   }
 
   @media (max-width: 734px) {
-    .kit__list {
-      columns: 1;
+    .kit :global(.kit__img--wide) {
+      display: none;
+    }
+
+    .kit :global(.kit__img--tall) {
+      display: block;
+    }
+
+    .kit__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .kit__variants {
