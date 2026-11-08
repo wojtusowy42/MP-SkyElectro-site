@@ -8,6 +8,7 @@ import { Picture } from 'astro:assets';
 import StoryChapter from '../StoryChapter.astro';
 import type { Locale } from '../../../i18n/locales.ts';
 import { getDictionary } from '../../../i18n/index.ts';
+import { richText } from '../../../i18n/rich-text.ts';
 import warianty from '../../../assets/renders/skytimer-1/story/warianty.jpg';
 import wObudowie from '../../../assets/renders/skytimer-1/story/plytka-w-obudowie.jpg';
 
@@ -33,7 +34,7 @@ const pictureProps = {
         {Object.values(t.variants).map((v) => (
           <li data-reveal>
             <h3 class="mount__name">{v.name}</h3>
-            <p class="mount__text">{v.text}</p>
+            <p class="mount__text" set:html={richText(v.text)} />
           </li>
         ))}
       </ul>
@@ -72,8 +73,9 @@ const pictureProps = {
     margin-inline: auto;
   }
 
+  /* Bliżej wariantów: to dalsza część Montażu, nie osobny rozdział (bez własnego nadtytułu). */
   .mount__block {
-    margin-top: clamp(6rem, 12vw, 10rem);
+    margin-top: clamp(4rem, 8vw, 6rem);
   }
 
   .mount__head {
@@ -117,6 +119,12 @@ const pictureProps = {
     color: var(--color-text-body-on-dark);
     font-size: 1.0625rem;
     text-wrap: pretty;
+  }
+
+  /* To, czym wariant różni się od pozostałych (*fraza* w słowniku). */
+  .mount__text :global(strong) {
+    color: var(--color-text-on-dark);
+    font-weight: 600;
   }
 
   @media (max-width: 734px) {

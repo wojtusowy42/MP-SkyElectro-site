@@ -13,6 +13,7 @@ import StoryChapter from '../StoryChapter.astro';
 import type { Locale } from '../../../i18n/locales.ts';
 import { HTML_LANG } from '../../../i18n/locales.ts';
 import { format, getDictionary } from '../../../i18n/index.ts';
+import { richText } from '../../../i18n/rich-text.ts';
 import { SKYTIMER_1_SPEC } from '../../../data/skytimer-1-spec.ts';
 import { formatDuration } from '../../../lib/duration.ts';
 
@@ -70,7 +71,7 @@ const tiles = [
           {tile.id === 'afa' && <span class="safety__number">{afa.minutes}</span>}
         </div>
         <h3 class="safety__title">{tile.title}</h3>
-        <p class="safety__text">{tile.text}</p>
+        <p class="safety__text" set:html={richText(tile.text)} />
       </li>
     ))}
   </ul>
@@ -169,6 +170,12 @@ const tiles = [
     font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
     line-height: 1.5;
     text-wrap: pretty;
+  }
+
+  /* Najważniejsza informacja karty (*fraza* w słowniku). */
+  .safety__text :global(strong) {
+    color: var(--color-text-on-dark);
+    font-weight: 600;
   }
 
   /* Szeroki ekran: cztery w rzędzie, mniejsze kafelki. */

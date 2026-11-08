@@ -171,6 +171,9 @@ export const pl = {
           plus: '+{value}',
           times: '{n}×',
         },
+        // Akapit pod animacją: czym w ogóle jest SkyTimer 1 (rozdz. 1). Szary z białymi frazami.
+        overview:
+          'SkyTimer 1 to *elektroniczny timer do szybowców F1E.* Po starcie odmierza czas i\u00a0w\u00a0odpowiedniej chwili puszcza linki: *flop* przestawia model z\u00a0wyrzutu do lotu, a\u00a0*dether* kończy lot po ustawionym czasie.',
         // "Co go wyróżnia.": poziomy rząd kart. {weight}, {short}, {long} z danych.
         gallery: {
           heading: 'Co go wyróżnia.',
@@ -203,7 +206,7 @@ export const pl = {
           eyebrow: 'Konstrukcja',
           // Rozdz. 1.
           intro:
-            'SkyTimer 1 to *elektroniczny timer do szybowców F1E*. Steruje flopem i\u00a0detherem, a\u00a0mieści się na płytce {short}\u00a0×\u00a0{long}\u00a0mm o\u00a0masie {weight}\u00a0g.',
+            'Cały timer mieści się na *płytce {short}\u00a0×\u00a0{long}\u00a0mm o\u00a0masie {weight}\u00a0g.* Obróć ją i\u00a0zobacz z\u00a0bliska.',
         },
         // Rozdział "Ustawianie czasów" (rozdz. 12-15) z symulatorem przełączników.
         timing: {
@@ -226,9 +229,12 @@ export const pl = {
             flopNote: 'Suma przełączników + {offset}',
             dether: 'Czas dether',
             detherNote: 'Suma przełączników 5\u201110',
-            total: 'Z\u00a0bonusem',
-            bonus: '{bonus} doliczone automatycznie',
-            noBonus: 'Poniżej 2\u00a0min bez bonusu',
+            detherOffNote: 'Przełączniki 5\u201110 na OFF',
+            // Rozdz. 15: bonus wyrównuje niedokładność elektroniki.
+            total: 'Rzeczywisty czas dether',
+            // {set} = ustawiony czas, {bonus} = bonus (np. '4 min + 5 s bonusu').
+            bonus: '{set} + {bonus} bonusu',
+            noBonus: 'Bonus dopiero od 2\u00a0min',
             playback: 'Po włączeniu usłyszysz',
             noPlayback: 'Bez odtwarzania: wszystkie przełączniki 5\u201110 na OFF to 10\u00a0s.',
             // Opis sygnałów dla czytnika ekranu.
@@ -246,20 +252,21 @@ export const pl = {
           items: {
             playback: {
               title: 'Odtwarzanie czasu.',
-              text: 'Po włączeniu buzzer i\u00a0LED podają czas dether: długi sygnał to minuta, krótki 15\u00a0sekund.',
+              // *fraza* = biała, najważniejsza informacja karty (richText).
+              text: 'Po włączeniu buzzer i\u00a0LED podają czas dether: *długi sygnał to minuta, krótki 15\u00a0sekund.*',
             },
             warnings: {
               title: 'Ostrzeżenia.',
-              text: 'Sześć szybkich sygnałów: zapisane ustawienia są nieprawidłowe, więc timer wczytał fabryczne. Krótki z\u00a0długim: zmienił się czas flop.',
+              text: '*Sześć szybkich sygnałów:* błędne ustawienia, timer wrócił do fabrycznych. *Krótki z\u00a0długim:* zmienił się czas flop.',
             },
             rdt: {
-              title: 'RDT.',
-              text: 'Dether na sygnał radiowy, od razu po sekwencji startowej. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
+              title: 'Radio dether (RDT).',
+              text: '*Dether na sygnał radiowy,* od razu po sekwencji startowej. Zgodny z\u00a0Aeris RDT i\u00a0MiniNeurone.',
             },
             afa: {
-              title: 'AFA.',
+              title: 'Anti Fly Away (AFA).',
               // {minutes}, {warning} z danych.
-              text: 'Przycisk startu nie wciśnięty albo trzymany dłużej niż {minutes}? Timer sam uruchomi lot, a\u00a0{warning} wcześniej ostrzeże buzzerem.',
+              text: 'Przycisk startu nie wciśnięty albo trzymany dłużej niż {minutes}? *Timer sam uruchomi lot,* a\u00a0{warning} wcześniej ostrzeże buzzerem.',
             },
           },
         },
@@ -273,15 +280,15 @@ export const pl = {
           variants: {
             v1: {
               name: 'Wariant 1',
-              text: 'Włącznik i\u00a0port ładowania obok przełączników. Przycisk startu osobno.',
+              text: '*Włącznik i\u00a0port ładowania obok przełączników.* Przycisk startu osobno.',
             },
             v2: {
               name: 'Wariant 2',
-              text: 'Dłuższa płytka z\u00a0przyciskiem startu u\u00a0góry. Włącznik i\u00a0port pod przełącznikami.',
+              text: '*Dłuższa płytka z\u00a0przyciskiem startu u\u00a0góry.* Włącznik i\u00a0port pod przełącznikami.',
             },
             v3: {
               name: 'Wariant 3',
-              text: 'Włącznik i\u00a0port ładowania pod przełącznikami. Przycisk startu osobno.',
+              text: '*Włącznik i\u00a0port ładowania pod przełącznikami.* Przycisk startu osobno.',
             },
           },
           inCaseHeading: 'Płytka w\u00a0obudowie.',
@@ -384,7 +391,8 @@ export const pl = {
                 mcu: { title: 'ATmega328P', text: 'Mikrokontroler' },
                 connector: { title: 'Złącze 2\u00a0×\u00a07', text: 'Wszystkie podłączenia' },
                 resonator: { title: 'Rezonator 4\u00a0MHz', text: 'Precyzyjne odmierzanie czasu' },
-                jumpers: { title: 'Zworki JP1, JP2', text: 'Włączenie funkcji DTA' },
+                // Rozdz. 10: Dether Time Add, +15 s za impuls.
+                jumpers: { title: 'Zworki JP1, JP2', text: 'DTA: +15\u00a0s dethera na impuls' },
               },
             },
             connector: {

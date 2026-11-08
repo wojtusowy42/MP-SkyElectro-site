@@ -15,6 +15,7 @@ import { HTML_LANG } from '../../../i18n/locales.ts';
 import { getProduct } from '../../../data/products/index.ts';
 import { SKYTIMER_1_TIMING as T } from '../../../data/skytimer-1-spec.ts';
 import { formatDuration } from '../../../lib/duration.ts';
+import { richText } from '../../../i18n/rich-text.ts';
 import dipImage from '../../../assets/renders/skytimer-1/story/przelaczniki-makro.png';
 import connectorImage from '../../../assets/renders/skytimer-1/story/zlacze-skos.png';
 import topImage from '../../../assets/renders/skytimer-1/story/gora.png';
@@ -49,6 +50,9 @@ const items: GalleryItem[] = [
 ];
 ---
 
+{/* Pod animacją: jedno zdanie, czym w ogóle jest produkt (wzór: akapit "overview" u Apple). */}
+<p class="overview" set:html={richText(story.overview)} data-reveal />
+
 <FeatureGallery
   heading={g.heading}
   items={items}
@@ -76,6 +80,38 @@ const items: GalleryItem[] = [
 </FeatureGallery>
 
 <style>
+  /* Jak wstępy rozdziałów (szary, białe frazy), ale większy. Do lewej, w linii z nagłówkiem
+     galerii tuż pod nim (--edge w FeatureGallery): wyśrodkowany na 3-4 linie czytał się gorzej. */
+  .overview {
+    max-width: 44rem;
+    margin: 0 var(--gutter) 0 max(var(--gutter), calc((100% - var(--content-wide)) / 2));
+    padding-top: clamp(2rem, 5vw, 4rem);
+    color: var(--color-text-body-on-dark);
+    font-size: clamp(1.25rem, 1rem + 0.9vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.38;
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+  }
+
+  .overview :global(strong) {
+    color: var(--color-text-on-dark);
+    font-weight: inherit;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.reveal-js) .overview:not(:global(.is-in)) {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+
+    .overview {
+      transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    }
+  }
+
   .beeps {
     display: flex;
     flex-direction: column;

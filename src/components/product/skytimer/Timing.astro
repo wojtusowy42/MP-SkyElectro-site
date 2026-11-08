@@ -59,9 +59,9 @@ const flopText = r.flopMs === null ? t.sim.flopOff : dur(r.flopMs, true);
 const detherText = dur(r.detherMs);
 const totalText = dur(r.detherMs + r.bonusMs);
 const bonusText =
-  r.bonusMs > 0
-    ? format(t.sim.bonus, { bonus: format(u.plus, { value: dur(r.bonusMs) }) })
-    : t.sim.noBonus;
+  r.bonusMs > 0 ? format(t.sim.bonus, { set: detherText, bonus: dur(r.bonusMs) }) : t.sim.noBonus;
+// Bez odtwarzania = wszystkie 5-10 na OFF (stałe 10 s, a nie suma).
+const detherNote = r.playback ? t.sim.detherNote : t.sim.detherOffNote;
 
 // Teksty dla skryptu (zmiany w przeglądarce).
 const config = {
@@ -70,7 +70,8 @@ const config = {
   flopOff: t.sim.flopOff,
   flopOffNote: t.sim.flopOffNote,
   flopNote,
-  plus: u.plus,
+  detherNote: t.sim.detherNote,
+  detherOffNote: t.sim.detherOffNote,
   bonus: t.sim.bonus,
   noBonus: t.sim.noBonus,
   signals: t.sim.signals,
@@ -140,8 +141,9 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
             data-switch={i}
           >
             <span class="dip__slice" style={sliceStyle(i)} aria-hidden="true"></span>
+            {/* Zwykła spacja: na wąskim ekranie jednostka schodzi pod liczbę zamiast zlewać się z sąsiadem. */}
             <span class="dip__value" aria-hidden="true">
-              {sw.label}
+              {sw.label.replaceAll(' ', ' ')}
             </span>
           </button>
         ))}
@@ -174,9 +176,9 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
         <dd class="sim__value" data-dether>
           {detherText}
         </dd>
-        <dd class="sim__note">{t.sim.detherNote}</dd>
+        <dd class="sim__note" data-dether-note>{detherNote}</dd>
       </div>
-      <div class="sim__cell">
+      <div class="sim__cell sim__cell--main">
         <dt class="sim__label">{t.sim.total}</dt>
         <dd class="sim__value" data-total>
           {totalText}
@@ -229,7 +231,8 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
       flopOff: string;
       flopOffNote: string;
       flopNote: string;
-      plus: string;
+      detherNote: string;
+      detherOffNote: string;
       bonus: string;
       noBonus: string;
       signals: string;
@@ -243,6 +246,7 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
     const flop = $('[data-flop]');
     const flopNote = $('[data-flop-note]');
     const dether = $('[data-dether]');
+    const detherNote = $('[data-dether-note]');
     const total = $('[data-total]');
     const bonus = $('[data-bonus]');
     const beeps = $('[data-beeps]');
@@ -255,10 +259,11 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
       flop.textContent = r.flopMs === null ? c.flopOff : dur(r.flopMs, true);
       flopNote.textContent = r.flopMs === null ? c.flopOffNote : c.flopNote;
       dether.textContent = dur(r.detherMs);
+      detherNote.textContent = r.playback ? c.detherNote : c.detherOffNote;
       total.textContent = dur(r.detherMs + r.bonusMs);
       bonus.textContent =
         r.bonusMs > 0
-          ? fill(c.bonus, { bonus: fill(c.plus, { value: dur(r.bonusMs) }) })
+          ? fill(c.bonus, { set: dur(r.detherMs), bonus: dur(r.bonusMs) })
           : c.noBonus;
 
       beeps.hidden = !r.playback || r.configMode;
@@ -371,17 +376,18 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
   }
 
   /* Czas przełącznika pod płytką: biały, gdy doliczany. */
+  /* Szerokość kolumny: gdy się nie mieści (telefon), jednostka łamie się pod liczbę. */
   .dip__value {
     position: absolute;
     top: calc(100% + 0.375rem);
-    left: 50%;
+    left: 0;
+    width: 100%;
     color: var(--color-text-2-on-dark);
     font-size: clamp(0.6875rem, 0.55rem + 0.4vw, 0.875rem);
     font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.03em;
-    white-space: nowrap;
-    translate: -50% 0;
+    text-align: center;
   }
 
   .dip__switch[aria-checked='true'] .dip__value {
@@ -439,9 +445,10 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
     line-height: 1.3;
   }
 
+  /* Wynik to najważniejsza rzecz rozdziału: duże liczby jak na stronach Apple. */
   .sim__value {
     margin: 0.375rem 0 0;
-    font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.5rem);
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 3.25rem);
     font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.03em;
@@ -455,6 +462,11 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
     font-size: 0.9375rem;
     font-weight: 600;
     line-height: 1.35;
+  }
+
+  /* Rzeczywisty czas dether: to, co naprawdę zrobi timer, więc etykieta biała. */
+  .sim__cell--main .sim__label {
+    color: var(--color-text-on-dark);
   }
 
   .sim__playback[hidden],
@@ -507,6 +519,18 @@ const frames = await getImage({ src: framesImage, format: 'webp', quality: 86 })
   }
 
   @media (max-width: 734px) {
+    /* Miejsce na czasy w dwóch liniach (liczba, pod nią jednostka). */
+    .dip {
+      margin-bottom: 2.25rem;
+    }
+
+    /* min-content: każda jednostka pod liczbą, wszystkie kolumny jednakowo w dwóch liniach. */
+    .dip__value {
+      left: 50%;
+      width: min-content;
+      translate: -50% 0;
+    }
+
     .sim__results {
       grid-template-columns: minmax(0, 1fr);
     }
