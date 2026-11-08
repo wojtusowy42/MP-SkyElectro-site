@@ -1,13 +1,18 @@
 ---
 /**
  * Strona główna w danym języku: /pl/
- * Na razie pasek menu i hero SkyTimer 1. h1 (nazwa firmy) jest dla czytników ekranu i Google,
- * nazwa produktu w hero to h2.
+ * Pasek menu, hero SkyTimer 1, pod nim reszta pozycji menu (bez kontaktu) jak na apple.com:
+ * najpierw pełne pasy jeden pod drugim, potem kafelki 2 w rzędzie.
+ * Tła: na razie wszystko jasne oprócz hero SkyTimer 1 (decyzja 2026-11-08); theme="dark" w HomePromo zostaje na później,
+ * gdy będą rendery na czerni. Produkty "wkrótce" (skrzydła, rury, sterowanie) razem, między sklepem a usługami.
+ * h1 (nazwa firmy) jest dla czytników ekranu i Google, nazwy produktów to h2.
  */
 import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import SkyTimerHero from '../../components/home/SkyTimerHero.astro';
+import HomePromo from '../../components/home/HomePromo.astro';
+import accessoriesRender from '../../assets/renders/akcesoria/hero.jpg';
 import { LOCALES, type Locale } from '../../i18n/locales.ts';
 import { getDictionary, productTexts } from '../../i18n/index.ts';
 import { alternatesFor, configuratorPath, pathFor } from '../../i18n/routes.ts';
@@ -17,6 +22,30 @@ export const getStaticPaths = (() =>
 
 const locale = Astro.params.lang as Locale;
 const dict = getDictionary(locale);
+const sections = dict.pages.home.sections;
+
+type ProductId = 'wieze' | 'przyciski-pojemnosciowe' | 'stateczniki';
+type SoonId = 'skrzydla-weglowe' | 'rury-kadlubowe' | 'elektroniczne-sterowanie';
+
+/** Produkt "wkrótce": napis nad nazwą, bez przycisków (nie ma strony Kup). */
+const soon = (id: SoonId) => ({
+  eyebrow: dict.common.comingSoon,
+  title: productTexts(dict, id).name,
+  tagline: sections[id].tagline,
+  imageNote: sections[id].imageNote,
+  links: [],
+});
+
+/** Produkt: nazwa ze słownika, "Dowiedz się więcej" + "Kup". */
+const product = (id: ProductId) => ({
+  title: productTexts(dict, id).name,
+  tagline: sections[id].tagline,
+  imageNote: sections[id].imageNote,
+  links: [
+    { label: dict.common.learnMore, href: pathFor(locale, { kind: 'product', id }) },
+    { label: dict.common.buy, href: configuratorPath(locale, id) },
+  ],
+});
 ---
 
 <BaseLayout
@@ -38,5 +67,67 @@ const dict = getDictionary(locale);
       secondaryHref={configuratorPath(locale, 'skytimer-1')}
       imageAlt={dict.pages.home.hero.imageAlt}
     />
+    <div class="home-more">
+      <HomePromo layout="band" theme="light" {...product('wieze')} />
+      <HomePromo layout="band" theme="light" {...product('przyciski-pojemnosciowe')} />
+      <div class="home-tiles">
+        <HomePromo layout="tile" theme="light" {...product('stateczniki')} />
+        <HomePromo
+          layout="tile"
+          theme="light"
+          title={dict.pages.accessories.navName}
+          tagline={sections.accessories.tagline}
+          image={accessoriesRender}
+          imageAlt={sections.accessories.imageAlt}
+          links={[
+            {
+              label: dict.pages.accessories.seeAll,
+              href: pathFor(locale, { kind: 'page', id: 'accessories' }),
+            },
+          ]}
+        />
+        <HomePromo layout="tile" theme="light" wide {...soon('skrzydla-weglowe')} />
+        <HomePromo layout="tile" theme="light" {...soon('rury-kadlubowe')} />
+        <HomePromo layout="tile" theme="light" {...soon('elektroniczne-sterowanie')} />
+        <HomePromo
+          layout="tile"
+          theme="light"
+          wide
+          title={dict.pages.services.name}
+          tagline={sections.services.tagline}
+          imageNote={sections.services.imageNote}
+          links={[
+            {
+              label: dict.common.learnMore,
+              href: pathFor(locale, { kind: 'page', id: 'services' }),
+            },
+          ]}
+        />
+      </div>
+    </div>
   </main>
 </BaseLayout>
+
+<style>
+  /* Białe odstępy 12 px między pasami i kafelkami, jak na apple.com. */
+  .home-more {
+    display: grid;
+    gap: 0.75rem;
+    padding-block: 0.75rem;
+    background: var(--color-surface);
+  }
+
+  .home-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  @media (max-width: 734px) {
+    .home-tiles {
+      grid-template-columns: 1fr;
+      padding-inline: 0;
+    }
+  }
+</style>

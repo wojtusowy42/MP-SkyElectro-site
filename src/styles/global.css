@@ -81,6 +81,51 @@ button {
   outline-offset: 3px;
 }
 
+/* Przycisk (decyzje, sekcja 13): pigułka o stałej wysokości, tekst wyśrodkowany optycznie
+   (text-box; bez wsparcia zostaje zwykłe centrowanie), obrys drugiego jako cień wewnętrzny.
+   Bez animacji stanów (góra strony bez animacji, decyzja właściciela).
+   Kolory domyślnie na czarne tło; jasna sekcja podmienia --button-fill / --button-ink / --button-line. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem; /* 44 px */
+  padding-inline: 1.375rem;
+  border-radius: 999px;
+  font-size: 1.0625rem; /* 17 px */
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--button-fill, var(--color-text-on-dark));
+  outline-offset: 3px;
+}
+
+.button--primary {
+  background: var(--button-fill, var(--color-text-on-dark));
+  color: var(--button-ink, var(--color-bg-dark));
+}
+
+.button--primary:hover {
+  background: var(--button-fill-hover, var(--color-surface));
+}
+
+.button--secondary {
+  box-shadow: inset 0 0 0 1px var(--button-line, var(--color-line-on-dark));
+  color: var(--button-fill, var(--color-text-on-dark));
+}
+
+@media (max-width: 734px) {
+  .button {
+    height: 2.25rem; /* 36 px */
+    padding-inline: 1rem;
+    font-size: 0.875rem; /* 14 px */
+  }
+}
+
 /* Tekst tylko dla czytników ekranu. */
 .visually-hidden {
   position: absolute;

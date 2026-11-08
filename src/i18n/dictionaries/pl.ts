@@ -33,12 +33,59 @@ export const pl = {
     bagCount: 'Torba, liczba produktów: {n}',
   },
 
+  // Stopka (SiteFooter). {year} = bieżący rok.
+  footer: {
+    label: 'Stopka',
+    products: 'Produkty',
+    shop: 'Sklep i usługi',
+    copyright: 'Copyright © {year} MP SkyElectro. Wszelkie prawa zastrzeżone.',
+  },
+
   pages: {
     home: {
       title: 'MP SkyElectro',
       hero: {
         tagline: 'Każda sekunda lotu pod kontrolą.',
         imageAlt: 'Czerwona płytka SkyTimer 1 z rzędem przełączników DIP',
+      },
+      // Sekcje pod hero (HomePromo), klucz = id z CATALOG. Nazwy z products/pages. Wszystkie roboczy.
+      // imageNote: opis grafiki do zrobienia, widoczny w pustym miejscu na render.
+      sections: {
+        wieze: {
+          tagline: 'Gotowe na SkyTimer 1. Albo na Twój timer.',
+          imageNote: 'Render: wieżyczka z zamontowanym SkyTimer 1, ujęcie z boku',
+        },
+        'przyciski-pojemnosciowe': {
+          tagline: 'Start jednym dotknięciem.',
+          imageNote: 'Render: trzy przyciski 12, 16 i 20 mm obok siebie',
+        },
+        stateczniki: {
+          tagline: 'Na wymiar Twojego modelu.',
+          imageNote: 'Render: statecznik pod kątem, z góry',
+        },
+        accessories: {
+          tagline: 'Każdą część kupisz osobno.',
+          // Render: Raw Assets/03 Modele 3D/Blender/rendery_akcesoria.py (hero)
+          imageAlt:
+            'Części zamienne SkyTimer 1: śruby, drukowana płytka czołowa, ładowarka i\u00a0akumulator',
+        },
+        // Produkty "wkrótce": bez przycisków, z napisem common.comingSoon nad nazwą.
+        'skrzydla-weglowe': {
+          tagline: 'Węgiel tam, gdzie liczy się każdy gram.',
+          imageNote: 'Render: całe skrzydło węglowe pod światło, w poprzek kadru',
+        },
+        'rury-kadlubowe': {
+          tagline: 'Sztywne, lekkie i proste jak strzała.',
+          imageNote: 'Render: rura kadłubowa z bliska, widać splot włókna',
+        },
+        'elektroniczne-sterowanie': {
+          tagline: 'Następny krok po SkyTimer 1.',
+          imageNote: 'Render: płytka sterowania obok serwa',
+        },
+        services: {
+          tagline: 'Masz pomysł na część? Zaprojektujemy ją i wydrukujemy.',
+          imageNote: 'Zdjęcie: drukarka 3D w trakcie druku',
+        },
       },
     },
     configurator: {
@@ -373,7 +420,7 @@ export const pl = {
               value: '4\u00a0melodie buzzera, co 2,5\u00a0s lub 5\u00a0s',
             },
             servo: { label: 'Serwo', value: 'Konfigurowalny kierunek i\u00a0wychylenie' },
-            mcu: { label: 'Mikrokontroler', value: 'ATmega328P' },
+            mcu: { label: 'Mikrokontroler', value: 'ATmega88PA' },
           },
           manual: 'Pobierz podręcznik użytkownika',
           manualMeta: 'PDF, {size} MB',
@@ -406,7 +453,7 @@ export const pl = {
             electronics: {
               label: 'Elektronika',
               callouts: {
-                mcu: { title: 'ATmega328P', text: 'Mikrokontroler' },
+                mcu: { title: 'ATmega88PA', text: 'Mikrokontroler' },
                 connector: { title: 'Złącze 2\u00a0×\u00a07', text: 'Wszystkie podłączenia' },
                 resonator: { title: 'Rezonator 4\u00a0MHz', text: 'Precyzyjne odmierzanie czasu' },
                 // Rozdz. 10: Dether Time Add, +15 s za impuls.

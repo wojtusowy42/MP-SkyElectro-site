@@ -10,6 +10,7 @@
  */
 import '../styles/global.css';
 import { SITE } from '../config/site.ts';
+import SiteFooter from '../components/SiteFooter.astro';
 import { DEFAULT_LOCALE, HTML_LANG, type Locale } from '../i18n/locales.ts';
 
 interface Props {
@@ -61,5 +62,6 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
   </head>
   <body data-theme={theme}>
     <slot />
+    <SiteFooter locale={locale} />
   </body>
 </html>

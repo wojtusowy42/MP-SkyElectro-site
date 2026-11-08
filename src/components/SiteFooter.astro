@@ -1,0 +1,126 @@
+---
+/**
+ * Stopka każdej strony (wzór: stopka apple.com): jasnoszara, mały szary tekst, kolumny linków, na dole prawa autorskie.
+ * Produkty i podstrony z CATALOG (ta sama kolejność co menu), produkty "wkrótce" z dopiskiem.
+ */
+import { SITE } from '../config/site.ts';
+import { CATALOG } from '../data/catalog.ts';
+import { getProduct } from '../data/products/index.ts';
+import { getDictionary, format, productTexts } from '../i18n/index.ts';
+import type { Locale } from '../i18n/locales.ts';
+import { bagPath, pathFor } from '../i18n/routes.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const dict = getDictionary(locale);
+const t = dict.footer;
+
+const products = CATALOG.filter((e) => e.kind === 'product').map((entry) => ({
+  label: productTexts(dict, entry.id).name,
+  soon: getProduct(entry.id)?.status === 'coming-soon',
+  href: pathFor(locale, entry),
+}));
+const shop = [
+  { label: dict.pages.accessories.navName, href: pathFor(locale, { kind: 'page', id: 'accessories' }) },
+  { label: dict.pages.services.name, href: pathFor(locale, { kind: 'page', id: 'services' }) },
+  { label: dict.nav.bag, href: bagPath(locale) },
+];
+---
+
+<footer class="footer">
+  <nav class="footer__inner" aria-label={t.label}>
+    <div class="footer__columns">
+      <div>
+        <h2 class="footer__heading">{t.products}</h2>
+        <ul>
+          {
+            products.map((p) => (
+              <li>
+                <a href={p.href}>{p.label}</a>
+                {p.soon && <span class="footer__soon"> · {dict.common.comingSoon}</span>}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer__heading">{t.shop}</h2>
+        <ul>
+          {shop.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer__heading">
+          <a href={pathFor(locale, { kind: 'page', id: 'contact' })}>{dict.pages.contact.name}</a>
+        </h2>
+        <ul>
+          {SITE.orderEmail && <li><a href={`mailto:${SITE.orderEmail}`}>{SITE.orderEmail}</a></li>}
+          <li><a href={`tel:${SITE.phone.replaceAll(' ', '')}`}>{SITE.phone}</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer__legal">{format(t.copyright, { year: new Date().getFullYear() })}</p>
+  </nav>
+</footer>
+
+<style>
+  .footer {
+    background: var(--color-bg);
+    color: var(--color-text-2);
+    font-size: 0.75rem; /* 12 px */
+    line-height: 1.33;
+    letter-spacing: -0.01em;
+  }
+
+  .footer__inner {
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding: 1.25rem var(--gutter) 1.5rem;
+  }
+
+  .footer__columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .footer__heading {
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+    font-size: inherit;
+    font-weight: 600;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li + li {
+    margin-top: 0.5rem;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  .footer__legal {
+    padding-top: 1rem;
+  }
+
+  @media (max-width: 734px) {
+    .footer__columns {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
