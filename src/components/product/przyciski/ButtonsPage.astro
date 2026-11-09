@@ -1,0 +1,457 @@
+---
+/**
+ * Strona "Dowiedz się więcej" przycisków pojemnościowych. Jasna, kafelkowa: układ jak apple.com/pl/ipad-mini
+ * (hero → "Co go wyróżnia" w kaflach → porównanie modeli → Kup).
+ * Kafle: szerokie jeden pod drugim, krótsze parami. Wszystkie obrazy to rendery:
+ *   Raw Assets/03 Modele 3D/Blender/rendery_przyciski_strona.py (płytki, przewody, klasyczny, moduł zasilania),
+ *   Raw Assets/04 Rendery/Przyciski/palec_warstwa.py (palec: hero i kafel "dotyk").
+ *
+ * Hero: najpierw sam przycisk, po chwili palec dolatuje wzdłuż swojej osi, a jego cień na polu gęstnieje
+ * i kurczy się, jak przy zbliżaniu. Trzy warstwy w jednym kadrze. Bez JS / z ograniczeniem ruchu: od razu kadr końcowy.
+ */
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import LocalNav from '../LocalNav.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
+import { richText } from '../../../i18n/rich-text.ts';
+import { configuratorPath } from '../../../i18n/routes.ts';
+import { przyciski } from '../../../data/products/przyciski.ts';
+import heroButton from '../../../assets/renders/przyciski/hero-przycisk.jpg';
+import heroShadow from '../../../assets/renders/przyciski/hero-cien.png';
+import heroFinger from '../../../assets/renders/przyciski/hero-palec.png';
+import touchImage from '../../../assets/renders/przyciski/dotyk.jpg';
+import edgeImage from '../../../assets/renders/przyciski/krawedz.png';
+import sizesImage from '../../../assets/renders/przyciski/srednice.png';
+import classicImage from '../../../assets/renders/przyciski/klasyczny.png';
+import wiresImage from '../../../assets/renders/przyciski/przewody.png';
+import powerImage from '../../../assets/renders/przyciski/zasilanie.png';
+import size12 from '../../../assets/renders/przyciski/srednica-12.png';
+import size16 from '../../../assets/renders/przyciski/srednica-16.png';
+import size20 from '../../../assets/renders/przyciski/srednica-20.png';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const dict = getDictionary(locale);
+const texts = dict.products['przyciski-pojemnosciowe'];
+const t = texts.story;
+const buyHref = configuratorPath(locale, 'przyciski-pojemnosciowe');
+
+// Średnice z opcji konfiguratora ('d12' → 12), żeby strona nie rozjechała się z ofertą.
+const SIZE_IMAGES: Record<number, ImageMetadata> = { 12: size12, 16: size16, 20: size20 };
+const diameters = (przyciski.configurator?.steps[0]?.options ?? []).map((o) => ({
+  id: o.id as keyof typeof t.sizes.items,
+  mm: Number(o.id.slice(1)),
+}));
+for (const d of diameters) {
+  if (!t.sizes.items[d.id] || !SIZE_IMAGES[d.mm]) {
+    throw new Error(`Średnica ${d.id}: brak tekstu w story.sizes.items albo renderu srednica-${d.mm}.png`);
+  }
+}
+
+const tl = t.highlights.tiles;
+// Kolejność kafli; wide = na całą szerokość, reszta parami. fade: dłoń urywa się na krawędzi obrazu.
+const tiles: { id: keyof typeof tl; image: ImageMetadata; wide?: boolean; fade?: boolean }[] = [
+  { id: 'hold', image: touchImage, wide: true, fade: true },
+  { id: 'flat', image: edgeImage },
+  { id: 'sizes', image: sizesImage },
+  { id: 'early', image: classicImage, wide: true },
+  { id: 'wires', image: wiresImage },
+  { id: 'skytimer', image: powerImage },
+];
+---
+
+<div class="buttons" data-theme="light">
+  <LocalNav
+    title={texts.name}
+    label={t.localNavLabel}
+    links={[
+      { label: t.localLinks.overview, href: '#przeglad' },
+      { label: t.localLinks.sizes, href: '#srednice' },
+    ]}
+    orderHref={buyHref}
+    orderLabel={dict.common.buy}
+  />
+
+  <section class="hero">
+    <h1 class="hero__name">{texts.name}</h1>
+    <p class="hero__tagline">{t.tagline}</p>
+    <div class="hero__stage" data-hero>
+      <Picture
+        class="hero__img"
+        src={heroButton}
+        alt={t.heroAlt}
+        widths={[800, 1200, 1745]}
+        sizes="(max-width: 1068px) 100vw, 1000px"
+        formats={['avif', 'webp']}
+        quality={82}
+        loading="eager"
+      />
+      {[heroShadow, heroFinger].map((src, i) => (
+        <Picture
+          class:list={['hero__img', i === 0 ? 'hero__shadow' : 'hero__finger']}
+          src={src}
+          alt=""
+          widths={[800, 1200, 1745]}
+          sizes="(max-width: 1068px) 100vw, 1000px"
+          formats={['avif', 'webp']}
+          quality={82}
+          loading="eager"
+        />
+      ))}
+    </div>
+    <a class="button button--primary" href={buyHref}>{dict.common.buy}</a>
+  </section>
+
+  <section class="section" id="przeglad" aria-labelledby="przeglad-title">
+    <h2 class="section__heading" id="przeglad-title">{t.highlights.heading}</h2>
+    <ul class="tiles" role="list">
+      {tiles.map(({ id, image, wide, fade }) => (
+        <li class:list={['tile', wide && 'tile--wide']}>
+          <p class="tile__text" set:html={richText(tl[id].text)} />
+          <Picture
+            class:list={['tile__img', fade && 'tile__img--fade']}
+            src={image}
+            alt={tl[id].alt}
+            widths={wide ? [800, 1300, 1900] : [500, 800, 1100]}
+            sizes={wide ? '(max-width: 1068px) 92vw, 920px' : '(max-width: 734px) 92vw, 450px'}
+            formats={['avif', 'webp']}
+            quality={80}
+            loading="lazy"
+          />
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="section" id="srednice" aria-labelledby="srednice-title">
+    <h2 class="section__heading" id="srednice-title">{t.sizes.heading}</h2>
+    <p class="section__lead">{t.sizes.lead}</p>
+    <ul class="sizes" role="list">
+      {diameters.map((d) => (
+        <li class="sizes__card">
+          {/* Wszystkie trzy w tej samej skali (kamera dopasowana do 20 mm). */}
+          <Picture
+            class="sizes__img"
+            src={SIZE_IMAGES[d.mm]!}
+            alt={format(t.sizes.alt, { d: d.mm })}
+            widths={[400, 700, 1000]}
+            sizes="(max-width: 734px) 80vw, 300px"
+            formats={['avif', 'webp']}
+            quality={80}
+            loading="lazy"
+          />
+          <p class="sizes__title">{format(t.sizes.field, { d: d.mm })}</p>
+          <p class="sizes__text">{t.sizes.items[d.id]}</p>
+          <a class="button button--primary" href={buyHref}>{dict.common.buy}</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="buy" aria-labelledby="kup-title">
+    <Picture
+      class="buy__img"
+      src={sizesImage}
+      alt={t.buy.alt}
+      widths={[600, 1000, 1400]}
+      sizes="(max-width: 734px) 90vw, 640px"
+      formats={['avif', 'webp']}
+      quality={80}
+      loading="lazy"
+    />
+    <h2 class="buy__heading" id="kup-title">{t.buy.heading}</h2>
+    <p class="buy__text">{t.buy.text}</p>
+    <a class="button button--primary" href={buyHref}>{dict.common.buy}</a>
+  </section>
+</div>
+
+<script>
+  // Palec dolatuje do przycisku: dopiero gdy wszystkie warstwy są wczytane, po krótkiej chwili na sam przycisk.
+  const stage = document.querySelector<HTMLElement>('[data-hero]');
+  if (stage && matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    stage.dataset.anim = '';
+    const imgs = [...stage.querySelectorAll('img')];
+    Promise.all(imgs.map((img) => img.decode().catch(() => {}))).then(() =>
+      setTimeout(() => stage.classList.add('is-play'), 600),
+    );
+  }
+</script>
+
+<style>
+  .buttons {
+    --button-fill: var(--color-text);
+    --button-ink: var(--color-surface);
+    --button-fill-hover: #000;
+    --button-line: var(--color-text);
+    padding-bottom: clamp(5rem, 10vw, 8rem);
+    /* Jasnoszare tło jak u Apple, dokładnie kolor tła renderów hero: zdjęcie nie ma krawędzi, białe kafle odcinają się od tła. */
+    background: #f6f6f6;
+    color: var(--color-text);
+  }
+
+  .tiles,
+  .sizes {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    display: grid;
+    justify-items: center;
+    padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter) 0;
+    text-align: center;
+  }
+
+  .hero__name {
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .hero__tagline {
+    margin-top: 0.5rem;
+    font-size: clamp(2.5rem, 1.4rem + 4.6vw, 4.75rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .hero__stage {
+    position: relative;
+    width: min(100%, 1000px);
+    margin-block: clamp(1rem, 3vw, 2rem);
+    overflow: hidden; /* palec wlatuje spoza kadru */
+  }
+
+  .hero__stage :global(.hero__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .hero__stage :global(.hero__shadow),
+  .hero__stage :global(.hero__finger) {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Dłoń kończy się na krawędzi zdjęcia: wygaszona przy prawej i górnej krawędzi, żeby nie było cięcia. */
+  .hero__stage :global(.hero__finger) {
+    mask-image: linear-gradient(to left, transparent, #000 16%), linear-gradient(to bottom, transparent, #000 10%);
+    mask-composite: intersect;
+    /* czubek palca: tu "celuje" lekkie zmniejszenie przy zbliżaniu */
+    transform-origin: 53% 63%;
+  }
+
+  .hero__stage :global(.hero__shadow) {
+    transform-origin: 56% 71%; /* środek cienia na polu */
+  }
+
+  /* Przed startem animacji palca i cienia nie ma (tylko z JS, bez ograniczenia ruchu). */
+  .hero__stage[data-anim] :global(:is(.hero__finger, .hero__shadow)) {
+    opacity: 0;
+  }
+
+  /*
+   * Ruch po osi palca (od kłykcia do czubka, w kadrze ~ (−0,76; 0,65)), z wyhamowaniem jak ręka,
+   * która zwalnia przed celem. Palec z daleka jest trochę większy (bliżej kamery).
+   * Cień: z daleka szeroki i blady, tuż nad polem mały i wyraźny.
+   */
+  .hero__stage[data-anim]:global(.is-play) :global(.hero__finger) {
+    animation: finger-in 1900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .hero__stage[data-anim]:global(.is-play) :global(.hero__shadow) {
+    animation: shadow-in 1900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes finger-in {
+    from {
+      opacity: 0;
+      translate: 30% -26%;
+      scale: 1.12;
+    }
+    25% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+      scale: 1;
+    }
+  }
+
+  /* Cień ciemnieje dopiero, gdy palec jest blisko (na początku ruchu palec jest wysoko). */
+  @keyframes shadow-in {
+    from {
+      opacity: 0;
+      translate: 10% -4%;
+      scale: 2.4;
+    }
+    45% {
+      opacity: 0.3;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+      scale: 1;
+    }
+  }
+
+  /* ---------- Sekcje ---------- */
+  .section {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin: clamp(5rem, 10vw, 8rem) auto 0;
+    padding-inline: var(--gutter);
+    scroll-margin-top: var(--local-nav-height);
+  }
+
+  .section__heading {
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+  }
+
+  .section__lead {
+    margin-top: 0.75rem;
+    color: var(--color-text-2);
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  }
+
+  /* ---------- Kafle: szerokie na cały rząd, reszta parami ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: clamp(1.75rem, 3.5vw, 2.75rem);
+    border-radius: 1.75rem;
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .tile--wide {
+    grid-column: 1 / -1;
+  }
+
+  .tile__text {
+    max-width: 34rem;
+    color: var(--color-text-2);
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .tile__text :global(strong) {
+    color: var(--color-text);
+    font-weight: inherit;
+  }
+
+  /* Render na dole kafla, do jego krawędzi (bez dolnego marginesu, jak u Apple). */
+  .tile :global(.tile__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: auto;
+  }
+
+  .tile--wide :global(.tile__img) {
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+
+  .tile :global(.tile__img--fade) {
+    mask-image: linear-gradient(to left, transparent, #000 12%), linear-gradient(to bottom, transparent, #000 8%);
+    mask-composite: intersect;
+  }
+
+  /* ---------- Porównaj średnice ---------- */
+  .sizes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .sizes__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1.5rem 2.5rem;
+    border-radius: 1.75rem;
+    background: var(--color-surface);
+    text-align: center;
+  }
+
+  .sizes__card :global(.sizes__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .sizes__title {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .sizes__text {
+    flex: 1;
+    margin: 0.5rem 0 1.75rem;
+    color: var(--color-text-2);
+    font-size: 1.0625rem;
+    line-height: 1.45;
+  }
+
+  /* ---------- Kup ---------- */
+  .buy {
+    display: grid;
+    justify-items: center;
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin: clamp(5rem, 10vw, 8rem) auto 0;
+    padding-inline: var(--gutter);
+    text-align: center;
+  }
+
+  .buy :global(.buy__img) {
+    display: block;
+    width: min(100%, 640px);
+    height: auto;
+  }
+
+  .buy__heading {
+    margin-top: 1.5rem;
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .buy__text {
+    margin: 0.75rem 0 1.75rem;
+    color: var(--color-text-2);
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  }
+
+  @media (max-width: 734px) {
+    .tiles,
+    .sizes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

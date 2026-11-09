@@ -12,6 +12,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import SkyTimerHero from '../../components/home/SkyTimerHero.astro';
 import HomePromo from '../../components/home/HomePromo.astro';
+import buttonsRender from '../../assets/renders/przyciski/kafelek.jpg';
 import accessoriesRender from '../../assets/renders/akcesoria/hero.jpg';
 import { LOCALES, type Locale } from '../../i18n/locales.ts';
 import { getDictionary, productTexts } from '../../i18n/index.ts';
@@ -69,9 +70,15 @@ const product = (id: ProductId) => ({
     />
     <div class="home-more">
       <HomePromo layout="band" theme="light" {...product('wieze')} />
-      <HomePromo layout="band" theme="light" {...product('przyciski-pojemnosciowe')} />
+      <HomePromo layout="band" theme="light" {...product('stateczniki')} />
       <div class="home-tiles">
-        <HomePromo layout="tile" theme="light" {...product('stateczniki')} />
+        <HomePromo
+          layout="tile"
+          theme="light"
+          {...product('przyciski-pojemnosciowe')}
+          image={buttonsRender}
+          imageAlt={sections['przyciski-pojemnosciowe'].imageAlt}
+        />
         <HomePromo
           layout="tile"
           theme="light"

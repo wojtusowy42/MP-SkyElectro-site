@@ -57,7 +57,9 @@ export const pl = {
         },
         'przyciski-pojemnosciowe': {
           tagline: 'Start jednym dotknięciem.',
-          imageNote: 'Render: trzy przyciski 12, 16 i 20 mm obok siebie',
+          // Render: Raw Assets/04 Rendery/Przyciski/hero.png (palec nad polem, wygenerowany z renderu Blendera)
+          imageNote: 'Render: palec nad polem przycisku', // tylko gdy brak renderu
+          imageAlt: 'Palec tuż nad okrągłym polem dotykowym czerwonej płytki przycisku pojemnościowego',
         },
         stateczniki: {
           tagline: 'Na wymiar Twojego modelu.',
@@ -185,6 +187,16 @@ export const pl = {
       slug: 'uslugi',
       name: 'Dodatkowe usługi',
       navName: 'Usługi',
+      heading: 'Coś, czego nie ma w katalogu?',
+      lead: 'Zaprojektujemy i wydrukujemy część na Twój model. Kolejne technologie dojdą wkrótce.',
+      contactLink: 'Napisz do nas',
+      // Opisy usług: klucz = id z SERVICES (src/data/services.ts). Bez cen, jak w notatkach klienta.
+      items: {
+        'druk-3d': 'Drukujemy części do modeli: obudowy, wieżyczki, uchwyty i\u00a0elementy na zamówienie.',
+        projektowanie: 'Masz pomysł, ale nie masz modelu 3D? Przygotujemy projekt części pod druk.',
+        laser: 'Cięcie i\u00a0grawerowanie laserem.',
+        frezowanie: 'Frezowanie precyzyjnych elementów.',
+      },
     },
     contact: {
       slug: 'kontakt',
@@ -535,6 +547,72 @@ export const pl = {
       slug: 'przyciski-pojemnosciowe',
       name: 'Przyciski pojemnościowe',
       navName: 'Przyciski', // roboczy
+      // Strona "Dowiedz się więcej": jasna, kafelkowa, układ jak apple.com/pl/ipad-mini. Cała roboczy.
+      // Fakty z notatek klienta (MP SkyElectro mysli stronka.pdf, Specs.pdf) i z płytki (pola S, +, −).
+      // Rendery: Raw Assets/03 Modele 3D/Blender/rendery_przyciski_strona.py, palec: Raw Assets/04 Rendery/Przyciski/palec_warstwa.py.
+      // *fraza* = ciemna fraza w szarym tekście.
+      story: {
+        localNavLabel: 'Przyciski pojemnościowe: nawigacja produktu',
+        localLinks: { overview: 'Przegląd', sizes: 'Średnice' },
+        tagline: 'Start jednym dotknięciem.',
+        heroAlt: 'Palec nad okrągłym polem TOUCH czerwonej płytki przycisku pojemnościowego',
+        highlights: {
+          heading: 'Co go wyróżnia.',
+          // Kolejność = kolejność na stronie; wide: kafel na całą szerokość, reszta parami.
+          tiles: {
+            hold: {
+              text: '*Trzyma, dopóki dotykasz.* Przycisk czuje palec, a\u00a0nie nacisk. Start dopiero wtedy, gdy palec naprawdę zejdzie z\u00a0pola.',
+              alt: 'Palec dotyka pola TOUCH płytki przycisku pojemnościowego',
+            },
+            flat: {
+              text: '*Bez ruchomych części.* Płaska płytka: nie ma klawisza ani sprężyny, które mogłyby się zużyć.',
+              alt: 'Płaska płytka przycisku pojemnościowego widziana nisko z\u00a0boku',
+            },
+            sizes: {
+              text: '*12, 16 albo 20\u00a0mm.* Trzy średnice pola: pod Twój palec i\u00a0Twoją wieżyczkę.',
+              alt: 'Trzy płytki przycisku pojemnościowego: 12, 16 i\u00a020\u00a0mm',
+            },
+            early: {
+              text: '*Nie puści za wcześnie.* W\u00a0rozbiegu palec czasem lekko odpuszcza. Klasyczny przycisk wtedy już startuje, pojemnościowy dalej czeka.',
+              alt: 'Klasyczny przycisk startu 12\u00a0×\u00a012\u00a0mm obok płytki pojemnościowej 12\u00a0mm',
+            },
+            wires: {
+              text: '*Trzy przewody.* Pola S, + i\u00a0− na płytce: sygnał, zasilanie i\u00a0masa.',
+              alt: 'Trzy czarne przewody przylutowane do pól S, + i\u00a0− płytki',
+            },
+            skytimer: {
+              text: '*Pasuje do SkyTimer\u00a01.* Podłączasz go przez lekko zmodyfikowany moduł zasilania.',
+              alt: 'Płytka przycisku z\u00a0przewodami poprowadzonymi do modułu zasilania SkyTimer\u00a01',
+            },
+          },
+        },
+        // Zamiast "Porównaj modele" u Apple: trzy średnice obok siebie. Klucze = opcje kroku diameter.
+        sizes: {
+          heading: 'Porównaj średnice.',
+          lead: 'Ta sama cena za sztukę, niezależnie od średnicy.',
+          field: 'Pole dotyku Ø\u00a0{d}\u00a0mm',
+          alt: 'Płytka przycisku pojemnościowego z\u00a0polem {d}\u00a0mm',
+          items: {
+            d12: 'Najmniejsza płytka. Do ciasnej wieżyczki.',
+            d16: 'Złoty środek między rozmiarem a\u00a0wygodą.',
+            d20: 'Największe pole. Najłatwiej trafić palcem bez patrzenia.',
+          },
+        },
+        // Zakończenie strony (jak "Kup" na końcu stron Apple). Bez ceny: ceny tylko na stronie Kup.
+        buy: {
+          heading: 'Kup przyciski pojemnościowe.',
+          text: 'Wybierz średnicę i\u00a0liczbę sztuk.',
+          alt: 'Trzy płytki przycisku pojemnościowego: 12, 16 i\u00a020\u00a0mm',
+        },
+      },
+      // Galeria strony Kup (klucze z GALLERIES w [configurator].astro). Do "srednica" strona dopisuje wybraną średnicę.
+      images: {
+        srednice: 'Trzy płytki przycisku pojemnościowego: 12, 16 i 20 mm',
+        srednica: 'Płytka przycisku pojemnościowego',
+        dotyk: 'Palec dotyka pola TOUCH płytki przycisku pojemnościowego',
+        przewody: 'Trzy przewody przylutowane do pól S, + i − płytki',
+        krawedz: 'Płaska płytka przycisku pojemnościowego widziana nisko z boku',
+      },
       steps: {
         diameter: {
           label: 'Średnica',

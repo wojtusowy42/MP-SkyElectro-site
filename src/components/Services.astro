@@ -1,0 +1,134 @@
+---
+/**
+ * Strona Usługi: nagłówek i cztery kafelki (druk 3D, projektowanie, laser, frezowanie).
+ * Styl jak Kontakt. Usługi "wkrótce" mają napis zamiast linku. Bez cen (nie ma ich w notatkach).
+ */
+import { SERVICES } from '../data/services.ts';
+import { getDictionary, serviceName } from '../i18n/index.ts';
+import type { Locale } from '../i18n/locales.ts';
+import { pathFor } from '../i18n/routes.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const dict = getDictionary(locale);
+const t = dict.pages.services;
+const items = t.items as Record<string, string | undefined>;
+const contactHref = pathFor(locale, { kind: 'page', id: 'contact' });
+---
+
+<section class="services">
+  <h1 class="services__heading">{t.heading}</h1>
+  <p class="services__lead">{t.lead}</p>
+
+  <ul class="services__list">
+    {
+      SERVICES.map((s) => (
+        <li class="service">
+          <h2 class="service__title">{serviceName(dict, s.id)}</h2>
+          <p class="service__text">{items[s.id]}</p>
+          {s.status === 'coming-soon' ? (
+            <p class="service__soon">{dict.common.comingSoon}</p>
+          ) : (
+            <a class="service__link" href={contactHref}>
+              {t.contactLink}
+            </a>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  :global(body) {
+    background: var(--color-surface);
+  }
+
+  .services {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: clamp(4.5rem, 10vw, 7.5rem) var(--gutter) clamp(5rem, 10vw, 8rem);
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  .services__heading {
+    font-size: clamp(2.5rem, 1.5rem + 4vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.035em;
+  }
+
+  .services__lead {
+    margin: 1.25rem auto 0;
+    max-width: 34rem;
+    color: var(--color-text-2);
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.3125rem);
+    line-height: 1.4;
+    text-wrap: balance;
+  }
+
+  .services__list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    margin: clamp(3.5rem, 8vw, 5.5rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .service {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 2rem;
+    border: 1px solid var(--color-line);
+    border-radius: 1.25rem;
+  }
+
+  .service__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .service__text {
+    margin-top: 0.5rem;
+    max-width: 24rem;
+    color: var(--color-text-2);
+    font-size: 1rem;
+    text-wrap: balance;
+  }
+
+  .service__link,
+  .service__soon {
+    margin-top: auto;
+    padding-top: 1.5rem;
+  }
+
+  .service__soon {
+    color: var(--color-text-2);
+  }
+
+  .service__link {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .service__link::after {
+    content: ' ›';
+  }
+
+  .service__link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 734px) {
+    .services__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -81,8 +81,8 @@ const { title, tagline, links, imageNote, image, imageAlt = '', eyebrow, layout,
   }
 
   .promo--tile {
-    --title-size: 2.5rem; /* 40 px */
-    --tagline-size: 1.3125rem; /* 21 px */
+    --title-size: 3rem; /* 48 px */
+    --tagline-size: 1.625rem; /* 26 px */
     --media-h: 21rem; /* 336 px */
 
     padding-top: 3rem;
@@ -123,6 +123,11 @@ const { title, tagline, links, imageNote, image, imageAlt = '', eyebrow, layout,
     width: min(100%, var(--content-max));
     height: auto;
     margin-top: 1rem;
+  }
+
+  /* Kafelek: render do samych krawędzi kafelka, bez limitu szerokości (na szerokich ekranach kafelek > 980 px). */
+  .promo--tile :global(.promo__image) {
+    width: 100%;
   }
 
   .promo__title {
@@ -171,8 +176,8 @@ const { title, tagline, links, imageNote, image, imageAlt = '', eyebrow, layout,
     }
 
     .promo--tile {
-      --title-size: 2rem;
-      --tagline-size: 1.1875rem;
+      --title-size: 2.5rem;
+      --tagline-size: 1.4375rem;
       --media-h: 17rem;
     }
   }

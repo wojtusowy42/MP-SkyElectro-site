@@ -30,6 +30,10 @@ import stPcb from '../../../assets/renders/skytimer-1/konfigurator/pcb.png';
 import stPcbTop from '../../../assets/renders/skytimer-1/konfigurator/pcb-top.png';
 import stPcbBack from '../../../assets/renders/skytimer-1/konfigurator/pcb-back.png';
 import stPcbDetail from '../../../assets/renders/skytimer-1/konfigurator/pcb-detail-dip.png';
+import btnSizes from '../../../assets/renders/przyciski/kup/srednice.jpg';
+import btnTouch from '../../../assets/renders/przyciski/dotyk.jpg';
+import btnWires from '../../../assets/renders/przyciski/kup/przewody.jpg';
+import btnEdge from '../../../assets/renders/przyciski/kup/krawedz.jpg';
 
 /** Rendery w wersjach: ścieżka → zdjęcie. Nazwa pliku = klucz opisu + id opcji, które pokazuje. */
 const VERSIONS = import.meta.glob<ImageMetadata>('../../../assets/renders/*/kup/*.jpg', {
@@ -69,6 +73,15 @@ const GALLERIES: Record<string, Slide[]> = {
     { key: 'pcb-top', src: stPcbTop },
     { key: 'pcb-back', src: stPcbBack, fill: true },
     { key: 'pcb-detail-dip', src: stPcbDetail, fill: true },
+  ],
+  // Rendery: Raw Assets/04 Rendery/Przyciski/strona_na_web.py (kup/*.jpg) i palec_warstwa.py (dotyk.jpg).
+  'przyciski-pojemnosciowe': [
+    // na start wszystkie trzy; po wyborze średnicy galeria przechodzi do tej jednej (ta sama skala co pozostałe)
+    { key: 'srednice', src: btnSizes },
+    { versions: ['srednica'], show: ['d12', 'd16', 'd20'] },
+    { key: 'dotyk', src: btnTouch },
+    { key: 'przewody', src: btnWires },
+    { key: 'krawedz', src: btnEdge },
   ],
 };
 
