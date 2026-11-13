@@ -24,6 +24,27 @@ export function pickVersion(matches: string[], selection: Selection): number {
   return best;
 }
 
+/**
+ * Czy slajd galerii jest schowany. only: 'krok=opcja' po spacji (schowany, gdy klient wybrał coś innego);
+ * complete: 'true' = slajd dopiero po wybraniu wszystkich kroków (steps), 'false' = tylko do tego momentu.
+ */
+export function slideHidden(
+  only: string | undefined,
+  complete: string | undefined,
+  selection: Selection,
+  steps: string[],
+): boolean {
+  const conflict = (only ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .some((pair) => {
+      const [step, opt] = pair.split('=') as [string, string];
+      return selection[step] !== undefined && selection[step] !== opt;
+    });
+  const done = steps.length > 0 && steps.every((id) => selection[id] !== undefined);
+  return conflict || (complete !== undefined && (complete === 'true') !== done);
+}
+
 /** W każdej grupie [data-versions] na stronie zostawia widoczną wersję pasującą do wyborów. */
 export function showVersions(selection: Selection): void {
   for (const group of document.querySelectorAll<HTMLElement>('[data-versions]')) {

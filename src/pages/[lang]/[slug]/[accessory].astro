@@ -17,6 +17,7 @@ import { accessoryPath, bagPath } from '../../../i18n/routes.ts';
 import { ACCESSORIES, ACCESSORY_CATEGORIES } from '../../../data/accessories.ts';
 import { accessoryImages } from '../../../lib/accessory-images.ts';
 import { toDateKey } from '../../../lib/price.ts';
+import { addedToBagData } from '../../../lib/bag-products.ts';
 
 export const getStaticPaths = (() =>
   LOCALES.flatMap((lang) => {
@@ -88,6 +89,7 @@ const stepTexts = productTexts(dict, 'skytimer-1').steps ?? {};
             alt={texts.name}
             locale={locale}
             bagHref={bagPath(locale)}
+            addedToBag={await addedToBagData(locale, accessory.id)}
             today={toDateKey(new Date())}
             labels={{
               addToBag: c.addToBag,

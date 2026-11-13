@@ -7,14 +7,16 @@ import { SITE } from '../config/site.ts';
 import { CATALOG } from '../data/catalog.ts';
 import { getProduct } from '../data/products/index.ts';
 import { getDictionary, format, productTexts } from '../i18n/index.ts';
-import type { Locale } from '../i18n/locales.ts';
+import { LANGUAGE_NAMES, LOCALES, type Locale } from '../i18n/locales.ts';
 import { bagPath, pathFor } from '../i18n/routes.ts';
 
 interface Props {
   locale: Locale;
+  /** Ta sama strona w każdym języku (przełącznik języka prowadzi na odpowiednik, nie na stronę główną). */
+  alternates: Record<Locale, string>;
 }
 
-const { locale } = Astro.props;
+const { locale, alternates } = Astro.props;
 const dict = getDictionary(locale);
 const t = dict.footer;
 
@@ -62,7 +64,24 @@ const shop = [
         </ul>
       </div>
     </div>
-    <p class="footer__legal">{format(t.copyright, { year: new Date().getFullYear() })}</p>
+    <div class="footer__bottom">
+      <p>{format(t.copyright, { year: new Date().getFullYear() })}</p>
+      <ul class="footer__languages" aria-label={t.language}>
+        {
+          LOCALES.map((l) => (
+            <li>
+              {l === locale ? (
+                <span aria-current="true">{LANGUAGE_NAMES[l]}</span>
+              ) : (
+                <a href={alternates[l]} hreflang={l} lang={l}>
+                  {LANGUAGE_NAMES[l]}
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </nav>
 </footer>
 
@@ -114,8 +133,25 @@ const shop = [
     text-decoration: underline;
   }
 
-  .footer__legal {
+  .footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
     padding-top: 1rem;
+  }
+
+  .footer__languages {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .footer__languages li + li {
+    margin-top: 0;
+  }
+
+  .footer__languages span {
+    color: var(--color-text);
   }
 
   @media (max-width: 734px) {

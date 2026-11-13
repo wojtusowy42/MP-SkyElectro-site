@@ -24,6 +24,7 @@ export const pl = {
     learnMore: 'Dowiedz się więcej',
     order: 'Zamów',
     buy: 'Kup',
+    close: 'Zamknij',
   },
 
   // Górny pasek menu (pozycje: src/lib/navigation.ts, krótkie nazwy: navName).
@@ -39,6 +40,7 @@ export const pl = {
     products: 'Produkty',
     shop: 'Sklep i usługi',
     copyright: 'Copyright © {year} MP SkyElectro. Wszelkie prawa zastrzeżone.',
+    language: 'Język', // przełącznik języka (opis dla czytników ekranu)
   },
 
   pages: {
@@ -63,7 +65,10 @@ export const pl = {
         },
         stateczniki: {
           tagline: 'Na wymiar Twojego modelu.',
-          imageNote: 'Render: statecznik pod kątem, z góry',
+          // Render: Raw Assets/03 Modele 3D/Blender/rendery_statecznik_pokrycie.py -- 96 100 kafelek
+          imageNote: 'Render: statecznik pod kątem, z góry', // tylko gdy brak renderu
+          imageAlt:
+            'Statecznik w\u00a0połowie pokryty srebrnym mylarem, druga połowa to goły szkielet z\u00a0balsy i\u00a0węgla',
         },
         accessories: {
           tagline: 'Każdą część kupisz osobno.',
@@ -109,7 +114,12 @@ export const pl = {
       galleryDot: 'Zdjęcie {n} z {total}',
       addToBag: 'Włóż do torby',
       addedToBag: 'Dodano do torby.',
-      viewBag: 'Zobacz torbę',
+      viewBag: 'Zajrzyj do torby',
+      // Okno po włożeniu do torby (AddedToBag.svelte): nagłówek nad polecanymi akcesoriami i przycisk po dodaniu.
+      recommended: 'Akcesoria, które się przydadzą.', // roboczy
+      // tylko po dodaniu pełnego zestawu SkyTimer 1
+      recommendedInKit: 'Masz je już w\u00a0zestawie, ale warto mieć zapas.', // roboczy
+      inBag: 'W torbie',
       // Sekcja pod konfiguratorem (zdjęcia: src/assets/renders/skytimer-1/kup/element-*).
       kitHeading: 'Co jest w\u00a0zestawie.',
       // Podpisy kafelków po wyborze (zamiast ogólnych "wybranego wariantu", "cynk lub czernione").
@@ -161,6 +171,16 @@ export const pl = {
       remove: 'Usuń',
       edit: 'Zmień',
       total: 'Razem',
+      // Zaznaczanie: zamawiasz tylko zaznaczone pozycje, reszta zostaje w torbie na później.
+      totalSelected: 'Razem za zaznaczone',
+      selectAll: 'Zaznacz wszystko',
+      selected: 'Zaznaczone: {n} z\u00a0{total}',
+      select: 'Zaznacz: {name}',
+      removeSelected: 'Usuń zaznaczone',
+      clear: 'Opróżnij torbę',
+      removed: 'Usunięto pozycji: {n}.',
+      undo: 'Cofnij',
+      nothingSelected: 'Zaznacz pozycje, które chcesz zamówić.',
       orderButton: 'Zamów mailem',
       orderNote:
         'Otworzy się Twoja poczta z gotową wiadomością. Odpiszemy z potwierdzeniem i danymi do płatności.', // roboczy
@@ -549,13 +569,13 @@ export const pl = {
       navName: 'Przyciski', // roboczy
       // Strona "Dowiedz się więcej": jasna, kafelkowa, układ jak apple.com/pl/ipad-mini. Cała roboczy.
       // Fakty z notatek klienta (MP SkyElectro mysli stronka.pdf, Specs.pdf) i z płytki (pola S, +, −).
-      // Rendery: Raw Assets/03 Modele 3D/Blender/rendery_przyciski_strona.py, palec: Raw Assets/04 Rendery/Przyciski/palec_warstwa.py.
+      // Rendery: Raw Assets/03 Modele 3D/Blender/rendery_przyciski_strona.py (hero: ujęcie srednice-anim), palec w kaflu: Raw Assets/04 Rendery/Przyciski/palec_warstwa.py.
       // *fraza* = ciemna fraza w szarym tekście.
       story: {
         localNavLabel: 'Przyciski pojemnościowe: nawigacja produktu',
         localLinks: { overview: 'Przegląd', sizes: 'Średnice' },
         tagline: 'Start jednym dotknięciem.',
-        heroAlt: 'Palec nad okrągłym polem TOUCH czerwonej płytki przycisku pojemnościowego',
+        heroAlt: 'Trzy czerwone płytki przycisków pojemnościowych 12, 16 i 20 mm leżące schodkami okrągłym polem TOUCH do góry',
         highlights: {
           heading: 'Co go wyróżnia.',
           // Kolejność = kolejność na stronie; wide: kafel na całą szerokość, reszta parami.
@@ -623,6 +643,71 @@ export const pl = {
     stateczniki: {
       slug: 'stateczniki',
       name: 'Stateczniki',
+      // Opisy zdjęć strony Kup (klucze slajdów galerii w [configurator].astro).
+      images: {
+        statecznik: 'Statecznik z\u00a0balsy i\u00a0węgla', // + nazwy wybranych opcji w nawiasie (wersje zdjęcia)
+        konstrukcja: 'Szkielet statecznika bez pokrycia: żebra z\u00a0balsy, rurka węglowa i\u00a0końcówka',
+        mylar: 'Zbliżenie na srebrny mylar z\u00a0odciśniętymi żebrami',
+        mocowanie: 'Wcięcie krawędzi natarcia na środku statecznika ze stalowym prętem mocującym',
+        para: 'Dwa pokryte stateczniki leżące jeden za drugim',
+        gora: 'Statecznik widziany z\u00a0góry',
+        srodek: 'Część środkowa statecznika z\u00a0bliska',
+        koncowka: 'Końcówka statecznika z\u00a0bliska',
+      },
+      // Strona "Dowiedz się więcej" (StabilizersPage.astro). Teksty robocze, do potwierdzenia z klientem.
+      story: {
+        localNavLabel: 'Stateczniki: nawigacja produktu',
+        localLinks: { overview: 'Przegląd', sizes: 'Rozmiary', mounting: 'Mocowanie' },
+        tagline: 'Na wymiar Twojego modelu.',
+        heroAlt: 'Statecznik pokryty srebrnym mylarem, widziany z\u00a0góry pod kątem',
+        highlights: {
+          heading: 'Co go wyróżnia.',
+          // Kolejność i szerokość kafli: StabilizersPage.astro. {min} = minimalne zamówienie z konfiguratora.
+          tiles: {
+            construction: {
+              text: '*Balsa i\u00a0węgiel.* Żebra i\u00a0listwy z\u00a0balsy, dźwigar z\u00a0rurki węglowej. Lekki szkielet, który trzyma kształt.',
+              alt: 'Szkielet statecznika bez pokrycia: żebra z\u00a0balsy, rurka węglowa i\u00a0końcówka',
+            },
+            covering: {
+              text: '*Pokryty albo goły.* Gotowy do lotu w\u00a0srebrnym mylarze albo sam szkielet pod Twoją folię.',
+              alt: 'Statecznik w\u00a0połowie pokryty srebrnym mylarem, druga połowa to goły szkielet',
+            },
+            mylar: {
+              text: '*Srebrny mylar.* Folia naciągnięta na żebrach i\u00a0owinięta na krawędziach oraz końcówkach.',
+              alt: 'Zbliżenie na srebrny mylar z\u00a0odciśniętymi żebrami',
+            },
+            mounting: {
+              text: '*Mocowanie na środku.* Stalowy pręt we wcięciu krawędzi natarcia. Szczegóły dopasujemy do Twojego modelu.',
+              alt: 'Wcięcie krawędzi natarcia na środku pokrytego statecznika ze stalowym prętem mocującym',
+            },
+            flop: {
+              text: '*Słupek flop tam, gdzie chcesz.* Odległość od krawędzi natarcia ustalasz przy zamówieniu.',
+              alt: 'Część środkowa statecznika bez pokrycia z\u00a0otworem za rurką węglową',
+            },
+            pair: {
+              text: '*Zawsze para.* Zamawiasz od {min}\u00a0sztuk: jeden do modelu, drugi na zapas.',
+              alt: 'Dwa pokryte stateczniki leżące jeden za drugim',
+            },
+          },
+        },
+        sizes: {
+          heading: 'Porównaj rozmiary.',
+          lead: 'Cięciwa 130 albo 150\u00a0mm, szerokość 530, 600, 670 albo 750\u00a0mm: co parę pól żeber. Na rysunku wszystkie osiem w\u00a0tej samej skali: po lewej cięciwa 130, po prawej 150\u00a0mm, od góry od najwęższego.',
+          alt: 'Osiem stateczników bez pokrycia z\u00a0góry w\u00a0tej samej skali: cięciwa 130 i\u00a0150\u00a0mm, szerokość 530, 600, 670 i\u00a0750\u00a0mm',
+        },
+        // Lead sekcji = mountingNote (wspólny z konfiguratorem) + flop.
+        mounting: {
+          heading: 'Mocowanie i\u00a0słupek flop.',
+          flop: 'Napisz też, jak daleko od krawędzi natarcia ma być słupek flop.',
+          contact: 'Napisz do nas',
+        },
+        // Zakończenie strony. Z ceną: klient chce informacji o cenie na końcu strony stateczników.
+        buy: {
+          heading: 'Kup stateczniki.',
+          text: 'Niepokryty {uncovered}, pokryty srebrnym mylarem {covered}. Zamówienie od {min}\u00a0sztuk.',
+          alt: 'Dwa pokryte stateczniki leżące jeden za drugim',
+        },
+      },
       steps: {
         chord: {
           label: 'Cięciwa',
@@ -630,11 +715,11 @@ export const pl = {
         },
         width: {
           label: 'Szerokość',
-          options: { w600: '600 mm', w750: '750 mm' },
+          options: { w530: '530 mm', w600: '600 mm', w670: '670 mm', w750: '750 mm' },
         },
         covering: {
           label: 'Pokrycie',
-          options: { uncovered: 'Niepokryty', covered: 'Pokryty' },
+          options: { uncovered: 'Niepokryty', covered: 'Srebrny mylar' }, // pokrycie jest tylko w jednym wariancie
         },
       },
       mountingNote: 'W sprawie mocowania prosimy o kontakt, ponieważ potrzebny będzie rysunek.', // roboczy

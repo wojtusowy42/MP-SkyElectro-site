@@ -4,18 +4,14 @@
  * Treść rysuje Bag.svelte z localStorage, więc strona statyczna ma tylko szkielet.
  * Obok [slug].astro: Astro bierze ścieżkę z tego pliku, którego getStaticPaths ją zwraca.
  */
-import type { GetStaticPaths, ImageMetadata } from 'astro';
-import { getImage } from 'astro:assets';
-import stPcb from '../../assets/renders/skytimer-1/konfigurator/pcb.png';
+import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Bag from '../../components/configurator/Bag.svelte';
 import { LOCALES } from '../../i18n/locales.ts';
-import { getDictionary, productTexts } from '../../i18n/index.ts';
-import { accessoryPath, bagPath, configuratorPath, homePath } from '../../i18n/routes.ts';
-import { PRODUCTS } from '../../data/products/index.ts';
-import { ACCESSORIES } from '../../data/accessories.ts';
-import { accessoryImages } from '../../lib/accessory-images.ts';
+import { getDictionary } from '../../i18n/index.ts';
+import { bagPath, homePath } from '../../i18n/routes.ts';
+import { bagProducts } from '../../lib/bag-products.ts';
 import { SITE } from '../../config/site.ts';
 import { toDateKey } from '../../lib/price.ts';
 
@@ -30,81 +26,7 @@ const dict = getDictionary(locale);
 const t = dict.pages.bag;
 const c = dict.pages.configurator;
 
-/**
- * Miniatury pozycji: zdjęcia z wersjami jak na stronie Kup (match = 'krok=opcja ...'),
- * Bag.svelte wybiera to, które pasuje do wyborów (pickVersion).
- * Zestaw: kup/miniatura-<wariant>-<kolor>.jpg (timer w obudowie, przycięty: cały zestaw w małym
- * kwadracie był nieczytelny); sama płytka: render płytki.
- */
-const KITS = import.meta.glob<ImageMetadata>('../../assets/renders/*/kup/miniatura-*.jpg', {
-  eager: true,
-  import: 'default',
-});
-const PLAIN: Record<string, { src: ImageMetadata; match: string }[]> = {
-  'skytimer-1': [{ src: stPcb, match: 'type=pcb' }],
-};
-async function thumbs(product: (typeof PRODUCTS)[number]) {
-  const stepOf = new Map(
-    product.configurator!.steps.flatMap((s) => s.options.map((o) => [o.id, s.id] as const)),
-  );
-  const kits = Object.entries(KITS).flatMap(([path, src]) => {
-    if (!path.includes(`/${product.id}/kup/`)) return [];
-    const options = path.split('/').at(-1)!.replace(/\.jpg$/, '').split('-').slice(1);
-    if (options.some((o) => !stepOf.has(o))) return [];
-    return [{ src, match: ['type=kit', ...options.map((o) => `${stepOf.get(o)}=${o}`)].join(' ') }];
-  });
-  return Promise.all(
-    [...(PLAIN[product.id] ?? []), ...kits].map(async ({ src, match }) => ({
-      src: (await getImage({ src, width: 240, format: 'webp' })).src,
-      match,
-    })),
-  );
-}
-
-// Tylko produkty z konfiguratorem (tylko je da się włożyć do torby).
-const configurable = PRODUCTS.filter((p) => p.configurator);
-const thumbsOf = Object.fromEntries(
-  await Promise.all(configurable.map(async (p) => [p.id, await thumbs(p)] as const)),
-);
-const products = Object.fromEntries(
-  configurable.map((p) => {
-    const texts = productTexts(dict, p.id);
-    return [
-      p.id,
-      {
-        definition: p.configurator!,
-        texts: {
-          slug: texts.slug,
-          name: texts.name,
-          ...(texts.steps ? { steps: texts.steps } : {}),
-        },
-        href: configuratorPath(locale, p.id),
-        thumbs: thumbsOf[p.id] ?? [],
-      },
-    ];
-  }),
-);
-
-// Akcesoria: ten sam format (mały konfigurator), teksty kroków wspólne ze SkyTimer 1.
-const stepTexts = productTexts(dict, 'skytimer-1').steps ?? {};
-for (const a of ACCESSORIES) {
-  const texts = dict.accessories.items[a.id]!;
-  products[a.id] = {
-    definition: a.configurator,
-    texts: {
-      slug: texts.slug,
-      name: texts.name,
-      steps: Object.fromEntries(a.configurator.steps.map((s) => [s.id, stepTexts[s.id]!])),
-    },
-    href: accessoryPath(locale, { accessory: a.id }),
-    thumbs: await Promise.all(
-      accessoryImages(a).map(async ({ src, match }) => ({
-        src: (await getImage({ src, width: 240, format: 'webp' })).src,
-        match,
-      })),
-    ),
-  };
-}
+const products = await bagProducts(locale);
 ---
 
 <BaseLayout
@@ -131,6 +53,15 @@ for (const a of ACCESSORIES) {
         remove: t.remove,
         edit: t.edit,
         total: t.total,
+        totalSelected: t.totalSelected,
+        selectAll: t.selectAll,
+        selected: t.selected,
+        select: t.select,
+        removeSelected: t.removeSelected,
+        clear: t.clear,
+        removed: t.removed,
+        undo: t.undo,
+        nothingSelected: t.nothingSelected,
         quantity: c.quantity,
         decrease: c.decrease,
         increase: c.increase,

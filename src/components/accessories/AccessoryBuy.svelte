@@ -10,6 +10,7 @@
   import { cleanSelection, quote, type Selection } from '../../lib/configurator.ts';
   import { formatPrice } from '../../lib/price.ts';
   import { addLine, readBag, writeBag } from '../../lib/bag.ts';
+  import AddedToBag, { type AddedToBagData } from '../configurator/AddedToBag.svelte';
   import { pickVersion } from '../../lib/versions.ts';
 
   interface Props {
@@ -30,12 +31,25 @@
     };
     locale: Locale;
     bagHref: string;
+    /** Okno po włożeniu do torby: to akcesorium i polecane do niego. */
+    addedToBag: AddedToBagData;
     /** Dzień buildu 'RRRR-MM-DD': ceny jak na reszcie strony. */
     today: string;
   }
 
-  const { accessoryId, name, definition, steps, images, alt, labels, locale, bagHref, today }: Props =
-    $props();
+  const {
+    accessoryId,
+    name,
+    definition,
+    steps,
+    images,
+    alt,
+    labels,
+    locale,
+    bagHref,
+    addedToBag,
+    today,
+  }: Props = $props();
   const date = new Date(`${today}T12:00:00`);
 
   // Jak na apple.com: pierwsza opcja każdego kroku wybrana od razu.
@@ -50,9 +64,12 @@
     selection = cleanSelection(definition, { ...selection, [stepId]: optionId });
     added = false;
   }
+  let addedDialog: ReturnType<typeof AddedToBag>;
   function addToBag() {
-    writeBag(addLine(readBag(), { productId: accessoryId, selection: { ...selection }, quantity: 1 }));
+    const line = { productId: accessoryId, selection: { ...selection }, quantity: 1 };
+    writeBag(addLine(readBag(), line));
     added = true;
+    addedDialog.show(line);
   }
   const stepName = (id: string) => steps[id]?.heading?.replace(/\.$/, '') ?? id;
 </script>
@@ -110,6 +127,8 @@
     </p>
   </div>
 </div>
+
+<AddedToBag bind:this={addedDialog} {...addedToBag} {locale} {bagHref} {today} />
 
 <style>
   .buy {

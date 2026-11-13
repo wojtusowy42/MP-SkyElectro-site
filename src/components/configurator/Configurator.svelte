@@ -24,6 +24,7 @@
   } from '../../lib/configurator.ts';
   import { activePromo, currentPrice, formatPrice } from '../../lib/price.ts';
   import { addLine, readBag, writeBag } from '../../lib/bag.ts';
+  import AddedToBag, { type AddedToBagData } from './AddedToBag.svelte';
 
   interface Labels {
     summary: string;
@@ -48,6 +49,8 @@
     productId: string;
     /** Adres strony torby. */
     bagHref: string;
+    /** Okno po włożeniu do torby: ten produkt i polecane akcesoria. */
+    addedToBag: AddedToBagData;
     definition: ConfiguratorDefinition;
     texts: ProductTexts;
     labels: Labels;
@@ -66,6 +69,7 @@
   const {
     productId,
     bagHref,
+    addedToBag,
     definition,
     texts,
     labels,
@@ -158,9 +162,12 @@
     void [clean, quantity];
     added = false;
   });
+  let addedDialog: ReturnType<typeof AddedToBag>;
   function addToBag() {
-    writeBag(addLine(readBag(), { productId, selection: { ...clean }, quantity }));
+    const line = { productId, selection: { ...clean }, quantity };
+    writeBag(addLine(readBag(), line));
     added = true;
+    addedDialog.show(line);
   }
 
   /** Najniższa cena z 30 dni (Omnibus) dla wybranych opcji w promocji. */
@@ -321,6 +328,8 @@
     <div class="summary-space" aria-hidden="true"></div>
   {/if}
 </div>
+
+<AddedToBag bind:this={addedDialog} {...addedToBag} {locale} {bagHref} {today} />
 
 <style>
   .configurator {

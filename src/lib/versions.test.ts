@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pickVersion } from './versions.ts';
+import { pickVersion, slideHidden } from './versions.ts';
 
 describe('wersje zdjęć', () => {
   const slide = ['color=blue', 'color=orange', 'variant=v1 color=blue', 'variant=v2 color=orange'];
@@ -26,4 +26,23 @@ describe('miniatury w torbie', () => {
     expect(
       pickVersion(thumbs, { type: 'kit', variant: 'v2', color: 'blue', screws: 'blackened' }),
     ).toBe(3));
+});
+
+describe('slajdy galerii', () => {
+  const steps = ['chord', 'width', 'covering'];
+  const all = { chord: 'c130', width: 'w600', covering: 'covered' };
+
+  it('detal ogólny (complete=false): widoczny do wybrania wszystkiego', () => {
+    expect(slideHidden(undefined, 'false', { chord: 'c130' }, steps)).toBe(false);
+    expect(slideHidden(undefined, 'false', all, steps)).toBe(true);
+  });
+  it('zdjęcie konfiguracji (complete=true): dopiero po wybraniu wszystkiego', () => {
+    expect(slideHidden(undefined, 'true', {}, steps)).toBe(true);
+    expect(slideHidden(undefined, 'true', all, steps)).toBe(false);
+  });
+  it('only: schowany przy innym wyborze, bez complete zawsze widoczny', () => {
+    expect(slideHidden('chord=c150', undefined, all, steps)).toBe(true);
+    expect(slideHidden('chord=c130', undefined, all, steps)).toBe(false);
+    expect(slideHidden(undefined, undefined, {}, steps)).toBe(false);
+  });
 });

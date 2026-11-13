@@ -2,6 +2,8 @@
   Torba (wzór: torba na apple.com, bez płatności). Pozycje z localStorage (src/lib/bag.ts),
   ceny liczone na nowo z danych produktów (quote), zamówienie jednym mailem.
   Pozycja produktu, którego już nie ma albo z wyborami, które przestały pasować, jest pomijana.
+  Zaznaczanie: zamówienie i suma obejmują tylko zaznaczone pozycje (domyślnie wszystkie), reszta czeka w torbie.
+  Nad listą: zaznacz wszystko, usuń zaznaczone, opróżnij torbę. Każde usunięcie można cofnąć.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
@@ -26,6 +28,15 @@
     remove: string;
     edit: string;
     total: string;
+    totalSelected: string;
+    selectAll: string;
+    selected: string;
+    select: string;
+    removeSelected: string;
+    clear: string;
+    removed: string;
+    undo: string;
+    nothingSelected: string;
     quantity: string;
     decrease: string;
     increase: string;
@@ -62,6 +73,13 @@
 
   let lines = $state<BagLine[]>([]);
   let loaded = $state(false);
+  /** Pozycje odznaczone (klucz pozycji). Nie zapisujemy: po przeładowaniu znów wszystko zaznaczone. */
+  let unchecked = $state<string[]>([]);
+  /** Stan sprzed ostatniego usunięcia, do "Cofnij". */
+  let removed = $state<{ lines: BagLine[]; count: number } | null>(null);
+  // Torba łączy takie same pozycje (addLine), więc produkt + wybory to unikalny klucz.
+  const keyOf = (l: BagLine) =>
+    `${l.productId}|${Object.entries(l.selection).sort().join(';')}`;
   onMount(() => {
     lines = readBag();
     loaded = true;
@@ -100,6 +118,8 @@
       return [
         {
           index,
+          key: keyOf(line),
+          checked: !unchecked.includes(keyOf(line)),
           line,
           product,
           choices,
@@ -109,28 +129,48 @@
       ];
     }),
   );
+  const chosen = $derived(rows.filter((r) => r.checked));
   const total = $derived(
-    rows.some((r) => r.price.total === null)
+    chosen.some((r) => r.price.total === null)
       ? null
-      : rows.reduce((sum, r) => sum + (r.price.total ?? 0), 0),
+      : chosen.reduce((sum, r) => sum + (r.price.total ?? 0), 0),
   );
 
   function update(next: BagLine[]) {
     lines = next;
     writeBag(next);
   }
-  const setQuantity = (index: number, quantity: number) =>
+  const setQuantity = (index: number, quantity: number) => {
+    removed = null;
     update(lines.map((l, i) => (i === index ? { ...l, quantity } : l)));
-  const remove = (index: number) => update(lines.filter((_, i) => i !== index));
+  };
+  /** Usuwa pozycje o podanych indeksach i zapamiętuje poprzedni stan do cofnięcia. */
+  function removeLines(indexes: number[]) {
+    if (indexes.length === 0) return;
+    removed = { lines, count: indexes.length };
+    update(lines.filter((_, i) => !indexes.includes(i)));
+    unchecked = unchecked.filter((k) => lines.some((l) => keyOf(l) === k));
+  }
+  const remove = (index: number) => removeLines([index]);
+  const removeChosen = () => removeLines(chosen.map((r) => r.index));
+  const clear = () => removeLines(rows.map((r) => r.index));
+  function undo() {
+    if (!removed) return;
+    update(removed.lines);
+    removed = null;
+  }
+  const toggle = (key: string, on: boolean) =>
+    (unchecked = on ? unchecked.filter((k) => k !== key) : [...unchecked, key]);
+  const toggleAll = (on: boolean) => (unchecked = on ? [] : rows.map((r) => r.key));
 
   const fill = (template: string, vars: Record<string, string>) =>
     template.replace(/\{(\w+)\}/g, (m, k: string) => vars[k] ?? m);
 
   /** Jeden mail z całą torbą: każda pozycja z wyborami, ilością i ceną, na końcu suma. */
   const orderHref = $derived.by(() => {
-    if (!orderEmail || rows.length === 0) return null;
+    if (!orderEmail || chosen.length === 0) return null;
     const body = [labels.orderIntro, ''];
-    for (const r of rows) {
+    for (const r of chosen) {
       body.push(
         r.product.texts.name,
         ...r.choices.map((c) => `${c.step}: ${c.option}`),
@@ -147,14 +187,47 @@
 <div class="bag">
   <h1 class="bag__heading">{labels.heading}</h1>
 
+  <!-- zawsze w drzewie, żeby czytnik ekranu ogłosił usunięcie; "Cofnij" działa też po opróżnieniu torby -->
+  <p class="bag__removed" role="status">
+    {#if removed}
+      {fill(labels.removed, { n: String(removed.count) })}
+      <button type="button" onclick={undo}>{labels.undo}</button>
+    {/if}
+  </p>
+
   {#if loaded && rows.length === 0}
     <p class="bag__empty">{labels.empty}</p>
     <a class="bag__button" href={homeHref}>{labels.continue}</a>
   {:else if loaded}
+    <div class="bag__tools">
+      <label class="bag__all">
+        <input
+          type="checkbox"
+          checked={chosen.length === rows.length}
+          indeterminate={chosen.length > 0 && chosen.length < rows.length}
+          onchange={(e) => toggleAll(e.currentTarget.checked)}
+        />
+        {labels.selectAll}
+      </label>
+      <span class="bag__count">
+        {fill(labels.selected, { n: String(chosen.length), total: String(rows.length) })}
+      </span>
+      <button type="button" disabled={chosen.length === 0} onclick={removeChosen}>
+        {labels.removeSelected}
+      </button>
+      <button type="button" onclick={clear}>{labels.clear}</button>
+    </div>
     <ul class="bag__list">
-      {#each rows as row (row.index)}
+      {#each rows as row (row.key)}
         {@const def = row.product.definition}
-        <li class="line">
+        <li class="line" class:line--off={!row.checked}>
+          <input
+            class="line__check"
+            type="checkbox"
+            checked={row.checked}
+            aria-label={fill(labels.select, { name: row.product.texts.name })}
+            onchange={(e) => toggle(row.key, e.currentTarget.checked)}
+          />
           <!-- obok jest nazwa i wybory, więc zdjęcie bez opisu -->
           <div class="line__thumb">
             {#if row.thumb}<img src={row.thumb.src} alt="" loading="lazy" />{/if}
@@ -215,10 +288,12 @@
     </ul>
 
     <div class="bag__total">
-      <span>{labels.total}</span>
+      <span>{chosen.length < rows.length ? labels.totalSelected : labels.total}</span>
       <span>{total === null ? labels.priceOnRequest : fmt(total)}</span>
     </div>
-    {#if orderHref}
+    {#if chosen.length === 0}
+      <p class="bag__note">{labels.nothingSelected}</p>
+    {:else if orderHref}
       <a class="bag__button bag__button--wide" href={orderHref}>{labels.orderButton}</a>
       <p class="bag__note">{labels.orderNote}</p>
     {/if}
@@ -267,8 +342,72 @@
     outline-offset: 3px;
   }
 
+  /* Pasek nad listą: zaznacz wszystko | ile zaznaczonych | usuń zaznaczone | opróżnij */
+  .bag__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    padding-bottom: 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .bag__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .bag__count {
+    margin-right: auto;
+    color: var(--color-text-2);
+  }
+
+  .bag__tools button,
+  .bag__removed button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .bag__tools button:disabled {
+    color: var(--color-text-2);
+    text-decoration: none;
+    cursor: default;
+  }
+
+  .bag input[type='checkbox'] {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: var(--color-text);
+    cursor: pointer;
+  }
+
+  /* Komunikat po usunięciu; wysokość zarezerwowana tylko, gdy jest treść */
+  .bag__removed:not(:empty) {
+    margin-top: 1.5rem;
+    padding: 0.875rem 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--color-bg);
+    font-size: 0.9375rem;
+  }
+
+  .bag__removed button {
+    margin-left: 0.5rem;
+    font-weight: 600;
+  }
+
   .bag__list {
-    margin: clamp(2rem, 5vw, 3.5rem) 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
     border-top: 1px solid var(--color-line);
@@ -277,12 +416,24 @@
   /* Pozycja: zdjęcie | opis | ilość | cena; na telefonie ilość i cena pod opisem. */
   .line {
     display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr) auto auto;
-    grid-template-areas: 'thumb main qty price';
+    grid-template-columns: auto 7.5rem minmax(0, 1fr) auto auto;
+    grid-template-areas: 'check thumb main qty price';
     align-items: start;
     gap: 1.5rem;
     padding-block: 2rem;
     border-bottom: 1px solid var(--color-line);
+  }
+
+  .line__check {
+    grid-area: check;
+    align-self: center;
+  }
+
+  /* odznaczona pozycja zostaje w torbie, ale nie wchodzi do zamówienia */
+  .line--off .line__thumb,
+  .line--off .line__main,
+  .line--off .line__price {
+    opacity: 0.5;
   }
 
   .line__thumb {
@@ -428,10 +579,10 @@
 
   @media (max-width: 599px) {
     .line {
-      grid-template-columns: 5.5rem auto minmax(0, 1fr);
+      grid-template-columns: auto 5.5rem auto minmax(0, 1fr);
       grid-template-areas:
-        'thumb main main'
-        '. qty price';
+        'check thumb main main'
+        '. . qty price';
       gap: 1rem;
     }
   }

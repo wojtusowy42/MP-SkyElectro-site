@@ -26,6 +26,7 @@ import { accessoryPath, bagPath } from '../../../i18n/routes.ts';
 import { accessoryForKitItem } from '../../../data/accessories.ts';
 import { Picture } from 'astro:assets';
 import { currentPrice, formatPrice, toDateKey } from '../../../lib/price.ts';
+import { addedToBagData } from '../../../lib/bag-products.ts';
 import stPcb from '../../../assets/renders/skytimer-1/konfigurator/pcb.png';
 import stPcbTop from '../../../assets/renders/skytimer-1/konfigurator/pcb-top.png';
 import stPcbBack from '../../../assets/renders/skytimer-1/konfigurator/pcb-back.png';
@@ -34,6 +35,13 @@ import btnSizes from '../../../assets/renders/przyciski/kup/srednice.jpg';
 import btnTouch from '../../../assets/renders/przyciski/dotyk.jpg';
 import btnWires from '../../../assets/renders/przyciski/kup/przewody.jpg';
 import btnEdge from '../../../assets/renders/przyciski/kup/krawedz.jpg';
+import stabConstruction from '../../../assets/renders/stateczniki/konstrukcja.jpg';
+import stabMylar from '../../../assets/renders/stateczniki/mylar.jpg';
+import stabMounting from '../../../assets/renders/stateczniki/mocowanie.jpg';
+import stabPair from '../../../assets/renders/stateczniki/para.jpg';
+
+/** Folder renderów produktu w src/assets/renders, gdy nie nazywa się jak id produktu. */
+const RENDER_DIRS: Record<string, string> = { 'przyciski-pojemnosciowe': 'przyciski' };
 
 /** Rendery w wersjach: ścieżka → zdjęcie. Nazwa pliku = klucz opisu + id opcji, które pokazuje. */
 const VERSIONS = import.meta.glob<ImageMetadata>('../../../assets/renders/*/kup/*.jpg', {
@@ -59,6 +67,8 @@ type Slide = ({ key: string; src: ImageMetadata } | { versions: string[] }) & {
   only?: string;
   /** Zdjęcie wypełnia całą kartę (cień albo kadr dochodzi do brzegu pliku, więc brzeg nie może być widać). */
   fill?: boolean;
+  /** true: dopiero po wybraniu wszystkich kroków; false: tylko do tego momentu. */
+  complete?: boolean;
 };
 const GALLERIES: Record<string, Slide[]> = {
   'skytimer-1': [
@@ -82,6 +92,20 @@ const GALLERIES: Record<string, Slide[]> = {
     { key: 'dotyk', src: btnTouch },
     { key: 'przewody', src: btnWires },
     { key: 'krawedz', src: btnEdge },
+  ],
+  // Rendery: Raw Assets/03 Modele 3D/Blender/rendery_statecznik_strona.py (warianty: kup/*.jpg, reszta: kafle strony),
+  // na stronę: Raw Assets/04 Rendery/Stateczniki/strona_na_strone.sh.
+  stateczniki: [
+    // na start 130x530 i 130x600 (kup/statecznik.jpg); po wyborze wybrany rozmiar, pokryty albo goły (ta sama skala)
+    { versions: ['statecznik'], show: ['c130', 'c150', 'w530', 'w600', 'w670', 'w750', 'uncovered', 'covered'] },
+    // detale ogólne tylko do wybrania wszystkiego; potem same zdjęcia wybranej konfiguracji
+    { key: 'konstrukcja', src: stabConstruction, complete: false },
+    { key: 'mylar', src: stabMylar, complete: false },
+    { key: 'mocowanie', src: stabMounting, complete: false },
+    { key: 'para', src: stabPair, complete: false },
+    { versions: ['gora'], complete: true },
+    { versions: ['srodek'], complete: true },
+    { versions: ['koncowka'], complete: true },
   ],
 };
 
@@ -153,7 +177,7 @@ function versionPictures(keys: string[], altFor: (key: string) => string) {
         .split('/')
         .at(-1)!
         .replace(/\.jpg$/, '');
-      if (!path.includes(`/${product.id}/kup/`)) return [];
+      if (!path.includes(`/${RENDER_DIRS[product.id] ?? product.id}/kup/`)) return [];
       if (name !== key && !name.startsWith(`${key}-`)) return [];
       const options = name === key ? [] : name.slice(key.length + 1).split('-');
       const steps = options.map((o) => optionStep.get(o));
@@ -171,6 +195,8 @@ function versionPictures(keys: string[], altFor: (key: string) => string) {
       ];
     }),
   );
+  // Pusty slajd wyglądał jak zepsuta galeria (przyciski: folder renderów miał inną nazwę niż id produktu).
+  if (pictures.length === 0) throw new Error(`${product.id}: brak zdjęć kup/${keys.join(', ')}*.jpg`);
   return pictures.sort((a, b) => a.order - b.order).map(({ order: _, ...p }) => p);
 }
 
@@ -180,6 +206,7 @@ const gallery = (GALLERIES[product.id] ?? []).map((slide) => {
     ...(slide.showAt ? { showAt: slide.showAt } : {}),
     ...(slide.fill ? { fill: true } : {}),
     ...(slide.only ? { only: slide.only } : {}),
+    ...(slide.complete !== undefined ? { complete: slide.complete } : {}),
   };
   if ('src' in slide) {
     return {
@@ -282,6 +309,7 @@ const fromPrice =
                 next: labels.galleryNext,
                 dot: labels.galleryDot,
               }}
+              steps={definition.steps.map((s) => s.id)}
             />
           )}
         </div>
@@ -292,6 +320,7 @@ const fromPrice =
           client:load
           productId={product.id}
           bagHref={bagPath(locale)}
+          addedToBag={await addedToBagData(locale, product.id)}
           definition={definition}
           texts={{
             slug: texts.slug,

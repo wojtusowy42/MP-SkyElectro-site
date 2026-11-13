@@ -65,3 +65,29 @@ export const ACCESSORIES: Accessory[] = [
 
 /** Akcesorium, które jest daną pozycją zestawu (nazwa elementu z Kit / strony Kup). */
 export const accessoryForKitItem = (image: string) => ACCESSORIES.find((a) => a.image === image);
+
+/**
+ * Akcesoria polecane w oknie "Dodano do torby", w kolejności ważności. Klucz: id produktu albo kategoria akcesoriów.
+ * SkyTimer 1 (zestaw ma już wszystko, więc tylko to, co realnie się dokupuje):
+ *   akumulator: zapas na cały dzień lotów,
+ *   moduł zasilania: do drugiego modelu (timer przekładasz, włącznik z przewodami zostaje w wieżyczce),
+ *   śrubki: M2 łatwo zgubić w trawie,
+ *   ładowarka: rezerwowa pozycja, gdy klient wkłada do torby jedną z powyższych.
+ * Przyciski i stateczniki: nic. Przycisk pojemnościowy wymaga zmodyfikowanego modułu zasilania, a w akcesoriach jest zwykły.
+ */
+const RECOMMENDED: Record<string, string[]> = {
+  'skytimer-1': ['akumulator', 'modul-zasilania', 'zestaw-srubek', 'ladowarka'],
+};
+
+/** Do trzech akcesoriów pasujących do właśnie dodanej pozycji (bez niej samej). */
+export function recommendedFor(id: string): Accessory[] {
+  const key = ACCESSORIES.find((a) => a.id === id)?.category ?? id;
+  return (RECOMMENDED[key] ?? [])
+    .filter((a) => a !== id)
+    .slice(0, 3)
+    .map((a) => {
+      const found = ACCESSORIES.find((x) => x.id === a);
+      if (!found) throw new Error(`Polecane akcesorium ${a} nie istnieje`);
+      return found;
+    });
+}

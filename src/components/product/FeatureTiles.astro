@@ -1,0 +1,104 @@
+---
+/**
+ * Kafle "Co go wyróżnia" jasnych stron produktu: białe kafle z tekstem u góry i renderem do dolnej krawędzi.
+ * wide = kafel na cały rząd, reszta parami (na telefonie wszystkie w jednej kolumnie).
+ * text: *pogrubienie* jak w richText; fade: render urywa się na krawędzi (true: prawa i górna, np. dłoń wychodząca z kadru;
+ *   'sides': lewa i prawa, np. statecznik dłuższy niż kadr).
+ */
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import { richText } from '../../i18n/rich-text.ts';
+
+interface Props {
+  tiles: { text: string; alt: string; image: ImageMetadata; wide?: boolean; fade?: boolean | 'sides' }[];
+}
+
+const { tiles } = Astro.props;
+---
+
+<ul class="tiles" role="list">
+  {
+    tiles.map(({ text, alt, image, wide, fade }) => (
+      <li class:list={['tile', wide && 'tile--wide']}>
+        <p class="tile__text" set:html={richText(text)} />
+        <Picture
+          class:list={['tile__img', fade === true && 'tile__img--fade', fade === 'sides' && 'tile__img--fade-sides']}
+          src={image}
+          alt={alt}
+          widths={wide ? [800, 1300, 1900] : [500, 800, 1100]}
+          sizes={wide ? '(max-width: 1068px) 92vw, 920px' : '(max-width: 734px) 92vw, 450px'}
+          formats={['avif', 'webp']}
+          quality={80}
+          loading="lazy"
+        />
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: clamp(1.75rem, 3.5vw, 2.75rem);
+    border-radius: 1.75rem;
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .tile--wide {
+    grid-column: 1 / -1;
+  }
+
+  .tile__text {
+    max-width: 34rem;
+    color: var(--color-text-2);
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .tile__text :global(strong) {
+    color: var(--color-text);
+    font-weight: inherit;
+  }
+
+  /* Render na dole kafla, do jego krawędzi (bez dolnego marginesu, jak u Apple). */
+  .tile :global(.tile__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: auto;
+  }
+
+  .tile--wide :global(.tile__img) {
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+
+  .tile :global(.tile__img--fade) {
+    mask-image: linear-gradient(to left, transparent, #000 12%), linear-gradient(to bottom, transparent, #000 8%);
+    mask-composite: intersect;
+  }
+
+  .tile :global(.tile__img--fade-sides) {
+    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  }
+
+  @media (max-width: 734px) {
+    .tiles {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

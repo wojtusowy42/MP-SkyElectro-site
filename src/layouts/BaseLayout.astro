@@ -62,6 +62,6 @@ const fullTitle = title === SITE.name ? title : `${title} | ${SITE.name}`;
   </head>
   <body data-theme={theme}>
     <slot />
-    <SiteFooter locale={locale} />
+    <SiteFooter locale={locale} alternates={alternates} />
   </body>
 </html>

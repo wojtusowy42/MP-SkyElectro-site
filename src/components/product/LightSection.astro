@@ -1,0 +1,42 @@
+---
+/**
+ * Sekcja jasnych stron "Dowiedz się więcej" (przyciski, stateczniki): nagłówek, opcjonalny lead, treść w slocie.
+ * id = kotwica z paska produktu (LocalNav).
+ */
+interface Props {
+  id: string;
+  heading: string;
+  lead?: string;
+}
+
+const { id, heading, lead } = Astro.props;
+---
+
+<section class="section" id={id} aria-labelledby={`${id}-title`}>
+  <h2 class="section__heading" id={`${id}-title`}>{heading}</h2>
+  {lead && <p class="section__lead">{lead}</p>}
+  <slot />
+</section>
+
+<style>
+  .section {
+    max-width: calc(var(--content-max) + 2 * var(--gutter));
+    margin: clamp(5rem, 10vw, 8rem) auto 0;
+    padding-inline: var(--gutter);
+    scroll-margin-top: var(--local-nav-height);
+  }
+
+  .section__heading {
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+  }
+
+  .section__lead {
+    max-width: 46rem;
+    margin-top: 0.75rem;
+    color: var(--color-text-2);
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  }
+</style>

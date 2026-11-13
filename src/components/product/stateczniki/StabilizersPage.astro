@@ -1,0 +1,236 @@
+---
+/**
+ * Strona "Dowiedz się więcej" stateczników. Jasna, kafelkowa jak strona przycisków:
+ * hero → "Co go wyróżnia" (kafle) → porównanie rozmiarów → mocowanie i słupek flop → Kup (z ceną, zgodnie z notatkami klienta).
+ * Rendery kafli i rozmiarów: Raw Assets/03 Modele 3D/Blender/rendery_statecznik_strona.py, na stronę:
+ *   Raw Assets/04 Rendery/Stateczniki/strona_na_strone.sh (kafle na biel, para do Kup na tło strony).
+ *   Kafel "pokryty albo goły" = render pół na pół ze strony głównej, spłaszczony na biel.
+ * Hero: wideo z Blendera "pokrycie na żywo" (Raw Assets/03 Modele 3D/Blender/rendery_statecznik_pokrycie.py,
+ * kodowanie: Raw Assets/04 Rendery/Stateczniki/hero_na_strone.sh): goły szkielet, srebrny mylar przesuwa się wzdłuż rozpiętości.
+ * Odtwarza się raz i zostaje na ostatniej klatce. Pod wideo ostatnia klatka jako obraz (bez JS, ograniczenie ruchu, zablokowany autoplay).
+ * shortcut: hero (znaczniki, style, skrypt) skopiowane z ButtonsPage.astro; wydzielić wspólny komponent przy trzeciej jasnej stronie.
+ */
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import LocalNav from '../LocalNav.astro';
+import LightSection from '../LightSection.astro';
+import FeatureTiles from '../FeatureTiles.astro';
+import LightBuy from '../LightBuy.astro';
+import type { Locale } from '../../../i18n/locales.ts';
+import { format, getDictionary } from '../../../i18n/index.ts';
+import { configuratorPath, pathFor } from '../../../i18n/routes.ts';
+import { formatPrice } from '../../../lib/price.ts';
+import { stateczniki } from '../../../data/products/stateczniki.ts';
+import heroCovered from '../../../assets/renders/stateczniki/hero-pokrycie.jpg';
+import constructionImage from '../../../assets/renders/stateczniki/konstrukcja.jpg';
+import halfImage from '../../../assets/renders/stateczniki/pokryty-goly.jpg';
+import mylarImage from '../../../assets/renders/stateczniki/mylar.jpg';
+import mountingImage from '../../../assets/renders/stateczniki/mocowanie.jpg';
+import flopImage from '../../../assets/renders/stateczniki/flop.jpg';
+import pairImage from '../../../assets/renders/stateczniki/para.jpg';
+import pairBuyImage from '../../../assets/renders/stateczniki/para-kup.jpg';
+import sizesImage from '../../../assets/renders/stateczniki/rozmiary.jpg';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const dict = getDictionary(locale);
+const texts = dict.products.stateczniki;
+const t = texts.story;
+const buyHref = configuratorPath(locale, 'stateczniki');
+const contactHref = pathFor(locale, { kind: 'page', id: 'contact' });
+
+// Ceny i minimalne zamówienie z konfiguratora, żeby tekst nie rozjechał się z ofertą.
+const config = stateczniki.configurator!;
+const covering = config.steps.find((s) => s.id === 'covering')!.options;
+const price = (id: string) => formatPrice(covering.find((o) => o.id === id)!.price!.regular!, locale);
+const min = config.quantity!.min;
+
+const tl = t.highlights.tiles;
+const tiles = (
+  [
+    { id: 'construction', image: constructionImage, wide: true },
+    { id: 'covering', image: halfImage },
+    { id: 'mylar', image: mylarImage },
+    { id: 'mounting', image: mountingImage, wide: true, fade: 'sides' as const },
+    { id: 'flop', image: flopImage, fade: 'sides' as const },
+    { id: 'pair', image: pairImage },
+  ] satisfies { id: keyof typeof tl; image: ImageMetadata; wide?: boolean; fade?: 'sides' }[]
+).map((tile) => ({ ...tile, text: format(tl[tile.id].text, { min }), alt: tl[tile.id].alt }));
+---
+
+<div class="stabilizers" data-theme="light">
+  <LocalNav
+    title={texts.name}
+    label={t.localNavLabel}
+    links={[
+      { label: t.localLinks.overview, href: '#przeglad' },
+      { label: t.localLinks.sizes, href: '#rozmiary' },
+      { label: t.localLinks.mounting, href: '#mocowanie' },
+    ]}
+    orderHref={buyHref}
+    orderLabel={dict.common.buy}
+  />
+
+  <section class="hero">
+    <h1 class="hero__name">{texts.name}</h1>
+    <p class="hero__tagline">{t.tagline}</p>
+    <div class="hero__stage">
+      <Picture
+        class="hero__img"
+        src={heroCovered}
+        alt={t.heroAlt}
+        widths={[800, 1280, 1920]}
+        sizes="(max-width: 47.99em) 180vw, 100vw"
+        formats={['avif', 'webp']}
+        quality={82}
+        loading="eager"
+      />
+      <video class="hero__video" muted playsinline preload="auto" aria-hidden="true" data-hero-video>
+        {/* Na razie tylko 1920 px (szybki render). Wersja 2880 dla ekranów HiDPI: patrz hero_na_strone.sh. */}
+        <source src="/video/stateczniki/pokrycie-1920.webm" type='video/webm; codecs="av01.0.09M.08"' />
+        <source src="/video/stateczniki/pokrycie-1920.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <a class="button button--primary" href={buyHref}>{dict.common.buy}</a>
+  </section>
+
+  <LightSection id="przeglad" heading={t.highlights.heading}>
+    <FeatureTiles tiles={tiles} />
+  </LightSection>
+
+  <LightSection id="rozmiary" heading={t.sizes.heading} lead={t.sizes.lead}>
+    <div class="card">
+      {/* Wszystkie osiem rozmiarów w tej samej skali, z góry, bez folii (widać liczbę pól żeber). */}
+      <Picture
+        class="card__img"
+        src={sizesImage}
+        alt={t.sizes.alt}
+        widths={[800, 1300, 1900]}
+        sizes="(max-width: 1068px) 92vw, 920px"
+        formats={['avif', 'webp']}
+        quality={80}
+        loading="lazy"
+      />
+    </div>
+  </LightSection>
+
+  <LightSection id="mocowanie" heading={t.mounting.heading} lead={`${texts.mountingNote} ${t.mounting.flop}`}>
+    <a class="button button--secondary mounting__contact" href={contactHref}>{t.mounting.contact}</a>
+  </LightSection>
+
+  <LightBuy
+    image={pairBuyImage}
+    alt={t.buy.alt}
+    heading={t.buy.heading}
+    text={format(t.buy.text, { uncovered: price('uncovered'), covered: price('covered'), min })}
+    href={buyHref}
+    label={dict.common.buy}
+  />
+</div>
+
+<script>
+  // Wideo przykrywa obraz dopiero, gdy da się je odtworzyć (pierwsza klatka: goły szkielet), i rusza po krótkiej chwili.
+  // Ostatnia klatka = obraz pod spodem, więc po zakończeniu nic nie przeskakuje.
+  const video = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+  if (video && matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const start = () => {
+      video.classList.add('is-shown');
+      setTimeout(() => video.play().catch(() => video.classList.remove('is-shown')), 600);
+    };
+    if (video.readyState >= 3) start();
+    else video.addEventListener('canplaythrough', start, { once: true });
+    video.addEventListener('error', () => video.classList.remove('is-shown'), true);
+  }
+</script>
+
+<style>
+  .stabilizers {
+    --button-fill: var(--color-text);
+    --button-ink: var(--color-surface);
+    --button-fill-hover: #000;
+    --button-line: var(--color-text);
+    padding-bottom: clamp(5rem, 10vw, 8rem);
+    background: #f6f6f6; /* dokładnie kolor tła renderu hero */
+    color: var(--color-text);
+    overflow-x: clip;
+  }
+
+  .card {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    border-radius: 1.75rem;
+    background: var(--color-surface);
+  }
+
+  .card :global(.card__img) {
+    display: block;
+    width: 100%;
+    max-width: 52rem;
+    height: auto;
+    margin-inline: auto;
+  }
+
+  .mounting__contact {
+    margin-top: 1.75rem;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    justify-items: center;
+    padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter) clamp(1.5rem, 4vw, 2.5rem);
+    text-align: center;
+  }
+
+  @media (min-width: 48em) {
+    .hero {
+      min-height: calc(100svh - 2.75rem - var(--local-nav-height));
+    }
+  }
+
+  .hero__name {
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .hero__tagline {
+    margin-top: 0.5rem;
+    font-size: clamp(2.5rem, 1.4rem + 4.6vw, 4.75rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  /* Kadr 3:1 na całą szerokość ekranu. Statecznik zajmuje prawie całą szerokość kadru, więc scena nie może być węższa niż kadr:
+     inaczej niż przy przyciskach wysokość zawsze wynika z szerokości (contain zamiast cover). */
+  .hero__stage {
+    position: relative;
+    align-self: center;
+    width: min(100vw, 1920px);
+    aspect-ratio: 3 / 1;
+    margin-block: clamp(1rem, 3vw, 2rem);
+    overflow: hidden;
+  }
+
+  .hero__stage :global(.hero__img),
+  .hero__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero__video {
+    opacity: 0;
+  }
+
+  .hero__video:global(.is-shown) {
+    opacity: 1;
+  }
+</style>

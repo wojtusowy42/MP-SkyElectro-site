@@ -3,9 +3,10 @@
  */
 import type { Locale } from './locales.ts';
 import { pl, type Dictionary } from './dictionaries/pl.ts';
+import { en } from './dictionaries/en.ts';
 
 /** Słowniki włączonych języków. Nowy język: import + wpis tutaj. */
-const DICTIONARIES: Record<Locale, Dictionary> = { pl };
+const DICTIONARIES: Record<Locale, Dictionary> = { pl, en };
 
 export function getDictionary(locale: Locale): Dictionary {
   return DICTIONARIES[locale];

@@ -24,18 +24,22 @@ interface Props {
     showAt?: string;
     /** Slajd tylko dla tych wyborów ('krok=opcja' po spacji); gdy klient wybrał coś innego, znika razem z kropką. */
     only?: string;
+    /** true: slajd dopiero po wybraniu wszystkich kroków (steps); false: tylko do tego momentu. */
+    complete?: boolean;
     /** Zdjęcie przycięte do całej karty (object-fit: cover) zamiast całego w środku. */
     fill?: boolean;
   }[];
   labels: { prev: string; next: string; dot: string };
+  /** Id kroków konfiguratora: wszystkie wybrane = konfiguracja kompletna (slajdy z complete). */
+  steps?: string[];
 }
 
-const { images, labels } = Astro.props;
+const { images, labels, steps = [] } = Astro.props;
 const dotLabel = (n: number) =>
   labels.dot.replace('{n}', String(n)).replace('{total}', String(images.length));
 ---
 
-<div class="gallery" data-gallery>
+<div class="gallery" data-gallery data-steps={steps.join(' ')}>
   <div class="gallery__track" data-track tabindex="0">
     {images.map((image, i) => (
       <div
@@ -45,6 +49,8 @@ const dotLabel = (n: number) =>
         data-show={image.show?.join(' ')}
         data-show-at={image.showAt}
         data-only={image.only}
+        data-complete={image.complete === undefined ? undefined : String(image.complete)}
+        hidden={image.complete === true}
       >
         {image.pictures.map((picture, n) => (
           <div class="gallery__picture" data-match={picture.match} hidden={n > 0}>
@@ -77,6 +83,7 @@ const dotLabel = (n: number) =>
             data-dot={i}
             aria-label={dotLabel(i + 1)}
             aria-current={i === 0 ? 'true' : undefined}
+            hidden={images[i]!.complete === true}
           />
         ))}
       </div>
@@ -88,6 +95,8 @@ const dotLabel = (n: number) =>
 </div>
 
 <script>
+  import { slideHidden } from '../../lib/versions.ts';
+
   for (const gallery of document.querySelectorAll<HTMLElement>('[data-gallery]')) {
     const track = gallery.querySelector<HTMLElement>('[data-track]');
     const prev = gallery.querySelector<HTMLButtonElement>('[data-prev]');
@@ -129,15 +138,8 @@ const dotLabel = (n: number) =>
     let previous: string[] = [];
     window.addEventListener('configurator:change', (e) => {
       const selection = (e as CustomEvent<Record<string, string>>).detail;
-      for (const s of slides) {
-        s.hidden = (s.dataset.only ?? '')
-          .split(' ')
-          .filter(Boolean)
-          .some((pair) => {
-            const [step, opt] = pair.split('=') as [string, string];
-            return selection[step] !== undefined && selection[step] !== opt;
-          });
-      }
+      const steps = (gallery.dataset.steps ?? '').split(' ').filter(Boolean);
+      for (const s of slides) s.hidden = slideHidden(s.dataset.only, s.dataset.complete, selection, steps);
       const values = Object.values(selection);
       const changed = values.filter((v) => !previous.includes(v));
       previous = values;
